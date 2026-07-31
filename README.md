@@ -36,7 +36,7 @@ Le build complet compile tout LFS et dure généralement plusieurs heures.
 ## Construire le root filesystem
 
 ```bash
-cd examples/lfs/rootfs
+cd rootfs
 xbee show model
 xbee build
 ```
@@ -63,7 +63,7 @@ Le builder exporte :
 Le builder `image` référence automatiquement le builder `rootfs`.
 
 ```bash
-cd examples/lfs/image
+cd image
 xbee show build
 xbee build
 ```

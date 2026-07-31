@@ -10,47 +10,69 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/iodasolutions/xbee-common/newfs"
-	"github.com/iodasolutions/xbee/xbee/common"
-	packvalidator "github.com/iodasolutions/xbee/xbee/validators/pack"
+	"gopkg.in/yaml.v3"
 )
 
 func TestExampleDescriptorsAreValid(t *testing.T) {
 	tests := []struct {
-		folder   string
-		packType common.XbeeType
+		folder         string
+		descriptorName string
 	}{
-		{folder: "build-system", packType: common.PackSystem},
-		{folder: "rootfs", packType: common.PackBuilder},
-		{folder: "image", packType: common.PackBuilder},
-		{folder: "native/sources", packType: common.PackBuilder},
-		{folder: "native/cross-toolchain", packType: common.PackBuilder},
-		{folder: "native/temporary-system", packType: common.PackBuilder},
-		{folder: "native/chroot-system", packType: common.PackBuilder},
-		{folder: "native/final-sources", packType: common.PackBuilder},
-		{folder: "native/final-system", packType: common.PackBuilder},
-		{folder: "native/bootable-system", packType: common.PackBuilder},
-		{folder: "native/provisioned-system", packType: common.PackBuilder},
-		{folder: "native/cloud-image", packType: common.PackBuilder},
-		{folder: "native/uefi-system", packType: common.PackBuilder},
-		{folder: "native/release-system", packType: common.PackBuilder},
-		{folder: "native/package-manager", packType: common.PackBuilder},
-		{folder: "native/package-template", packType: common.PackBuilder},
-		{folder: "native/package-zlib", packType: common.PackBuilder},
-		{folder: "native/package-bzip2", packType: common.PackBuilder},
-		{folder: "native/package-xz", packType: common.PackBuilder},
-		{folder: "native/package-zstd", packType: common.PackBuilder},
-		{folder: "native/package-repository", packType: common.PackBuilder},
-		{folder: "native/system-rootfs", packType: common.PackBuilder},
-		{folder: "native/lfs-system", packType: common.PackSystem},
+		{folder: "build-system", descriptorName: "xbee-pack-system.yaml"},
+		{folder: "rootfs", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "image", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "native/sources", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "native/cross-toolchain", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "native/temporary-system", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "native/chroot-system", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "native/final-sources", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "native/final-system", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "native/bootable-system", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "native/provisioned-system", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "native/cloud-image", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "native/uefi-system", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "native/release-system", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "native/package-manager", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "native/package-template", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "native/package-zlib", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "native/package-bzip2", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "native/package-xz", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "native/package-zstd", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "native/package-repository", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "native/system-rootfs", descriptorName: "xbee-pack-builder.yaml"},
+		{folder: "native/lfs-system", descriptorName: "xbee-pack-system.yaml"},
 	}
 
 	for _, test := range tests {
 		t.Run(test.folder, func(t *testing.T) {
-			id := common.CreateIdFromFolder(newfs.NewFolder(test.folder))
-			id.Type = test.packType
-			if _, err := packvalidator.Validate(id); err != nil {
-				t.Fatalf("descriptor validation failed: %v", err)
+			path := filepath.Join(test.folder, test.descriptorName)
+			content, err := os.ReadFile(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			var descriptor struct {
+				SchemaVersion string         `yaml:"schema-version"`
+				Require       string         `yaml:"require"`
+				Build         []any          `yaml:"build"`
+				System        map[string]any `yaml:"system"`
+			}
+			if err := yaml.Unmarshal(content, &descriptor); err != nil {
+				t.Fatalf("invalid YAML: %v", err)
+			}
+			if descriptor.SchemaVersion != "1.0" {
+				t.Fatalf("unsupported schema-version %q", descriptor.SchemaVersion)
+			}
+			if test.descriptorName == "xbee-pack-builder.yaml" {
+				if descriptor.Require == "" {
+					t.Fatal("builder descriptor must define require")
+				}
+				if len(descriptor.Build) == 0 {
+					t.Fatal("builder descriptor must define build steps")
+				}
+			}
+			if test.descriptorName == "xbee-pack-system.yaml" && len(descriptor.System) == 0 {
+				t.Fatal("system descriptor must define system")
 			}
 		})
 	}

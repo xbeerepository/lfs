@@ -66,7 +66,7 @@ uniquement l'artefact vérifié du premier builder.
 ## 1. Sources
 
 ```bash
-cd examples/lfs/native/sources
+cd native/sources
 xbee validate
 xbee show model
 xbee build
@@ -91,7 +91,7 @@ Le builder construit automatiquement `sources` si son artefact n'est pas
 présent :
 
 ```bash
-cd examples/lfs/native/cross-toolchain
+cd native/cross-toolchain
 xbee validate
 xbee show build
 xbee build --var lfs.jobs=8
@@ -114,7 +114,7 @@ Cette commande construit toute la chaîne manquante, puis les outils du chapitre
 6 :
 
 ```bash
-cd examples/lfs/native/temporary-system
+cd native/temporary-system
 xbee validate
 xbee show build
 xbee build \
@@ -140,7 +140,7 @@ Le quatrième builder prépare les fichiers essentiels du système, entre dans l
 chroot et construit les outils temporaires additionnels du chapitre 7 :
 
 ```bash
-cd examples/lfs/native/chroot-system
+cd native/chroot-system
 xbee validate
 xbee show build
 xbee build \
@@ -171,7 +171,7 @@ pseudo-systèmes de fichiers montés, sont omises :
 existantes avec les 63 sources additionnelles.
 
 ```bash
-cd examples/lfs/native/final-system
+cd native/final-system
 xbee validate
 xbee show build
 xbee build \
@@ -200,7 +200,7 @@ Le sixième builder configure le système, compile Linux 6.18.10 avec les
 pilotes VirtIO intégrés et produit une image BIOS QCOW2 :
 
 ```bash
-cd examples/lfs/native/bootable-system
+cd native/bootable-system
 xbee validate
 xbee show build
 xbee build \
@@ -245,7 +245,7 @@ publique :
 ```bash
 public_key_base64=$(base64 -w0 ~/.ssh/id_ed25519.pub)
 
-cd examples/lfs/native/provisioned-system
+cd native/provisioned-system
 xbee validate
 xbee show build
 xbee build \
@@ -285,7 +285,7 @@ Le huitième builder retire toute clé intégrée et installe l'agent minimal
 puis agrandit la partition et Ext4 si le disque virtuel a été étendu.
 
 ```bash
-cd examples/lfs/native/cloud-image
+cd native/cloud-image
 xbee validate
 xbee build
 ```
@@ -347,7 +347,7 @@ chemin de secours standard `EFI/BOOT/BOOTX64.EFI`. La racine Ext4 est la
 partition 2 et conserve le provisionnement NoCloud.
 
 ```bash
-cd examples/lfs/native/uefi-system
+cd native/uefi-system
 xbee validate
 xbee build
 ```
@@ -385,7 +385,7 @@ de distribution reproductible. Il vérifie les sommes des deux images avant
 de produire le paquet et fournit une seed NoCloud sans secret :
 
 ```bash
-cd examples/lfs/native/release-system
+cd native/release-system
 xbee validate
 xbee build
 ```
@@ -410,7 +410,7 @@ overlays jetables. Il injecte une clé SSH éphémère avec NoCloud, puis vérif
 le hostname, le noyau, systemd, SSH et sudo :
 
 ```bash
-examples/lfs/native/release-system/resources/smoke-test.sh \
+native/release-system/resources/smoke-test.sh \
   xbee-lfs-native-13.0-x86_64-release.tar.zst
 ```
 
@@ -424,7 +424,7 @@ OpenSSH. Le second argument permet de ne tester que `bios` ou `uefi`.
 `system.builder` :
 
 ```bash
-cd examples/lfs/native/lfs-system
+cd native/lfs-system
 xbee validate
 ```
 
@@ -461,7 +461,7 @@ l'installation, la liste, la recherche du propriétaire, la vérification,
 la suppression et le refus des collisions :
 
 ```bash
-cd examples/lfs/native/package-repository
+cd native/package-repository
 xbee validate
 xbee build
 ```
