@@ -1,6 +1,7 @@
 # XBee Linux From Scratch 13.0
 
-This release contains generic x86_64 BIOS and UEFI QCOW2 cloud images.
+This release contains generic x86_64 BIOS and UEFI QCOW2 cloud images, plus a
+BIOS VMDK image for the XBee VirtualBox provider.
 Neither image embeds a password or SSH key.
 
 ## NoCloud provisioning
@@ -20,6 +21,7 @@ Only SSH public-key authentication is enabled.
 
 - `images/*-cloud.qcow2`: legacy BIOS with an MBR partition table.
 - `images/*-uefi.qcow2`: x86_64 UEFI with GPT and a FAT32 EFI system partition.
+- `images/*-virtualbox.vmdk`: legacy BIOS image for `xbee-virtualbox`.
 
 Verify all files before use:
 

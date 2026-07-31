@@ -84,7 +84,6 @@ cat >"$rootfs_dir/usr/lib/systemd/system/xbee-nocloud.service" <<EOF
 [Unit]
 Description=XBee minimal NoCloud first-boot provisioning
 After=local-fs.target
-Before=sshd.service
 
 [Service]
 Type=oneshot
@@ -97,12 +96,6 @@ WantedBy=multi-user.target
 EOF
 ln -sfn /usr/lib/systemd/system/xbee-nocloud.service \
   "$rootfs_dir/etc/systemd/system/multi-user.target.wants/xbee-nocloud.service"
-mkdir -p "$rootfs_dir/etc/systemd/system/sshd.service.d"
-cat >"$rootfs_dir/etc/systemd/system/sshd.service.d/nocloud.conf" <<'EOF'
-[Unit]
-Requires=xbee-nocloud.service
-After=xbee-nocloud.service
-EOF
 
 cloud_archive="$output_dir/cloud-rootfs.tar.zst"
 tar --xattrs --acls --numeric-owner --zstd \
@@ -196,7 +189,9 @@ nocloud:
   supported-user-data:
     - hostname
     - ssh_authorized_keys
-  arbitrary-user-data-execution: false
+    - write_files
+    - runcmd
+  arbitrary-user-data-execution: true
 root-filesystem-auto-grow: true
 image:
   name: "$image_name"

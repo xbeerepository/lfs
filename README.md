@@ -130,3 +130,10 @@ livre officiel. Une évolution ultérieure pourra séparer `sources`,
 Le code de ce dépôt est distribué sous licence
 [Apache-2.0](LICENSE). Les composants téléchargés et intégrés à l'image LFS
 restent soumis à leurs licences respectives.
+
+## Utiliser LFS comme system pack
+
+Le descripteur [`xbee-pack-system.yaml`](xbee-pack-system.yaml) expose LFS 13.0
+comme distribution XBee. Pour VirtualBox, il sélectionne l'image VMDK publiée
+avec la release, désactive les Guest Additions spécifiques aux distributions
+à base de paquets et utilise le provisionnement NoCloud intégré à LFS.

@@ -395,6 +395,8 @@ Artefacts :
 ```text
 /opt/xbee-lfs-native/xbee-lfs-native-13.0-x86_64-release.tar.zst
 /opt/xbee-lfs-native/xbee-lfs-native-13.0-x86_64-release.tar.zst.sha256
+/opt/xbee-lfs-native/xbee-lfs-native-13.0-x86_64-virtualbox.vmdk
+/opt/xbee-lfs-native/xbee-lfs-native-13.0-x86_64-virtualbox.vmdk.sha256
 /opt/xbee-lfs-native/release-metadata.yaml
 ```
 

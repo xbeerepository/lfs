@@ -18,6 +18,7 @@ func TestExampleDescriptorsAreValid(t *testing.T) {
 		folder         string
 		descriptorName string
 	}{
+		{folder: ".", descriptorName: "xbee-pack-system.yaml"},
 		{folder: "build-system", descriptorName: "xbee-pack-system.yaml"},
 		{folder: "rootfs", descriptorName: "xbee-pack-builder.yaml"},
 		{folder: "image", descriptorName: "xbee-pack-builder.yaml"},
@@ -75,6 +76,31 @@ func TestExampleDescriptorsAreValid(t *testing.T) {
 				t.Fatal("system descriptor must define system")
 			}
 		})
+	}
+}
+
+func TestVirtualBoxSystemPackMatchesRelease(t *testing.T) {
+	systemPack, err := os.ReadFile("xbee-pack-system.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	releaseBuilder, err := os.ReadFile(
+		"native/release-system/resources/build-release-system.sh",
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, expected := range []string{
+		"guest-additions: false",
+		"xbee-lfs-native-13.0-x86_64-virtualbox.vmdk",
+	} {
+		if !strings.Contains(string(systemPack), expected) {
+			t.Errorf("system pack does not contain %q", expected)
+		}
+	}
+	if !strings.Contains(string(releaseBuilder), "-virtualbox.vmdk") {
+		t.Fatal("release builder does not produce the VirtualBox VMDK")
 	}
 }
 

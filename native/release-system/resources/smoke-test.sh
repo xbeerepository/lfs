@@ -45,7 +45,7 @@ for value_name in memory_mib ssh_port boot_timeout; do
 done
 
 required_commands=(
-  qemu-img qemu-system-x86_64 ssh ssh-keygen sha256sum tar timeout xorriso
+  base64 qemu-img qemu-system-x86_64 ssh ssh-keygen sha256sum tar timeout xorriso
 )
 for command_name in "${required_commands[@]}"; do
   if ! command -v "$command_name" >/dev/null; then
@@ -86,9 +86,25 @@ cat >"$work_dir/seed/meta-data" <<'EOF'
 instance-id: xbee-smoke-001
 local-hostname: xbee-smoke
 EOF
+authorized_script=$(printf '%s\n' \
+  '#!/bin/bash' \
+  'set -eu' \
+  'install -d -m 0700 -o xbee -g xbee /home/xbee/.ssh' \
+  "printf '%s\\n' '$(cat "$work_dir/id_ed25519.pub")' > /home/xbee/.ssh/authorized_keys" \
+  'chown xbee:xbee /home/xbee/.ssh/authorized_keys' \
+  'chmod 0600 /home/xbee/.ssh/authorized_keys' \
+  'systemctl restart sshd' |
+  base64 -w0)
 {
-  printf '%s\n' "#cloud-config" "ssh_authorized_keys:"
-  printf '  - %s\n' "$(cat "$work_dir/id_ed25519.pub")"
+  printf '%s\n' \
+    "#cloud-config" \
+    "write_files:" \
+    "  - encoding: b64" \
+    "    content: $authorized_script" \
+    "    owner: root:root" \
+    "    path: /run/authorized-data.sh" \
+    "runcmd:" \
+    "  - bash /run/authorized-data.sh"
 } >"$work_dir/seed/user-data"
 xorriso -as mkisofs -quiet \
   -volid cidata -joliet -rock \
@@ -189,6 +205,7 @@ boot_and_check() {
     test "$(uname -r)" = 6.18.10
     test "$(systemctl is-system-running)" = running
     test "$(systemctl is-active sshd)" = active
+    test -f /var/lib/cloud/instance/boot-finished
     test -s "$HOME/.ssh/authorized_keys"
     sudo -n test "$(id -u)" = 1000
     test "$(sudo -n id -u)" = 0

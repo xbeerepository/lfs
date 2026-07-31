@@ -56,6 +56,7 @@ work_root="$source_root/native-release"
 release_dir="$work_root/$release_name"
 output_dir="$output_root/opt/xbee-lfs-native"
 archive="$output_dir/$release_name-release.tar.zst"
+virtualbox_image="$output_dir/$release_name-virtualbox.vmdk"
 
 rm -rf "$work_root"
 mkdir -p \
@@ -66,6 +67,10 @@ mkdir -p \
 
 install -m 0644 "$bios_image" "$release_dir/images/"
 install -m 0644 "$uefi_image" "$release_dir/images/"
+qemu-img convert -f qcow2 -O vmdk \
+  "$bios_image" \
+  "$virtualbox_image"
+install -m 0644 "$virtualbox_image" "$release_dir/images/"
 install -m 0644 "$bios_metadata" "$release_dir/metadata/"
 install -m 0644 "$uefi_metadata" "$release_dir/metadata/"
 install -m 0644 "$resources/README.release.md" "$release_dir/README.md"
@@ -74,7 +79,7 @@ install -m 0644 "$resources/user-data" "$release_dir/nocloud-seed/user-data"
 
 (
   cd "$release_dir"
-  sha256sum images/*.qcow2 metadata/*.yaml >SHA256SUMS
+  sha256sum images/*.qcow2 images/*.vmdk metadata/*.yaml >SHA256SUMS
 )
 
 cat >"$release_dir/release.yaml" <<EOF
@@ -92,6 +97,10 @@ images:
     file: images/$(basename "$uefi_image")
     firmware: uefi
     partition-table: gpt
+  virtualbox:
+    file: images/${release_name}-virtualbox.vmdk
+    firmware: bios
+    source: bios
 nocloud-seed-template: nocloud-seed
 checksums: SHA256SUMS
 EOF
@@ -100,6 +109,8 @@ tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner \
   --zstd -C "$work_root" -cf "$archive" "$release_name"
 (
   cd "$output_dir"
+  sha256sum "$(basename "$virtualbox_image")" \
+    >"$(basename "$virtualbox_image").sha256"
   sha256sum "$(basename "$archive")" >"$(basename "$archive").sha256"
 )
 
@@ -110,9 +121,12 @@ name: "$release_name"
 format: tar.zst
 archive: "$(basename "$archive")"
 archive-checksum: "$(basename "$archive").sha256"
+virtualbox-image: "$(basename "$virtualbox_image")"
+virtualbox-image-checksum: "$(basename "$virtualbox_image").sha256"
 contains:
   - bios-qcow2
   - uefi-qcow2
+  - virtualbox-vmdk
   - nocloud-seed-template
   - sha256-manifest
 EOF

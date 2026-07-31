@@ -1,0 +1,28 @@
+schema-version: 1.0
+
+system:
+  user: xbee
+
+var:
+  xbee:
+    version: "13.0"
+    user: xbee
+    group: xbee
+    app: /workspace
+
+user: xbee
+directory: /workspace
+
+provider:
+  virtualbox:
+    disk: https://github.com/xbeerepository/lfs/releases/download/v0.2.0/xbee-lfs-native-13.0-x86_64-virtualbox.vmdk
+    ostype: Linux_64
+    guest-additions: false
+    cloud-init: ""
+
+provision:
+  - shell:
+      cmd:
+        - test -x /bin/bash
+        - test -x /usr/bin/xbee
+        - test "$(id -u)" = "1000"
