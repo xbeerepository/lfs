@@ -1,0 +1,19 @@
+schema-version: 1.0
+
+description: Self-contained Ubuntu build host for the XBee LFS builders.
+
+system:
+  container: ubuntu:24.04
+  user: root
+
+var:
+  xbee:
+    user: root
+    group: root
+    app: /xbee/app
+
+user: root
+directory: /root
+
+provision:
+

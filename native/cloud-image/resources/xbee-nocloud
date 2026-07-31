@@ -1,0 +1,157 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+admin_user=${XBEE_NOCLOUD_USER:-xbee}
+state_dir=/var/lib/xbee-nocloud
+seed_mount=/run/xbee-nocloud
+log() {
+  printf 'xbee-nocloud: %s\n' "$*"
+}
+
+grow_rootfs() {
+  local root_partition root_disk parent partition_number
+
+  root_partition=$(findmnt -n -o SOURCE / 2>/dev/null || true)
+  root_partition=$(readlink -f "$root_partition" 2>/dev/null || true)
+  parent=$(lsblk -ndo PKNAME "$root_partition" 2>/dev/null || true)
+  partition_number=$(lsblk -ndo PARTN "$root_partition" 2>/dev/null || true)
+  root_disk=${parent:+/dev/$parent}
+
+  if [[ -z "$root_disk" || -z "$partition_number" ||
+        ! -b "$root_disk" || ! -b "$root_partition" ]]; then
+    log "cannot identify the root partition; skipping automatic resize"
+    return
+  fi
+
+  # sfdisk may be unable to make the running kernel reread a mounted root
+  # partition. partx performs the update afterwards; both operations are
+  # harmless when the partition already occupies the whole disk.
+  printf ',+\n' | sfdisk --no-reread --force \
+    -N "$partition_number" "$root_disk" >/dev/null
+  partx --update --nr "$partition_number" "$root_disk" 2>/dev/null || true
+  resize2fs "$root_partition"
+}
+
+find_seed_device() {
+  local device label
+  device=$(blkid -L cidata 2>/dev/null || true)
+  if [[ -n "$device" ]]; then
+    printf '%s\n' "$device"
+    return
+  fi
+  for device in /dev/sr0 /dev/sr1; do
+    [[ -b "$device" ]] || continue
+    label=$(blkid -s LABEL -o value "$device" 2>/dev/null || true)
+    if [[ "${label,,}" == cidata ]]; then
+      printf '%s\n' "$device"
+      return
+    fi
+  done
+}
+
+valid_key() {
+  [[ "$1" =~ ^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp(256|384|521))[[:space:]][A-Za-z0-9+/=]+([[:space:]].*)?$ ]]
+}
+
+metadata_value() {
+  local key=$1
+  local file=$2
+  sed -n "s/^[[:space:]]*$key:[[:space:]]*//p" "$file" | head -n 1
+}
+
+collect_user_data_keys() {
+  local file=$1
+  awk '
+    /^ssh_authorized_keys:[[:space:]]*$/ { in_keys=1; next }
+    in_keys && /^[[:space:]]*-[[:space:]]+/ {
+      sub(/^[[:space:]]*-[[:space:]]+/, "")
+      gsub(/^["'\'']|["'\'']$/, "")
+      print
+      next
+    }
+    in_keys && /^[^[:space:]#]/ { in_keys=0 }
+  ' "$file"
+}
+
+collect_metadata_keys() {
+  local file=$1
+  awk '
+    /^public-keys:[[:space:]]*$/ { in_keys=1; next }
+    in_keys && /^[[:space:]]+[^:]+:[[:space:]]+/ {
+      sub(/^[[:space:]]+[^:]+:[[:space:]]+/, "")
+      gsub(/^["'\'']|["'\'']$/, "")
+      print
+      next
+    }
+    in_keys && /^[^[:space:]#]/ { in_keys=0 }
+  ' "$file"
+}
+
+install_keys() {
+  local metadata=$1
+  local user_data=$2
+  local home uid gid key
+  local key_file
+
+  home=$(getent passwd "$admin_user" | cut -d: -f6)
+  uid=$(id -u "$admin_user")
+  gid=$(id -g "$admin_user")
+  install -d -m 0700 -o "$uid" -g "$gid" "$home/.ssh"
+  key_file=$(mktemp "$state_dir/authorized_keys.XXXXXX")
+
+  while IFS= read -r key; do
+    if valid_key "$key"; then
+      printf '%s\n' "$key" >>"$key_file"
+    fi
+  done < <(
+    [[ -f "$user_data" ]] && collect_user_data_keys "$user_data"
+    [[ -f "$metadata" ]] && collect_metadata_keys "$metadata"
+  )
+
+  if [[ ! -s "$key_file" ]]; then
+    unlink "$key_file"
+    log "seed contains no supported SSH public key"
+    return 1
+  fi
+  sort -u "$key_file" -o "$key_file"
+  chmod 0600 "$key_file"
+  chown "$uid:$gid" "$key_file"
+  mv "$key_file" "$home/.ssh/authorized_keys"
+}
+
+mkdir -p "$state_dir" "$seed_mount"
+grow_rootfs
+
+seed_device=$(find_seed_device || true)
+if [[ -z "$seed_device" ]]; then
+  log "no cidata volume found; leaving remote access disabled"
+  exit 0
+fi
+
+mount -o ro "$seed_device" "$seed_mount"
+trap 'umount "$seed_mount" 2>/dev/null || true' EXIT
+
+metadata="$seed_mount/meta-data"
+user_data="$seed_mount/user-data"
+instance_id=
+hostname=
+[[ -f "$metadata" ]] && instance_id=$(metadata_value instance-id "$metadata")
+[[ -f "$metadata" ]] && hostname=$(metadata_value local-hostname "$metadata")
+[[ -z "$hostname" && -f "$user_data" ]] && hostname=$(metadata_value hostname "$user_data")
+[[ -n "$instance_id" ]] || instance_id=cidata-unknown
+
+if [[ -f "$state_dir/instance-id" ]] && [[ "$(<"$state_dir/instance-id")" == "$instance_id" ]]; then
+  log "instance $instance_id is already configured"
+  exit 0
+fi
+
+if [[ -n "$hostname" && "$hostname" =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]*$ ]]; then
+  hostname "$hostname"
+  printf '%s\n' "$hostname" >/etc/hostname
+fi
+
+install_keys "$metadata" "$user_data"
+rm -f /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub
+ssh-keygen -A
+printf '%s\n' "$instance_id" >"$state_dir/instance-id"
+log "configured instance $instance_id for user $admin_user"

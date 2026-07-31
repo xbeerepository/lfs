@@ -1,0 +1,42 @@
+schema-version: 1.0
+
+description: Configure LFS, build Linux, and produce a bootable BIOS QCOW2 image.
+
+require: ../../build-system
+
+builder:
+  - origin: ../final-system
+    alias: final
+  - origin: ../final-sources
+    alias: sources
+
+var:
+  xbee:
+    version: "13.0"
+  lfs:
+    jobs: 4
+    hostname: xbee-lfs
+    locale: en_US.UTF-8
+  image:
+    name: xbee-lfs-native-13.0-x86_64
+    extra_size_mib: 1024
+
+build:
+  - shell:
+      cmd:
+        - apt-get update
+        - >-
+          DEBIAN_FRONTEND=noninteractive apt-get install -y
+          e2fsprogs grub-pc-bin grub2-common mount parted qemu-utils tar zstd
+        - >-
+          bash "{{ .xbee.resources }}/build-bootable-system.sh"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "/opt/xbee-lfs-native/sources"
+          "{{ .lfs.jobs }}"
+          "{{ .lfs.hostname }}"
+          "{{ .lfs.locale }}"
+          "{{ .image.name }}"
+          "{{ .image.extra_size_mib }}"
+          "{{ .xbee.resources }}/kernel-x86_64.config"
+          "{{ .xbee.src }}"
+          "{{ .xbee.out }}"

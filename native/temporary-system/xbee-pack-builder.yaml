@@ -1,0 +1,38 @@
+schema-version: 1.0
+
+description: Cross-compile the temporary tools from LFS 13.0 chapter 6.
+
+require: ../../build-system
+
+builder:
+  - origin: ../sources
+    alias: sources
+  - origin: ../cross-toolchain
+    alias: cross
+
+var:
+  xbee:
+    version: "13.0"
+  lfs:
+    jobs: 4
+
+provision:
+  - shell:
+      cmd:
+        - apt-get update
+        - >-
+          DEBIAN_FRONTEND=noninteractive apt-get install -y
+          bash binutils bison coreutils diffutils findutils gawk gcc g++
+          grep gzip make patch perl python3 sed sudo tar texinfo xz-utils zstd
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "{{ .xbee.resources }}/build-temporary-system.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/cross-rootfs.tar.zst"
+          "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}"
+          "{{ .xbee.out }}"
+

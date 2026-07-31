@@ -1,0 +1,40 @@
+schema-version: 1.0
+
+description: Build a Linux From Scratch systemd root filesystem with jhalfs.
+
+require: ../build-system
+
+var:
+  xbee:
+    version: "13.0"
+  lfs:
+    book: "13.0"
+    jobs: 4
+    timezone: Europe/Paris
+    locale: en_US.UTF-8
+    hostname: xbee-lfs
+    run-tests: false
+
+provision:
+  - shell:
+      cmd:
+        - apt-get update
+        - >-
+          DEBIAN_FRONTEND=noninteractive apt-get install -y
+          bash binutils bison coreutils diffutils findutils gawk gcc g++
+          gettext git grep gzip libxml2-utils libxslt1-dev make patch perl
+          python3 sed sudo tar texinfo wget xz-utils zstd
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "{{ .xbee.resources }}/build-rootfs.sh"
+          "{{ .lfs.book }}"
+          "{{ .lfs.jobs }}"
+          "{{ .lfs.timezone }}"
+          "{{ .lfs.locale }}"
+          "{{ .lfs.hostname }}"
+          "{{ .lfs.run-tests }}"
+          "{{ .xbee.src }}"
+          "{{ .xbee.out }}"

@@ -1,0 +1,17 @@
+schema-version: 1.0
+
+description: Export the common package build tool for XBee LFS.
+
+require: ../../build-system
+
+var:
+  xbee:
+    version: "0.1.0"
+
+build:
+  - shell:
+      cmd:
+        - install -d "{{ .xbee.out }}/opt/xbee-lfs-native"
+        - >-
+          install -m 0755 "{{ .xbee.resources }}/build-xbpkg.sh"
+          "{{ .xbee.out }}/opt/xbee-lfs-native/build-xbpkg.sh"

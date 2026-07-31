@@ -1,0 +1,26 @@
+schema-version: 1.0
+
+description: Download and verify the sources required by native LFS stages 5, 6, and 7.
+
+require: ../../build-system
+
+var:
+  xbee:
+    version: "13.0"
+  sources:
+    retries: 3
+
+provision:
+  - shell:
+      cmd:
+        - apt-get update
+        - DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates wget
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "{{ .xbee.resources }}/download-sources.sh"
+          "{{ .xbee.resources }}/sources.tsv"
+          "{{ .sources.retries }}"
+          "{{ .xbee.out }}"

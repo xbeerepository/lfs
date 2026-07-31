@@ -1,0 +1,35 @@
+schema-version: 1.0
+
+description: Build the native LFS 13.0 cross-toolchain and target C library.
+
+require: ../../build-system
+
+builder:
+  - origin: ../sources
+    alias: sources
+
+var:
+  xbee:
+    version: "13.0"
+  lfs:
+    jobs: 4
+
+provision:
+  - shell:
+      cmd:
+        - apt-get update
+        - >-
+          DEBIAN_FRONTEND=noninteractive apt-get install -y
+          bash binutils bison coreutils diffutils findutils gawk gcc g++
+          grep gzip make patch perl python3 sed sudo tar texinfo xz-utils zstd
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "{{ .xbee.resources }}/build-cross-toolchain.sh"
+          "/opt/xbee-lfs-native/sources"
+          "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}"
+          "{{ .xbee.out }}"
+

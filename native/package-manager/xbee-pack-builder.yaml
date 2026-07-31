@@ -1,0 +1,24 @@
+schema-version: 1.0
+
+description: Build the minimal xbpkg package manager for XBee LFS.
+
+require: ../../build-system
+
+var:
+  xbee:
+    version: "13.0"
+
+build:
+  - shell:
+      cmd:
+        - install -d "{{ .xbee.out }}/opt/xbee-lfs-native"
+        - >-
+          install -m 0755 "{{ .xbee.resources }}/xbpkg"
+          "{{ .xbee.out }}/opt/xbee-lfs-native/xbpkg"
+        - >-
+          cd "{{ .xbee.out }}/opt/xbee-lfs-native" &&
+          sha256sum xbpkg > xbpkg.sha256
+        - >-
+          printf
+          'schema-version: 1\nname: xbpkg\nversion: "0.1.0"\nformat: xbpkg.tar.zst\n'
+          > "{{ .xbee.out }}/opt/xbee-lfs-native/xbpkg-metadata.yaml"

@@ -1,0 +1,38 @@
+schema-version: 1.0
+
+description: Enter the LFS chroot and build the additional temporary tools from chapter 7.
+
+require: ../../build-system
+
+builder:
+  - origin: ../sources
+    alias: sources
+  - origin: ../temporary-system
+    alias: temporary
+
+var:
+  xbee:
+    version: "13.0"
+  lfs:
+    jobs: 4
+    hostname: xbee-lfs
+
+provision:
+  - shell:
+      cmd:
+        - apt-get update
+        - >-
+          DEBIAN_FRONTEND=noninteractive apt-get install -y
+          tar zstd
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "{{ .xbee.resources }}/build-chroot-system.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/temporary-rootfs.tar.zst"
+          "{{ .lfs.jobs }}"
+          "{{ .lfs.hostname }}"
+          "{{ .xbee.src }}"
+          "{{ .xbee.out }}"

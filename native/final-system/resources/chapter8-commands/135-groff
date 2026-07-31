@@ -1,0 +1,8 @@
+# This block must be edited to suit your needs.
+PAGE=A4 ./configure --prefix=/usr
+# End of editable block.
+
+make
+
+make install
+

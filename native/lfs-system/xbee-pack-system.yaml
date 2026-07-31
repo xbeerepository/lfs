@@ -1,0 +1,26 @@
+schema-version: 1.0
+
+description: XBee execution system based on XBee Linux From Scratch 13.0.
+
+system:
+  builder:
+    origin: ../system-rootfs
+    alias: rootfs
+  user: root
+
+var:
+  xbee:
+    version: "13.0"
+    user: root
+    group: root
+    app: /workspace
+
+user: root
+directory: /workspace
+
+provision:
+  - shell:
+      cmd:
+        - test -x /bin/bash
+        - test -x /usr/bin/xbee
+        - id xbee

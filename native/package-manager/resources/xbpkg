@@ -1,0 +1,197 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+root=${XBPKG_ROOT:-/}
+database_rel=var/lib/xbpkg
+
+usage() {
+  cat >&2 <<'EOF'
+usage:
+  xbpkg [--root ROOT] install PACKAGE.xbpkg.tar.zst
+  xbpkg [--root ROOT] remove NAME
+  xbpkg [--root ROOT] verify NAME
+  xbpkg [--root ROOT] list
+  xbpkg [--root ROOT] owner /PATH
+EOF
+  exit 2
+}
+
+if [[ ${1:-} == --root ]]; then
+  [[ $# -ge 3 ]] || usage
+  root=$2
+  shift 2
+fi
+[[ "$root" == /* ]] || {
+  echo "xbpkg: root must be an absolute path" >&2
+  exit 2
+}
+root=${root%/}
+[[ -n "$root" ]] || root=/
+database="$root/$database_rel"
+installed="$database/installed"
+
+manifest_value() {
+  local file=$1 key=$2
+  sed -n "s/^$key:[[:space:]]*//p" "$file" | head -n 1 | tr -d '"'
+}
+
+package_owner() {
+  local path=$1 package files
+  [[ -d "$installed" ]] || return 1
+  for files in "$installed"/*/files; do
+    [[ -f "$files" ]] || continue
+    if grep -Fqx -- "$path" "$files"; then
+      package=${files%/files}
+      basename "$package"
+      return
+    fi
+  done
+  return 1
+}
+
+install_package() {
+  local archive=$1 temporary manifest name version architecture dependency
+  local relative target owner
+  [[ -f "$archive" ]] || {
+    echo "xbpkg: package not found: $archive" >&2
+    exit 1
+  }
+  temporary=$(mktemp -d)
+  trap 'rm -rf -- "${temporary:-}"' EXIT
+  tar --zstd -xf "$archive" -C "$temporary"
+  manifest="$temporary/.XBPKG/manifest.yaml"
+  [[ -f "$manifest" && -d "$temporary/rootfs" ]] || {
+    echo "xbpkg: invalid package layout" >&2
+    exit 1
+  }
+  name=$(manifest_value "$manifest" name)
+  version=$(manifest_value "$manifest" version)
+  architecture=$(manifest_value "$manifest" architecture)
+  [[ "$name" =~ ^[a-z0-9][a-z0-9+._-]*$ && -n "$version" ]] || {
+    echo "xbpkg: invalid package identity" >&2
+    exit 1
+  }
+  [[ "$architecture" == x86_64 ]] || {
+    echo "xbpkg: unsupported architecture: $architecture" >&2
+    exit 1
+  }
+  [[ ! -e "$installed/$name" ]] || {
+    echo "xbpkg: package already installed: $name" >&2
+    exit 1
+  }
+  while IFS= read -r dependency; do
+    [[ -z "$dependency" ]] && continue
+    [[ -d "$installed/$dependency" ]] || {
+      echo "xbpkg: missing dependency for $name: $dependency" >&2
+      exit 1
+    }
+  done < <(manifest_value "$manifest" dependencies | tr ',' '\n')
+
+  (cd "$temporary/rootfs" && find . -type f -print0 | sort -z | xargs -0 sha256sum) \
+    >"$temporary/.XBPKG/files.sha256.actual"
+  cmp "$temporary/.XBPKG/files.sha256" \
+    "$temporary/.XBPKG/files.sha256.actual" >/dev/null || {
+      echo "xbpkg: payload checksum mismatch" >&2
+      exit 1
+    }
+
+  while IFS= read -r relative; do
+    [[ "$relative" == /* && "$relative" != *"/../"* ]] || {
+      echo "xbpkg: unsafe package path: $relative" >&2
+      exit 1
+    }
+    target="$root$relative"
+    if [[ -e "$target" || -L "$target" ]]; then
+      owner=$(package_owner "$relative" || true)
+      [[ -n "$owner" ]] || owner=unmanaged
+      echo "xbpkg: file collision: $relative is owned by $owner" >&2
+      exit 1
+    fi
+  done <"$temporary/.XBPKG/files"
+
+  mkdir -p "$root" "$installed/$name"
+  cp -a "$temporary/rootfs/." "$root/"
+  install -m 0644 "$manifest" "$installed/$name/manifest.yaml"
+  install -m 0644 "$temporary/.XBPKG/files" "$installed/$name/files"
+  install -m 0644 "$temporary/.XBPKG/files.sha256" \
+    "$installed/$name/files.sha256"
+  printf 'installed %s %s\n' "$name" "$version"
+  rm -rf -- "$temporary"
+  trap - EXIT
+}
+
+remove_package() {
+  local name=$1 relative
+  [[ -f "$installed/$name/files" ]] || {
+    echo "xbpkg: package is not installed: $name" >&2
+    exit 1
+  }
+  tac "$installed/$name/files" | while IFS= read -r relative; do
+    if [[ "$(package_owner "$relative" || true)" == "$name" ]]; then
+      rm -f -- "$root$relative"
+    fi
+  done
+  rm -rf -- "$installed/$name"
+  printf 'removed %s\n' "$name"
+}
+
+verify_package() {
+  local name=$1 expected path checksum status=0
+  [[ -f "$installed/$name/files.sha256" ]] || {
+    echo "xbpkg: package is not installed: $name" >&2
+    exit 1
+  }
+  while read -r expected path; do
+    path=${path#./}
+    checksum=$(sha256sum "$root/$path" 2>/dev/null | awk '{print $1}' || true)
+    if [[ "$checksum" != "$expected" ]]; then
+      echo "xbpkg: modified or missing: /$path" >&2
+      status=1
+    fi
+  done <"$installed/$name/files.sha256"
+  (( status == 0 )) && printf 'verified %s\n' "$name"
+  return "$status"
+}
+
+list_packages() {
+  local manifest
+  [[ -d "$installed" ]] || return 0
+  for manifest in "$installed"/*/manifest.yaml; do
+    [[ -f "$manifest" ]] || continue
+    printf '%s %s\n' \
+      "$(manifest_value "$manifest" name)" \
+      "$(manifest_value "$manifest" version)"
+  done
+}
+
+command=${1:-}
+case "$command" in
+  install)
+    [[ $# -eq 2 ]] || usage
+    install_package "$2"
+    ;;
+  remove)
+    [[ $# -eq 2 ]] || usage
+    [[ "$2" =~ ^[a-z0-9][a-z0-9+._-]*$ ]] || usage
+    remove_package "$2"
+    ;;
+  verify)
+    [[ $# -eq 2 ]] || usage
+    [[ "$2" =~ ^[a-z0-9][a-z0-9+._-]*$ ]] || usage
+    verify_package "$2"
+    ;;
+  list)
+    [[ $# -eq 1 ]] || usage
+    list_packages
+    ;;
+  owner)
+    [[ $# -eq 2 && "$2" == /* ]] || usage
+    package_owner "$2" || {
+      echo "xbpkg: no package owns $2" >&2
+      exit 1
+    }
+    ;;
+  *)
+    usage
+    ;;
+esac

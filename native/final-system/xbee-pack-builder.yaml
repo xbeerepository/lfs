@@ -1,0 +1,40 @@
+schema-version: 1.0
+
+description: Build the final LFS 13.0 system software from chapter 8.
+
+require: ../../build-system
+
+builder:
+  - origin: ../final-sources
+    alias: sources
+  - origin: ../chroot-system
+    alias: chroot
+
+var:
+  xbee:
+    version: "13.0"
+  lfs:
+    jobs: 4
+    timezone: Europe/Paris
+
+provision:
+  - shell:
+      cmd:
+        - apt-get update
+        - >-
+          DEBIAN_FRONTEND=noninteractive apt-get install -y
+          tar zstd
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "{{ .xbee.resources }}/build-final-system.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/chroot-rootfs.tar.zst"
+          "{{ .lfs.jobs }}"
+          "{{ .lfs.timezone }}"
+          "{{ .xbee.resources }}/chapter8-commands"
+          "{{ .xbee.resources }}/packages.tsv"
+          "{{ .xbee.src }}"
+          "{{ .xbee.out }}"

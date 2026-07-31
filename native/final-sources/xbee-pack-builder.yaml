@@ -1,0 +1,31 @@
+schema-version: 1.0
+
+description: Extend the verified native source artefact with the LFS chapter 8 sources.
+
+require: ../../build-system
+
+builder:
+  - origin: ../sources
+    alias: base
+
+var:
+  xbee:
+    version: "13.0"
+  sources:
+    retries: 3
+
+provision:
+  - shell:
+      cmd:
+        - apt-get update
+        - DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates wget
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "{{ .xbee.resources }}/download-final-sources.sh"
+          "/opt/xbee-lfs-native/sources"
+          "{{ .xbee.resources }}/sources.tsv"
+          "{{ .sources.retries }}"
+          "{{ .xbee.out }}"

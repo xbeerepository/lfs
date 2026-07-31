@@ -1,0 +1,44 @@
+schema-version: 1.0
+
+description: Add an administrator and key-only SSH access to the bootable native LFS image.
+
+require: ../../build-system
+
+builder:
+  - origin: ../bootable-system
+    alias: bootable
+
+var:
+  xbee:
+    version: "13.0"
+  lfs:
+    jobs: 4
+    admin_user: xbee
+  access:
+    authorized_key_base64: ""
+  image:
+    name: xbee-lfs-native-13.0-x86_64-provisioned
+    extra_size_mib: 1024
+
+build:
+  - shell:
+      cmd:
+        - apt-get update
+        - >-
+          DEBIAN_FRONTEND=noninteractive apt-get install -y
+          ca-certificates curl e2fsprogs grub-pc-bin grub2-common mount
+          parted qemu-utils tar zstd
+        - >-
+          bash "{{ .xbee.resources }}/download-provisioning-sources.sh"
+          "{{ .xbee.src }}/provisioning-sources"
+        - >-
+          bash "{{ .xbee.resources }}/build-provisioned-system.sh"
+          "/opt/xbee-lfs-native/bootable-rootfs.tar.zst"
+          "{{ .xbee.src }}/provisioning-sources"
+          "{{ .lfs.jobs }}"
+          "{{ .lfs.admin_user }}"
+          "{{ .access.authorized_key_base64 }}"
+          "{{ .image.name }}"
+          "{{ .image.extra_size_mib }}"
+          "{{ .xbee.src }}"
+          "{{ .xbee.out }}"

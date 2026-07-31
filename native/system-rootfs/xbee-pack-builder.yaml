@@ -1,0 +1,29 @@
+schema-version: 1.0
+
+description: Export the generic LFS cloud rootfs for use as an XBee system image.
+
+require: ../../build-system
+
+builder:
+  - origin: ../cloud-image
+    alias: cloud
+  - origin: ../package-manager
+    alias: packages
+
+var:
+  xbee:
+    version: "13.0"
+
+build:
+  - shell:
+      cmd:
+        - apt-get update
+        - >-
+          DEBIAN_FRONTEND=noninteractive apt-get install -y
+          tar zstd
+        - >-
+          bash "{{ .xbee.resources }}/build-system-rootfs.sh"
+          "/opt/xbee-lfs-native/cloud-rootfs.tar.zst"
+          "/opt/xbee-lfs-native/xbpkg"
+          "{{ .xbee.src }}"
+          "{{ .xbee.out }}"

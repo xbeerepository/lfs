@@ -1,0 +1,37 @@
+schema-version: 1.0
+
+description: Produce a GPT-partitioned LFS cloud image bootable with x86_64 UEFI.
+
+require: ../../build-system
+
+builder:
+  - origin: ../cloud-image
+    alias: cloud
+
+var:
+  xbee:
+    version: "13.0"
+  lfs:
+    admin_user: xbee
+  image:
+    name: xbee-lfs-native-13.0-x86_64-uefi
+    extra_size_mib: 1024
+    esp_size_mib: 256
+
+build:
+  - shell:
+      cmd:
+        - apt-get update
+        - >-
+          DEBIAN_FRONTEND=noninteractive apt-get install -y
+          dosfstools e2fsprogs grub-efi-amd64-bin grub2-common
+          mount parted qemu-utils tar zstd
+        - >-
+          bash "{{ .xbee.resources }}/build-uefi-system.sh"
+          "/opt/xbee-lfs-native/cloud-rootfs.tar.zst"
+          "{{ .lfs.admin_user }}"
+          "{{ .image.name }}"
+          "{{ .image.extra_size_mib }}"
+          "{{ .image.esp_size_mib }}"
+          "{{ .xbee.src }}"
+          "{{ .xbee.out }}"
