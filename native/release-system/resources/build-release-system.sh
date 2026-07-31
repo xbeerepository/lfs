@@ -57,19 +57,38 @@ release_dir="$work_root/$release_name"
 output_dir="$output_root/opt/xbee-lfs-native"
 archive="$output_dir/$release_name-release.tar.zst"
 virtualbox_image="$output_dir/$release_name-virtualbox.vmdk"
+virtualbox_raw="$work_root/$release_name-virtualbox.raw"
+virtualbox_mount="$work_root/virtualbox-root"
+
+cleanup() {
+  if mountpoint -q "$virtualbox_mount"; then
+    umount "$virtualbox_mount"
+  fi
+}
+trap cleanup EXIT
 
 rm -rf "$work_root"
 mkdir -p \
   "$release_dir/images" \
   "$release_dir/metadata" \
   "$release_dir/nocloud-seed" \
+  "$virtualbox_mount" \
   "$output_dir"
 
 install -m 0644 "$bios_image" "$release_dir/images/"
 install -m 0644 "$uefi_image" "$release_dir/images/"
-qemu-img convert -f qcow2 -O vmdk \
-  "$bios_image" \
-  "$virtualbox_image"
+qemu-img convert -f qcow2 -O raw "$bios_image" "$virtualbox_raw"
+mount -o loop,offset=$((1024 * 1024)) "$virtualbox_raw" "$virtualbox_mount"
+sed -i 's|/dev/vda1|/dev/sda1|g' \
+  "$virtualbox_mount/etc/fstab" \
+  "$virtualbox_mount/boot/grub/grub.cfg"
+grep -Fq 'root=/dev/sda1' "$virtualbox_mount/boot/grub/grub.cfg"
+grep -Fq '/dev/sda1' "$virtualbox_mount/etc/fstab"
+sync
+umount "$virtualbox_mount"
+qemu-img convert -f raw -O vmdk -o subformat=monolithicSparse \
+  "$virtualbox_raw" "$virtualbox_image"
+qemu-img check "$virtualbox_image"
 install -m 0644 "$virtualbox_image" "$release_dir/images/"
 install -m 0644 "$bios_metadata" "$release_dir/metadata/"
 install -m 0644 "$uefi_metadata" "$release_dir/metadata/"

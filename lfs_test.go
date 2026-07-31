@@ -84,6 +84,12 @@ func TestVirtualBoxSystemPackMatchesRelease(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	kernelConfig, err := os.ReadFile(
+		"native/bootable-system/resources/kernel-x86_64.config",
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
 	releaseBuilder, err := os.ReadFile(
 		"native/release-system/resources/build-release-system.sh",
 	)
@@ -101,6 +107,24 @@ func TestVirtualBoxSystemPackMatchesRelease(t *testing.T) {
 	}
 	if !strings.Contains(string(releaseBuilder), "-virtualbox.vmdk") {
 		t.Fatal("release builder does not produce the VirtualBox VMDK")
+	}
+	for _, expected := range []string{
+		"/dev/vda1|/dev/sda1",
+		"subformat=monolithicSparse",
+	} {
+		if !strings.Contains(string(releaseBuilder), expected) {
+			t.Errorf("release builder does not contain %q", expected)
+		}
+	}
+	for _, expected := range []string{
+		"CONFIG_BLK_DEV_SD=y",
+		"CONFIG_ATA=y",
+		"CONFIG_SATA_AHCI=y",
+		"CONFIG_E1000=y",
+	} {
+		if !strings.Contains(string(kernelConfig), expected) {
+			t.Errorf("kernel configuration does not contain %q", expected)
+		}
 	}
 }
 
