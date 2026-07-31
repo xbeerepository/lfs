@@ -124,3 +124,9 @@ donc un démarrage jusqu'à l'invite locale systemd.
 Le builder utilise jhalfs afin de rester aligné avec les commandes extraites du
 livre officiel. Une évolution ultérieure pourra séparer `sources`,
 `cross-toolchain`, `temporary-system` et `base-rootfs` en artefacts XBee.
+
+## Licence
+
+Le code de ce dépôt est distribué sous licence
+[Apache-2.0](LICENSE). Les composants téléchargés et intégrés à l'image LFS
+restent soumis à leurs licences respectives.
