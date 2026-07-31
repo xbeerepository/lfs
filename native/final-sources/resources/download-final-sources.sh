@@ -43,8 +43,8 @@ download_verified() {
   if [[ "$url" == https://ftpmirror.gnu.org/* ]]; then
     relative=${url#https://ftpmirror.gnu.org/}
     candidates+=(
-      "https://ftp.gnu.org/gnu/$relative"
       "https://mirrors.kernel.org/gnu/$relative"
+      "https://ftp.gnu.org/gnu/$relative"
     )
   elif [[ "$url" == https://download.savannah.gnu.org/* ]]; then
     relative=${url#https://download.savannah.gnu.org/}

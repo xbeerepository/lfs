@@ -145,7 +145,7 @@ for arg in "$@"; do
   esac
 done
 printf '%s\n' "$url" >>"$WGET_LOG"
-if [[ "$url" == https://ftp.gnu.org/gnu/* ]]; then
+if [[ "$url" == https://mirrors.kernel.org/gnu/* ]]; then
   printf 'verified GNU source\n' >"$output"
   exit 0
 fi
@@ -189,7 +189,7 @@ exit 1
 	}
 	expectedAttempts := strings.Join([]string{
 		"https://ftpmirror.gnu.org/test/test.tar.xz",
-		"https://ftp.gnu.org/gnu/test/test.tar.xz",
+		"https://mirrors.kernel.org/gnu/test/test.tar.xz",
 		"",
 	}, "\n")
 	if string(attempts) != expectedAttempts {
