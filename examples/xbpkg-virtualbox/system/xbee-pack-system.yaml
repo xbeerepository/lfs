@@ -1,0 +1,30 @@
+schema-version: "1.0"
+
+description: Local minimal XBee LFS image used by the xbpkg integration example.
+
+system:
+  user: xbee
+
+var:
+  xbee:
+    version: "13.0"
+    user: xbee
+    group: xbee
+    app: /workspace
+
+user: xbee
+directory: /workspace
+
+provider:
+  virtualbox:
+    disk: http://127.0.0.1:18081/xbee-lfs-minimal.vmdk
+    ostype: Linux_64
+    guest-additions: false
+    cloud-init: ""
+
+provision:
+  - shell:
+      cmd:
+        - test -x /bin/bash
+        - test -x /usr/bin/xbee
+        - test "$(id -u xbee)" = "1000"

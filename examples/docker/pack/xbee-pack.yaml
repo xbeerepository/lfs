@@ -1,0 +1,12 @@
+schema-version: "1.0"
+
+description: Run the local XBee LFS system in the internal Docker provider.
+
+require: ../../../native/lfs-system
+
+provision:
+  - shell:
+      cmd:
+        - uname -r
+        - test -x /usr/bin/xbee
+        - test -x /bin/bash

@@ -1,0 +1,13 @@
+schema-version: "1.0"
+
+provider:
+  name: virtualbox
+
+default:
+  host:
+    system: ./system
+    net: xbee_lfs_xbpkg
+
+host:
+  lfs:
+    pack: ./pack

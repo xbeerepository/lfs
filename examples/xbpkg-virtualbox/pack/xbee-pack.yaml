@@ -1,0 +1,24 @@
+schema-version: "1.0"
+
+description: Install curl through the standard XBee actions on minimal LFS.
+
+require: ../system
+
+provision:
+  - gpg:
+      name: xbee-lfs
+      from: http://XBEE_REPOSITORY_HOST:18081/repository/repository-ed25519-public.pem
+  - repo:
+      name: xbee-lfs
+      location: http://XBEE_REPOSITORY_HOST:18081/repository
+      gpg: xbee-lfs
+  - pkg:
+      name:
+        - curl
+      update: true
+  - shell:
+      cmd:
+        - test -x /usr/bin/curl
+        - xbpkg verify curl
+        - test "$(xbpkg owner /usr/bin/curl)" = "curl"
+        - test "$(xbpkg list | wc -l)" -eq 45
