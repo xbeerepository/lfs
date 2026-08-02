@@ -1,0 +1,69 @@
+schema-version: 1.0
+
+description: Build the Systemd package for XBee LFS.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../final-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-util-linux
+    alias: util-linux
+  - origin: ../package-kmod
+    alias: kmod
+  - origin: ../package-libcap
+    alias: libcap
+  - origin: ../package-openssl
+    alias: openssl
+  - origin: ../package-acl
+    alias: acl
+  - origin: ../package-pcre2
+    alias: pcre2
+  - origin: ../package-zstd
+    alias: zstd
+  - origin: ../package-xz
+    alias: xz
+  - origin: ../package-lz4
+    alias: lz4
+  - origin: ../package-libxcrypt
+    alias: libxcrypt
+  - origin: ../package-libelf
+    alias: libelf
+  - origin: ../package-zlib
+    alias: zlib
+  - origin: ../package-bzip2
+    alias: bzip2
+  - origin: ../package-dbus
+    alias: dbus
+
+var:
+  xbee:
+    version: "259.1"
+  lfs:
+    jobs: 4
+  package:
+    name: systemd
+    version: "259.1"
+    source: systemd-259.1.tar.gz
+    runtime-dependencies: util-linux,kmod,libcap,openssl,acl,pcre2,zstd,xz,lz4,libxcrypt,libelf,zlib,bzip2,dbus
+
+provision:
+  - shell:
+      cmd:
+        - apt-get update
+        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ .package.runtime-dependencies }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"

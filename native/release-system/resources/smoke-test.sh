@@ -92,8 +92,7 @@ authorized_script=$(printf '%s\n' \
   'install -d -m 0700 -o xbee -g xbee /home/xbee/.ssh' \
   "printf '%s\\n' '$(cat "$work_dir/id_ed25519.pub")' > /home/xbee/.ssh/authorized_keys" \
   'chown xbee:xbee /home/xbee/.ssh/authorized_keys' \
-  'chmod 0600 /home/xbee/.ssh/authorized_keys' \
-  'systemctl restart sshd' |
+  'chmod 0600 /home/xbee/.ssh/authorized_keys' |
   base64 -w0)
 {
   printf '%s\n' \
@@ -201,6 +200,7 @@ boot_and_check() {
 
   ssh "${ssh_options[@]}" -p "$port" xbee@127.0.0.1 '
     set -eu
+    PATH=/usr/bin:/usr/sbin
     test "$(hostname)" = xbee-smoke
     test "$(uname -r)" = 6.18.10
     test "$(systemctl is-system-running)" = running
@@ -209,8 +209,28 @@ boot_and_check() {
     test -s "$HOME/.ssh/authorized_keys"
     sudo -n test "$(id -u)" = 1000
     test "$(sudo -n id -u)" = 0
+    if test -f /boot/vmlinuz-6.18.10-xbee-lfs; then
+      test -d /usr/lib/modules/6.18.10
+      modinfo virtio_blk >/dev/null
+    fi
+    if command -v dhcpcd >/dev/null; then
+      test "$(systemctl is-active dhcpcd)" = active
+      ip -4 address show | grep -q "inet "
+    fi
+    if command -v curl >/dev/null; then
+      curl --fail --silent --show-error https://curl.se/ >/dev/null
+    fi
+    if command -v wget >/dev/null; then
+      wget -q --spider https://curl.se/
+    fi
+    if command -v rsync >/dev/null; then
+      mkdir -p /tmp/xbee-smoke-source /tmp/xbee-smoke-target
+      printf "%s\n" xbee-package-smoke >/tmp/xbee-smoke-source/value
+      rsync -a /tmp/xbee-smoke-source/ /tmp/xbee-smoke-target/
+      cmp /tmp/xbee-smoke-source/value /tmp/xbee-smoke-target/value
+    fi
   '
-  echo "[$mode] boot, NoCloud, SSH, systemd, and sudo checks passed"
+  echo "[$mode] boot, NoCloud, SSH, systemd, sudo, and package checks passed"
 
   ssh "${ssh_options[@]}" -q -p "$port" xbee@127.0.0.1 \
     "sudo -n poweroff" 2>/dev/null || true

@@ -1,0 +1,31 @@
+# Boot, init and administration
+bash
+coreutils
+systemd
+dbus
+util-linux
+shadow
+sudo
+
+# Kernel and boot loader
+grub
+linux-kernel
+linux-modules
+e2fsprogs
+inetutils
+kbd
+
+# Remote access and network bootstrap
+openssh
+dhcpcd
+ca-certificates
+wget
+
+# Commands required by xbpkg itself
+gawk
+sed
+grep
+findutils
+tar
+zstd
+openssl

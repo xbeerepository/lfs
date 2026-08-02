@@ -1,0 +1,46 @@
+schema-version: 1.0
+
+description: Build a minimal bootable XBee LFS system from the xbpkg repository.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-system-tools
+    alias: tools
+  - origin: ../package-repository
+    alias: repository
+  - origin: ../nocloud-agent
+    alias: nocloud
+
+var:
+  xbee:
+    version: "0.1.1"
+  lfs:
+    hostname: xbee-lfs-minimal
+    admin_user: xbee
+    authorized_key: ""
+  image:
+    name: xbee-lfs-native-13.0-x86_64-minimal
+    extra_size_mib: 512
+
+provision:
+  - shell:
+      cmd:
+        - apt-get update
+        - >-
+          DEBIAN_FRONTEND=noninteractive apt-get install -y
+          e2fsprogs grub-pc-bin grub2-common mount parted qemu-utils
+          tar zstd
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-package-system.sh"
+          "/opt/xbee-lfs-repository"
+          "{{ .lfs.admin_user }}" "{{ .lfs.hostname }}"
+          "{{ .lfs.authorized_key }}"
+          "{{ .image.name }}" "{{ .image.extra_size_mib }}"
+          "/opt/xbee-lfs-nocloud/xbee-nocloud"
+          "/opt/xbee-lfs-native/package-profiles/minimal.txt"
+          "{{ .xbee.src }}" "{{ .xbee.out }}"

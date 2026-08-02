@@ -1,0 +1,23 @@
+schema-version: 1.0
+
+description: Export the shared package-system image assembler and profiles.
+
+require: ../../build-system
+
+var:
+  xbee:
+    version: "0.1.0"
+
+build:
+  - shell:
+      cmd:
+        - install -d "{{ .xbee.out }}/opt/xbee-lfs-native/package-profiles"
+        - >-
+          install -m 0755 "{{ .xbee.resources }}/build-package-system.sh"
+          "{{ .xbee.out }}/opt/xbee-lfs-native/build-package-system.sh"
+        - >-
+          install -m 0644 "{{ .xbee.resources }}/profiles/full.txt"
+          "{{ .xbee.out }}/opt/xbee-lfs-native/package-profiles/full.txt"
+        - >-
+          install -m 0644 "{{ .xbee.resources }}/profiles/minimal.txt"
+          "{{ .xbee.out }}/opt/xbee-lfs-native/package-profiles/minimal.txt"

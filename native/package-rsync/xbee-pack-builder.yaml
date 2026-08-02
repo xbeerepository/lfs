@@ -1,0 +1,53 @@
+schema-version: 1.0
+
+description: Build the rsync package for XBee LFS.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../final-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-zlib
+    alias: zlib
+  - origin: ../package-zstd
+    alias: zstd
+  - origin: ../package-lz4
+    alias: lz4
+  - origin: ../package-openssl
+    alias: openssl
+  - origin: ../package-acl
+    alias: acl
+  - origin: ../package-attr
+    alias: attr
+
+var:
+  xbee:
+    version: "3.4.4"
+  lfs:
+    jobs: 4
+  package:
+    name: rsync
+    version: "3.4.4"
+    source: rsync-3.4.4.tar.gz
+    runtime-dependencies: zlib,zstd,lz4,openssl,acl,attr
+
+provision:
+  - shell:
+      cmd:
+        - apt-get update
+        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ .package.runtime-dependencies }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"

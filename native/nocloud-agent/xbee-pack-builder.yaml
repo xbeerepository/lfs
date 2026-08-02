@@ -1,0 +1,20 @@
+schema-version: 1.0
+
+description: Export the shared minimal NoCloud first-boot agent.
+
+require: ../../build-system
+
+var:
+  xbee:
+    version: "0.1.0"
+
+build:
+  - shell:
+      cmd:
+        - install -d "{{ .xbee.out }}/opt/xbee-lfs-nocloud"
+        - >-
+          install -m 0755 "{{ .xbee.resources }}/xbee-nocloud"
+          "{{ .xbee.out }}/opt/xbee-lfs-nocloud/xbee-nocloud"
+        - >-
+          cd "{{ .xbee.out }}/opt/xbee-lfs-nocloud" &&
+          sha256sum xbee-nocloud >xbee-nocloud.sha256

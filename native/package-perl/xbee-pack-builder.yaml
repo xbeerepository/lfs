@@ -1,0 +1,51 @@
+schema-version: 1.0
+
+description: Build the Perl package for XBee LFS.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../final-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-zlib
+    alias: zlib
+  - origin: ../package-bzip2
+    alias: bzip2
+  - origin: ../package-gdbm
+    alias: gdbm
+  - origin: ../package-less
+    alias: less
+  - origin: ../package-libxcrypt
+    alias: libxcrypt
+
+var:
+  xbee:
+    version: "5.42.0"
+  lfs:
+    jobs: 4
+  package:
+    name: perl
+    version: "5.42.0"
+    source: perl-5.42.0.tar.xz
+    runtime-dependencies: zlib,bzip2,gdbm,less,libxcrypt
+
+provision:
+  - shell:
+      cmd:
+        - apt-get update
+        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ .package.runtime-dependencies }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"

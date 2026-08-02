@@ -1,0 +1,43 @@
+schema-version: 1.0
+
+description: Build the bison package for XBee LFS.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../final-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-m4
+    alias: m4
+
+var:
+  xbee:
+    version: "3.8.2"
+  lfs:
+    jobs: 4
+  package:
+    name: bison
+    version: "3.8.2"
+    source: bison-3.8.2.tar.xz
+    runtime-dependencies: m4
+
+provision:
+  - shell:
+      cmd:
+        - apt-get update
+        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ .package.runtime-dependencies }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"

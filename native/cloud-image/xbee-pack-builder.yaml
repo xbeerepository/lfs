@@ -7,6 +7,8 @@ require: ../../build-system
 builder:
   - origin: ../provisioned-system
     alias: provisioned
+  - origin: ../nocloud-agent
+    alias: nocloud
 
 var:
   xbee:
@@ -30,6 +32,6 @@ build:
           "{{ .lfs.admin_user }}"
           "{{ .image.name }}"
           "{{ .image.extra_size_mib }}"
-          "{{ .xbee.resources }}/xbee-nocloud"
+          "/opt/xbee-lfs-nocloud/xbee-nocloud"
           "{{ .xbee.src }}"
           "{{ .xbee.out }}"

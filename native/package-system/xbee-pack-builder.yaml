@@ -1,0 +1,46 @@
+schema-version: 1.0
+
+description: Build a bootable XBee LFS system directly from the xbpkg repository.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-system-tools
+    alias: tools
+  - origin: ../package-repository
+    alias: repository
+  - origin: ../nocloud-agent
+    alias: nocloud
+
+var:
+  xbee:
+    version: "0.1.0"
+  lfs:
+    hostname: xbee-lfs
+    admin_user: xbee
+    authorized_key: ""
+  image:
+    name: xbee-lfs-native-13.0-x86_64-packages
+    extra_size_mib: 1024
+
+provision:
+  - shell:
+      cmd:
+        - apt-get update
+        - >-
+          DEBIAN_FRONTEND=noninteractive apt-get install -y
+          e2fsprogs grub-pc-bin grub2-common mount parted qemu-utils
+          tar zstd
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-package-system.sh"
+          "/opt/xbee-lfs-repository"
+          "{{ .lfs.admin_user }}" "{{ .lfs.hostname }}"
+          "{{ .lfs.authorized_key }}"
+          "{{ .image.name }}" "{{ .image.extra_size_mib }}"
+          "/opt/xbee-lfs-nocloud/xbee-nocloud"
+          "/opt/xbee-lfs-native/package-profiles/full.txt"
+          "{{ .xbee.src }}" "{{ .xbee.out }}"

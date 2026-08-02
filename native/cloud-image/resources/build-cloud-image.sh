@@ -89,6 +89,8 @@ After=local-fs.target
 Type=oneshot
 Environment=XBEE_NOCLOUD_USER=$admin_user
 ExecStart=/usr/sbin/xbee-nocloud
+StandardOutput=journal+console
+StandardError=journal+console
 RemainAfterExit=yes
 
 [Install]

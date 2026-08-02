@@ -21,7 +21,7 @@ var:
     name: zlib
     version: "1.3.2"
     source: zlib-1.3.2.tar.gz
-    dependencies: ""
+    runtime-dependencies: ""
 
 provision:
   - shell:
@@ -37,5 +37,5 @@ build:
           "/opt/xbee-lfs-native/sources"
           "/opt/xbee-lfs-native/final-rootfs.tar.zst"
           "{{ .package.name }}" "{{ .package.version }}"
-          "{{ .package.source }}" "{{ .package.dependencies }}"
+          "{{ .package.source }}" "{{ .package.runtime-dependencies }}"
           "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"

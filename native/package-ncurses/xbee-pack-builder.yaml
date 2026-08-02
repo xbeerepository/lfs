@@ -1,0 +1,41 @@
+schema-version: 1.0
+
+description: Build the ncurses package for XBee LFS.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+
+var:
+  xbee:
+    version: "6.6"
+  lfs:
+    jobs: 4
+  package:
+    name: ncurses
+    version: "6.6"
+    source: ncurses-6.6.tar.gz
+    runtime-dependencies: ""
+
+provision:
+  - shell:
+      cmd:
+        - apt-get update
+        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar zstd
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ .package.runtime-dependencies }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"

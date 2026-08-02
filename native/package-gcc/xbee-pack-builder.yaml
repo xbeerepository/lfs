@@ -1,0 +1,53 @@
+schema-version: 1.0
+
+description: Build the gcc package for XBee LFS.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../final-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-binutils
+    alias: binutils
+  - origin: ../package-zlib
+    alias: zlib
+  - origin: ../package-zstd
+    alias: zstd
+  - origin: ../package-gmp
+    alias: gmp
+  - origin: ../package-mpfr
+    alias: mpfr
+  - origin: ../package-mpc
+    alias: mpc
+
+var:
+  xbee:
+    version: "15.2.0"
+  lfs:
+    jobs: 4
+  package:
+    name: gcc
+    version: "15.2.0"
+    source: gcc-15.2.0.tar.xz
+    runtime-dependencies: binutils,zlib,zstd,gmp,mpfr,mpc
+
+provision:
+  - shell:
+      cmd:
+        - apt-get update
+        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ .package.runtime-dependencies }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"

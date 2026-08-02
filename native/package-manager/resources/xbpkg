@@ -2,37 +2,729 @@
 set -euo pipefail
 
 root=${XBPKG_ROOT:-/}
+repository=${XBPKG_REPOSITORY:-}
+trusted_key_env=${XBPKG_TRUSTED_KEY:-}
+trusted_keyring=${XBPKG_TRUSTED_KEYRING:-}
+revoked_keys=${XBPKG_REVOKED_KEYS:-}
+trusted_keys=()
+dry_run=false
+allow_unsigned=false
+allow_downgrade=false
+ignore_expiration=false
+repository_id=
+repository_serial=
+repository_release_hash=
+remote_repository=
+repository_name=
+trust_root_version=
+trust_repository_keys=
+trust_revoked_keys=
 database_rel=var/lib/xbpkg
+temporary_dirs=()
+transaction_active=false
+transaction_kind=install
+transaction_files=()
+transaction_packages=()
 
 usage() {
   cat >&2 <<'EOF'
 usage:
-  xbpkg [--root ROOT] install PACKAGE.xbpkg.tar.zst
+  xbpkg [--root ROOT] [--repository REPOSITORY] [--trusted-key KEY]
+        [--trusted-keyring DIR] [--revoked-keys FILE]
+        [--allow-unsigned] [--allow-downgrade] [--dry-run]
+        [--ignore-expiration]
+        install PACKAGE|NAME
+  xbpkg [--root ROOT] upgrade PACKAGE.xbpkg.tar.zst
   xbpkg [--root ROOT] remove NAME
   xbpkg [--root ROOT] verify NAME
+  xbpkg [--root ROOT] check
+  xbpkg [--root ROOT] recover
+  xbpkg [--root ROOT] trust [accept]
+  xbpkg [--root ROOT] [--repository REPOSITORY] [--dry-run] update
+  xbpkg [--root ROOT] [--repository REPOSITORY] refresh
   xbpkg [--root ROOT] list
   xbpkg [--root ROOT] owner /PATH
 EOF
   exit 2
 }
 
-if [[ ${1:-} == --root ]]; then
-  [[ $# -ge 3 ]] || usage
-  root=$2
-  shift 2
-fi
+while [[ ${1:-} == --root || ${1:-} == --repository ||
+         ${1:-} == --trusted-key || ${1:-} == --trusted-keyring ||
+         ${1:-} == --revoked-keys || ${1:-} == --allow-unsigned ||
+         ${1:-} == --allow-downgrade ||
+         ${1:-} == --ignore-expiration ||
+         ${1:-} == --dry-run ]]; do
+  case "$1" in
+    --root|--repository|--trusted-key|--trusted-keyring|--revoked-keys)
+      [[ $# -ge 3 ]] || usage
+      case "$1" in
+        --root) root=$2 ;;
+        --repository) repository=$2 ;;
+        --trusted-key) trusted_keys+=("$2") ;;
+        --trusted-keyring) trusted_keyring=$2 ;;
+        --revoked-keys) revoked_keys=$2 ;;
+      esac
+      shift 2
+      ;;
+    --allow-unsigned)
+      allow_unsigned=true
+      shift
+      ;;
+    --allow-downgrade)
+      allow_downgrade=true
+      shift
+      ;;
+    --ignore-expiration)
+      ignore_expiration=true
+      shift
+      ;;
+    --dry-run)
+      dry_run=true
+      shift
+      ;;
+  esac
+done
 [[ "$root" == /* ]] || {
   echo "xbpkg: root must be an absolute path" >&2
   exit 2
 }
 root=${root%/}
 [[ -n "$root" ]] || root=/
+
+yaml_scalar() {
+  local key=$1 file=$2
+  sed -n "s/^$key:[[:space:]]*[\"']\\{0,1\\}\\([^\"']*\\)[\"']\\{0,1\\}[[:space:]]*$/\\1/p" \
+    "$file" | head -n 1
+}
+
+if [[ -z "$repository" ]]; then
+  shopt -s nullglob
+  repository_configs=("$root/etc/xbpkg/repositories.d"/*.conf)
+  shopt -u nullglob
+  for repository_config in "${repository_configs[@]}"; do
+    enabled=$(yaml_scalar enabled "$repository_config")
+    [[ -z "$enabled" || "$enabled" == true ]] || continue
+    repository_name=$(yaml_scalar name "$repository_config")
+    location=$(yaml_scalar location "$repository_config")
+    key=$(yaml_scalar key "$repository_config")
+    [[ "$repository_name" =~ ^[a-z0-9][a-z0-9._-]*$ ]] || {
+      echo "xbpkg: invalid repository name in $repository_config" >&2
+      exit 1
+    }
+    case "$location" in
+      file://*)
+        repository=${location#file://}
+        ;;
+      http://*|https://*)
+        remote_repository=${location%/}
+        repository="$root/var/cache/xbpkg/repositories/$repository_name"
+        ;;
+      /*)
+        repository=$location
+        ;;
+      *)
+        echo "xbpkg: unsupported repository location in $repository_config: $location" >&2
+        exit 1
+        ;;
+    esac
+    [[ -z "$key" ]] || trusted_keys+=("$key")
+    break
+  done
+fi
+
+if [[ -n "$repository" ]]; then
+  [[ "$repository" == /* ]] || {
+    echo "xbpkg: repository must be an absolute path" >&2
+    exit 2
+  }
+  repository=${repository%/}
+  [[ -n "$remote_repository" ||
+     ( -d "$repository/packages" && -f "$repository/SHA256SUMS" ) ]] || {
+    echo "xbpkg: invalid repository: $repository" >&2
+    exit 2
+  }
+fi
 database="$root/$database_rel"
 installed="$database/installed"
+transactions="$database/transactions"
+transaction_dir="$transactions/current"
+if [[ -n "$trusted_key_env" ]]; then
+  IFS=: read -r -a environment_keys <<<"$trusted_key_env"
+  trusted_keys+=("${environment_keys[@]}")
+fi
+[[ -n "$trusted_keyring" ]] ||
+  trusted_keyring="$root/etc/xbpkg/trusted-keys"
+[[ -n "$revoked_keys" ]] ||
+  revoked_keys="$root/etc/xbpkg/revoked-keys"
+
+repository_key_id() {
+  openssl pkey -pubin -in "$1" -outform DER 2>/dev/null |
+    sha256sum | awk '{print $1}'
+}
+
+verify_trust_root() {
+  local policy="$root/etc/xbpkg/TRUST-ROOT"
+  local signatures="$root/etc/xbpkg/TRUST-ROOT.signatures"
+  local root_keys="$root/etc/xbpkg/root-keys"
+  local bootstrap_threshold=2 policy_threshold expires_at expires_epoch now_epoch
+  local root_ids signature key_id valid=0 stored_version
+  [[ -f "$policy" && ! -L "$policy" &&
+     -d "$signatures" && ! -L "$signatures" &&
+     -d "$root_keys" && ! -L "$root_keys" ]] || {
+    echo "xbpkg: trust-root inputs are incomplete" >&2
+    return 1
+  }
+  if [[ -f "$root/etc/xbpkg/root-threshold" ]]; then
+    bootstrap_threshold=$(head -n 1 "$root/etc/xbpkg/root-threshold")
+  fi
+  trust_root_version=$(sed -n 's/^version:[[:space:]]*//p' "$policy")
+  policy_threshold=$(sed -n 's/^root-threshold:[[:space:]]*//p' "$policy")
+  expires_at=$(sed -n 's/^expires-at:[[:space:]]*//p' "$policy" | tr -d '"')
+  root_ids=$(sed -n 's/^root-keys:[[:space:]]*//p' "$policy" | tr -d '"')
+  trust_repository_keys=$(sed -n 's/^repository-keys:[[:space:]]*//p' "$policy" | tr -d '"')
+  trust_revoked_keys=$(sed -n 's/^revoked-keys:[[:space:]]*//p' "$policy" | tr -d '"')
+  [[ "$trust_root_version" =~ ^[1-9][0-9]*$ &&
+     "$bootstrap_threshold" =~ ^[1-9][0-9]*$ &&
+     "$policy_threshold" =~ ^[1-9][0-9]*$ &&
+     "$expires_at" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]] || {
+    echo "xbpkg: invalid TRUST-ROOT metadata" >&2
+    return 1
+  }
+  ((policy_threshold >= bootstrap_threshold)) || {
+    echo "xbpkg: TRUST-ROOT weakens the root threshold" >&2
+    return 1
+  }
+  if [[ "$ignore_expiration" == false ]]; then
+    expires_epoch=$(date -u -d "$expires_at" +%s 2>/dev/null) || return 1
+    now_epoch=$(date -u +%s)
+    ((expires_epoch >= now_epoch)) || {
+      echo "xbpkg: TRUST-ROOT expired at $expires_at" >&2
+      return 1
+    }
+  fi
+  stored_version=0
+  [[ ! -f "$database/trust-root-version" ]] ||
+    stored_version=$(head -n 1 "$database/trust-root-version")
+  [[ "$stored_version" =~ ^[0-9]+$ ]] || {
+    echo "xbpkg: invalid stored TRUST-ROOT version" >&2
+    return 1
+  }
+  ((trust_root_version >= stored_version)) || {
+    echo "xbpkg: TRUST-ROOT downgrade refused" >&2
+    return 1
+  }
+  shopt -s nullglob
+  for signature in "$signatures"/*.sig; do
+    key_id=$(basename "$signature" .sig)
+    [[ ",$root_ids," == *",$key_id,"* &&
+       -f "$root_keys/$key_id.pem" &&
+       ! -L "$root_keys/$key_id.pem" ]] || continue
+    [[ "$(repository_key_id "$root_keys/$key_id.pem")" == "$key_id" ]] ||
+      continue
+    if openssl pkeyutl -verify -pubin \
+      -inkey "$root_keys/$key_id.pem" -sigfile "$signature" \
+      -rawin -in "$policy" >/dev/null 2>&1; then
+      valid=$((valid + 1))
+    fi
+  done
+  shopt -u nullglob
+  ((valid >= bootstrap_threshold)) || {
+    echo "xbpkg: TRUST-ROOT signature threshold not met: $valid/$bootstrap_threshold" >&2
+    return 1
+  }
+}
+
+verify_repository_signature() {
+  local repository_root=${1:-$repository}
+  local signature="$repository_root/SHA256SUMS.sig"
+  local signer_id= key key_id saw_revoked=false
+  local -a candidates=()
+  if [[ ! -f "$signature" ]]; then
+    [[ "$allow_unsigned" == true ]] || {
+      echo "xbpkg: unsigned repository $signature; use --allow-unsigned only for development" >&2
+      return 1
+    }
+    return
+  fi
+  command -v openssl >/dev/null 2>&1 || {
+    echo "xbpkg: openssl is required for repository signatures" >&2
+    return 1
+  }
+  if [[ -f "$repository_root/SHA256SUMS.keyid" ]]; then
+    signer_id=$(head -n 1 "$repository_root/SHA256SUMS.keyid")
+    [[ "$signer_id" =~ ^[[:xdigit:]]{64}$ ]] || {
+      echo "xbpkg: invalid repository signing key identifier" >&2
+      return 1
+    }
+  fi
+  candidates+=("${trusted_keys[@]}")
+  if [[ -d "$trusted_keyring" && ! -L "$trusted_keyring" ]]; then
+    shopt -s nullglob
+    candidates+=("$trusted_keyring"/*.pem)
+    shopt -u nullglob
+  fi
+  if [[ -f "$root/etc/xbpkg/trusted-repository-key.pem" ]]; then
+    candidates+=("$root/etc/xbpkg/trusted-repository-key.pem")
+  fi
+  ((${#candidates[@]} > 0)) || {
+    echo "xbpkg: no trusted repository keys configured" >&2
+    return 1
+  }
+  if [[ -e "$revoked_keys" || -L "$revoked_keys" ]]; then
+    [[ -f "$revoked_keys" && ! -L "$revoked_keys" ]] || {
+      echo "xbpkg: invalid revoked key list: $revoked_keys" >&2
+      return 1
+    }
+  fi
+  for key in "${candidates[@]}"; do
+    [[ -f "$key" && ! -L "$key" ]] || continue
+    key_id=$(repository_key_id "$key") || continue
+    [[ -z "$signer_id" || "$key_id" == "$signer_id" ]] || continue
+    if [[ -f "$root/etc/xbpkg/TRUST-ROOT" ]]; then
+      verify_trust_root
+      [[ ",$trust_repository_keys," == *",$key_id,"* ]] || continue
+      [[ ",$trust_revoked_keys," != *",$key_id,"* ]] || {
+        saw_revoked=true
+        continue
+      }
+    fi
+    if [[ -f "$revoked_keys" ]] &&
+       grep -Ev '^[[:space:]]*(#|$)' "$revoked_keys" |
+         grep -Fqx -- "$key_id"; then
+      saw_revoked=true
+      continue
+    fi
+    if openssl pkeyutl -verify -pubin -inkey "$key" \
+      -sigfile "$signature" -rawin -in "$repository_root/SHA256SUMS" \
+      >/dev/null 2>&1; then
+      return 0
+    fi
+  done
+  if [[ "$saw_revoked" == true ]]; then
+    echo "xbpkg: repository signing key is revoked: $signer_id" >&2
+  else
+    echo "xbpkg: repository signature verification failed for key: ${signer_id:-unknown}" >&2
+  fi
+  return 1
+}
+
+refresh_repository() {
+  local temporary relative checksum_path saved_repository backup=
+  [[ -n "$repository" ]] || {
+    echo "xbpkg: no repository configured" >&2
+    return 1
+  }
+  if [[ -z "$remote_repository" ]]; then
+    verify_repository_signature
+    (cd "$repository" && sha256sum --quiet -c SHA256SUMS)
+    printf 'refreshed repository %s\n' "${repository_name:-$repository}"
+    return
+  fi
+  repository_downloader=${XBPKG_DOWNLOADER:-}
+  if [[ -n "$repository_downloader" &&
+        "$repository_downloader" != curl &&
+        "$repository_downloader" != wget ]]; then
+    echo "xbpkg: XBPKG_DOWNLOADER must be curl or wget" >&2
+    return 1
+  elif [[ -n "$repository_downloader" ]] &&
+       ! command -v "$repository_downloader" >/dev/null 2>&1; then
+    echo "xbpkg: requested downloader is unavailable: $repository_downloader" >&2
+    return 1
+  elif [[ -n "$repository_downloader" ]]; then
+    :
+  elif command -v curl >/dev/null 2>&1; then
+    repository_downloader=curl
+  elif command -v wget >/dev/null 2>&1; then
+    repository_downloader=wget
+  else
+    echo "xbpkg: curl or wget is required for HTTP repositories" >&2
+    return 1
+  fi
+  mkdir -p "$(dirname "$repository")"
+  temporary=$(mktemp -d "$(dirname "$repository")/.refresh.XXXXXX")
+  temporary_dirs+=("$temporary")
+  mkdir -p "$temporary/packages" "$temporary/bin"
+  for relative in SHA256SUMS SHA256SUMS.sig SHA256SUMS.keyid; do
+    if [[ "$repository_downloader" == curl ]]; then
+      curl -fsSL "$remote_repository/$relative" -o "$temporary/$relative"
+    else
+      wget -q -O "$temporary/$relative" "$remote_repository/$relative"
+    fi
+  done
+  while read -r _ checksum_path; do
+    checksum_path=${checksum_path#\*}
+    checksum_path=${checksum_path#./}
+    [[ "$checksum_path" =~ ^(RELEASE|index\.yaml|bin/xbpkg|packages/[A-Za-z0-9+._~-]+\.xbpkg\.tar\.zst)$ ]] || {
+      echo "xbpkg: unsafe repository path: $checksum_path" >&2
+      return 1
+    }
+    if [[ "$repository_downloader" == curl ]]; then
+      curl -fsSL "$remote_repository/$checksum_path" \
+        -o "$temporary/$checksum_path"
+    else
+      wget -q -O "$temporary/$checksum_path" \
+        "$remote_repository/$checksum_path"
+    fi
+  done <"$temporary/SHA256SUMS"
+
+  saved_repository=$repository
+  repository=$temporary
+  [[ -f "$repository/SHA256SUMS.sig" ]] || {
+    echo "xbpkg: downloaded repository signature is missing: $repository/SHA256SUMS.sig" >&2
+    return 1
+  }
+  verify_repository_signature "$temporary"
+  (cd "$temporary" && sha256sum --quiet -c SHA256SUMS)
+  repository=$saved_repository
+  # Repository metadata and packages are public inputs. mktemp creates the
+  # refresh directory with mode 0700, which otherwise makes a root-refreshed
+  # cache appear unsigned to regular users after the image is restarted.
+  chmod -R a+rX "$temporary"
+
+  if [[ -e "$repository" ]]; then
+    backup="$repository.previous.$$"
+    mv "$repository" "$backup"
+  fi
+  mv "$temporary" "$repository"
+  [[ -z "$backup" ]] || rm -rf -- "$backup"
+  temporary_dirs=()
+  printf 'refreshed repository %s\n' "$repository_name"
+}
+
+verify_repository_release() {
+  local file expected actual stored_serial stored_hash state
+  local published_at expires_at published_epoch expires_epoch now_epoch
+  for file in RELEASE index.yaml; do
+    [[ -f "$repository/$file" && ! -L "$repository/$file" ]] || {
+      echo "xbpkg: repository metadata missing: $file" >&2
+      return 1
+    }
+    expected=$(awk -v path="$file" '$2 == path {print $1; exit}' \
+      "$repository/SHA256SUMS")
+    actual=$(sha256sum "$repository/$file" | awk '{print $1}')
+    [[ -n "$expected" && "$actual" == "$expected" ]] || {
+      echo "xbpkg: repository metadata checksum mismatch: $file" >&2
+      return 1
+    }
+  done
+  repository_id=$(sed -n 's/^repository:[[:space:]]*//p' \
+    "$repository/RELEASE" | head -n 1 | tr -d '"')
+  repository_serial=$(sed -n 's/^serial:[[:space:]]*//p' \
+    "$repository/RELEASE" | head -n 1 | tr -d '"')
+  published_at=$(sed -n 's/^published-at:[[:space:]]*//p' \
+    "$repository/RELEASE" | head -n 1 | tr -d '"')
+  expires_at=$(sed -n 's/^expires-at:[[:space:]]*//p' \
+    "$repository/RELEASE" | head -n 1 | tr -d '"')
+  [[ "$repository_id" =~ ^[a-z0-9][a-z0-9+._-]*$ &&
+     "$repository_serial" =~ ^[0-9]+$ &&
+     "$published_at" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ &&
+     "$expires_at" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]] || {
+    echo "xbpkg: invalid repository release metadata" >&2
+    return 1
+  }
+  command -v date >/dev/null 2>&1 || {
+    echo "xbpkg: date is required for repository expiration checks" >&2
+    return 1
+  }
+  published_epoch=$(date -u -d "$published_at" +%s 2>/dev/null) || {
+    echo "xbpkg: invalid repository publication date" >&2
+    return 1
+  }
+  expires_epoch=$(date -u -d "$expires_at" +%s 2>/dev/null) || {
+    echo "xbpkg: invalid repository expiration date" >&2
+    return 1
+  }
+  ((expires_epoch > published_epoch)) || {
+    echo "xbpkg: repository expiration precedes publication" >&2
+    return 1
+  }
+  if [[ "$ignore_expiration" == false ]]; then
+    now_epoch=$(date -u +%s)
+    ((published_epoch <= now_epoch + 86400)) || {
+      echo "xbpkg: repository publication date is in the future: $published_at" >&2
+      return 1
+    }
+    ((expires_epoch >= now_epoch)) || {
+      echo "xbpkg: repository metadata expired at $expires_at" >&2
+      return 1
+    }
+  fi
+  repository_release_hash=$(sha256sum "$repository/SHA256SUMS" |
+    awk '{print $1}')
+  state="$database/repositories/$repository_id"
+  [[ -f "$state" ]] || return 0
+  stored_serial=$(sed -n 's/^serial:[[:space:]]*//p' "$state")
+  stored_hash=$(sed -n 's/^snapshot-sha256:[[:space:]]*//p' "$state")
+  [[ "$stored_serial" =~ ^[0-9]+$ &&
+     "$stored_hash" =~ ^[[:xdigit:]]{64}$ ]] || {
+    echo "xbpkg: invalid stored repository state: $repository_id" >&2
+    return 1
+  }
+  if ((repository_serial == stored_serial)) &&
+     [[ "$repository_release_hash" != "$stored_hash" ]]; then
+    echo "xbpkg: repository serial $repository_serial was reused with different content" >&2
+    return 1
+  fi
+  if ((repository_serial < stored_serial)) &&
+     [[ "$allow_downgrade" == false ]]; then
+    echo "xbpkg: repository downgrade refused: $repository_id $repository_serial < $stored_serial" >&2
+    return 1
+  fi
+}
+
+record_repository_release() {
+  local state_dir="$database/repositories" state temporary
+  [[ -n "$repository_id" ]] || return
+  state="$state_dir/$repository_id"
+  mkdir -p "$state_dir"
+  temporary="$state.tmp.$$"
+  {
+    printf 'serial: %s\n' "$repository_serial"
+    printf 'snapshot-sha256: %s\n' "$repository_release_hash"
+  } >"$temporary"
+  sync -f "$temporary"
+  mv -f -- "$temporary" "$state"
+  sync -f "$state_dir"
+}
+
+command=${1:-}
+if [[ -n "$repository" && "$command" != refresh ]]; then
+  verify_repository_signature
+  verify_repository_release
+fi
+
+prune_empty_parents() {
+  local relative=$1 parent
+  parent=${relative%/*}
+  while [[ "$parent" == /* && "$parent" != / ]]; do
+    # Keep every first-level filesystem directory, including /usr, /etc,
+    # /var and /opt, even when the alternate root is otherwise empty.
+    [[ "${parent#/}" == */* ]] || break
+    rmdir -- "$root$parent" 2>/dev/null || break
+    parent=${parent%/*}
+    [[ -n "$parent" ]] || parent=/
+  done
+}
+
+cleanup_on_exit() {
+  local status=$? temporary
+  if ((status != 0)) && [[ "$transaction_active" == true ]]; then
+    echo "xbpkg: rolling back package transaction" >&2
+    rollback_transaction >/dev/null || true
+  fi
+  for temporary in "${temporary_dirs[@]}"; do
+    [[ ! -e "$temporary" ]] || rm -rf -- "$temporary" || true
+  done
+  exit "$status"
+}
+trap cleanup_on_exit EXIT
+
+acquire_mutation_lock() {
+  local allow_pending=${1:-false} lock_file="$database/lock"
+  command -v flock >/dev/null 2>&1 || {
+    echo "xbpkg: flock is required for package mutations" >&2
+    exit 1
+  }
+  mkdir -p "$database"
+  exec {lock_fd}>"$lock_file"
+  flock -n "$lock_fd" || {
+    echo "xbpkg: another package operation is active for $root" >&2
+    exit 1
+  }
+  if [[ "$allow_pending" == false && -d "$transaction_dir" ]]; then
+    echo "xbpkg: unfinished transaction; run xbpkg --root $root recover" >&2
+    exit 1
+  fi
+}
+
+sync_journal() {
+  command -v sync >/dev/null 2>&1 || {
+    echo "xbpkg: sync is required for persistent transactions" >&2
+    return 1
+  }
+  local journal_files=(
+    "$transaction_dir/files"
+    "$transaction_dir/packages"
+    "$transaction_dir/state"
+  )
+  [[ ! -f "$transaction_dir/type" ]] ||
+    journal_files+=("$transaction_dir/type")
+  [[ ! -f "$transaction_dir/completed" ]] ||
+    journal_files+=("$transaction_dir/completed")
+  sync -f "${journal_files[@]}" "$transaction_dir" "$transactions"
+}
+
+remove_transaction_journal() {
+  rm -rf -- "$transaction_dir"
+  sync -f "$transactions"
+}
+
+begin_transaction() {
+  [[ ! -e "$transaction_dir" && ! -L "$transaction_dir" ]] || {
+    echo "xbpkg: unfinished transaction; run xbpkg --root $root recover" >&2
+    return 1
+  }
+  mkdir -p "$transaction_dir"
+  printf '%s\n' "${transaction_files[@]}" >"$transaction_dir/files"
+  printf '%s\n' "${transaction_packages[@]}" >"$transaction_dir/packages"
+  printf 'prepared\n' >"$transaction_dir/state"
+  : >"$transaction_dir/completed"
+  sync_journal
+  transaction_active=true
+}
+
+load_transaction() {
+  local path package
+  [[ -d "$transaction_dir" &&
+     -f "$transaction_dir/files" &&
+     -f "$transaction_dir/packages" &&
+     -f "$transaction_dir/state" ]] || {
+    echo "xbpkg: invalid transaction journal" >&2
+    return 1
+  }
+  mapfile -t transaction_files <"$transaction_dir/files"
+  mapfile -t transaction_packages <"$transaction_dir/packages"
+  transaction_kind=install
+  [[ ! -f "$transaction_dir/type" ]] ||
+    transaction_kind=$(head -n 1 "$transaction_dir/type")
+  [[ "$transaction_kind" == install || "$transaction_kind" == update ]] || {
+    echo "xbpkg: invalid transaction type" >&2
+    return 1
+  }
+  ((${#transaction_packages[@]} > 0)) || {
+    echo "xbpkg: invalid transaction journal" >&2
+    return 1
+  }
+  for path in "${transaction_files[@]}"; do
+    [[ "$path" == /* && "$path" != *"/../"* ]] || {
+      echo "xbpkg: unsafe transaction path: $path" >&2
+      return 1
+    }
+  done
+  for package in "${transaction_packages[@]}"; do
+    [[ "$package" =~ ^[a-z0-9][a-z0-9+._-]*$ ]] || {
+      echo "xbpkg: unsafe transaction package: $package" >&2
+      return 1
+    }
+  done
+}
+
+rollback_transaction() {
+  local index path package failed=0
+  for ((index = ${#transaction_files[@]} - 1; index >= 0; index--)); do
+    path=${transaction_files[index]}
+    rm -f -- "$root$path" || failed=1
+  done
+  for ((index = ${#transaction_files[@]} - 1; index >= 0; index--)); do
+    prune_empty_parents "${transaction_files[index]}"
+  done
+  for package in "${transaction_packages[@]}"; do
+    rm -rf -- "$installed/$package" || failed=1
+  done
+  if [[ "$transaction_kind" == update ]]; then
+    [[ -f "$transaction_dir/backup.tar" ]] || return 1
+    tar -xpf "$transaction_dir/backup.tar" -C "$root" || return 1
+  fi
+  ((failed == 0)) || return 1
+  remove_transaction_journal
+  transaction_active=false
+}
+
+recover_transaction() {
+  local state
+  acquire_mutation_lock true
+  if [[ ! -e "$transaction_dir" && ! -L "$transaction_dir" ]]; then
+    printf 'no unfinished transaction\n'
+    return
+  fi
+  load_transaction
+  state=$(head -n 1 "$transaction_dir/state")
+  case "$state" in
+    backing-up)
+      remove_transaction_journal
+      printf 'discarded incomplete transaction backup\n'
+      ;;
+    committed)
+      remove_transaction_journal
+      printf 'finalized committed transaction\n'
+      ;;
+    prepared)
+      rollback_transaction
+      printf 'recovered unfinished transaction\n'
+      ;;
+    *)
+      echo "xbpkg: invalid transaction state: $state" >&2
+      return 1
+      ;;
+  esac
+}
 
 manifest_value() {
   local file=$1 key=$2
   sed -n "s/^$key:[[:space:]]*//p" "$file" | head -n 1 | tr -d '"'
+}
+
+package_dependencies() {
+  local manifest=$1 dependency
+  while IFS= read -r dependency; do
+    dependency=${dependency#"${dependency%%[![:space:]]*}"}
+    dependency=${dependency%"${dependency##*[![:space:]]}"}
+    [[ -n "$dependency" ]] && printf '%s\n' "$dependency"
+  done < <(manifest_value "$manifest" dependencies | tr ',' '\n')
+}
+
+parse_dependency() {
+  local specification=$1
+  dependency_name=
+  dependency_operator=
+  dependency_version=
+  if [[ "$specification" =~ ^([a-z0-9][a-z0-9+._-]*)([[:space:]]*(=|\>=|\>|\<=|\<)[[:space:]]*([A-Za-z0-9][A-Za-z0-9+._~-]*))?$ ]]; then
+    dependency_name=${BASH_REMATCH[1]}
+    dependency_operator=${BASH_REMATCH[3]:-}
+    dependency_version=${BASH_REMATCH[4]:-}
+    return 0
+  fi
+  return 1
+}
+
+version_satisfies() {
+  local actual=$1 operator=$2 required=$3 first
+  [[ -n "$operator" ]] || return 0
+  if [[ "$actual" == "$required" ]]; then
+    [[ "$operator" == = || "$operator" == ">=" || "$operator" == "<=" ]]
+    return
+  fi
+  first=$(printf '%s\n%s\n' "$actual" "$required" |
+    LC_ALL=C sort -V | head -n 1)
+  case "$operator" in
+    ">"|">=") [[ "$first" == "$required" ]] ;;
+    "<"|"<=") [[ "$first" == "$actual" ]] ;;
+    "=") return 1 ;;
+    *) return 1 ;;
+  esac
+}
+
+validate_installed_dependency() {
+  local owner=$1 specification=$2 installed_version
+  parse_dependency "$specification" || {
+    echo "xbpkg: invalid dependency for $owner: $specification" >&2
+    return 1
+  }
+  [[ "$dependency_name" != "$owner" ]] || {
+    echo "xbpkg: invalid dependency for $owner: $specification" >&2
+    return 1
+  }
+  [[ -f "$installed/$dependency_name/manifest.yaml" ]] || {
+    echo "xbpkg: missing dependency for $owner: $dependency_name" >&2
+    return 1
+  }
+  installed_version=$(manifest_value \
+    "$installed/$dependency_name/manifest.yaml" version)
+  version_satisfies "$installed_version" \
+    "$dependency_operator" "$dependency_version" || {
+    echo "xbpkg: dependency version mismatch for $owner: $specification (installed $installed_version)" >&2
+    return 1
+  }
 }
 
 package_owner() {
@@ -49,6 +741,35 @@ package_owner() {
   return 1
 }
 
+is_conffile() {
+  local conffiles=$1 path=$2
+  [[ -f "$conffiles" ]] && grep -Fqx -- "$path" "$conffiles"
+}
+
+checksum_for_path() {
+  local checksums=$1 path=$2
+  awk -v wanted=".$path" '$2 == wanted {print $1; exit}' "$checksums"
+}
+
+validate_conffiles() {
+  local temporary=$1 conffiles="$temporary/.XBPKG/conffiles"
+  local relative
+  [[ -f "$conffiles" ]] || : >"$conffiles"
+  if [[ -n "$(sort "$conffiles" | uniq -d)" ]]; then
+    echo "xbpkg: duplicate configuration path" >&2
+    exit 1
+  fi
+  while IFS= read -r relative; do
+    [[ "$relative" == /etc/* && "$relative" != *"/../"* &&
+       -f "$temporary/rootfs$relative" &&
+       ! -L "$temporary/rootfs$relative" &&
+       $(grep -Fxc -- "$relative" "$temporary/.XBPKG/files") -eq 1 ]] || {
+      echo "xbpkg: invalid configuration path: $relative" >&2
+      exit 1
+    }
+  done <"$conffiles"
+}
+
 install_package() {
   local archive=$1 temporary manifest name version architecture dependency
   local relative target owner
@@ -57,7 +778,7 @@ install_package() {
     exit 1
   }
   temporary=$(mktemp -d)
-  trap 'rm -rf -- "${temporary:-}"' EXIT
+  temporary_dirs+=("$temporary")
   tar --zstd -xf "$archive" -C "$temporary"
   manifest="$temporary/.XBPKG/manifest.yaml"
   [[ -f "$manifest" && -d "$temporary/rootfs" ]] || {
@@ -75,22 +796,18 @@ install_package() {
     echo "xbpkg: unsupported architecture: $architecture" >&2
     exit 1
   }
+  validate_conffiles "$temporary"
   [[ ! -e "$installed/$name" ]] || {
     echo "xbpkg: package already installed: $name" >&2
     exit 1
   }
   while IFS= read -r dependency; do
-    [[ -z "$dependency" ]] && continue
-    [[ -d "$installed/$dependency" ]] || {
-      echo "xbpkg: missing dependency for $name: $dependency" >&2
-      exit 1
-    }
-  done < <(manifest_value "$manifest" dependencies | tr ',' '\n')
+    validate_installed_dependency "$name" "$dependency" || exit 1
+  done < <(package_dependencies "$manifest")
 
   (cd "$temporary/rootfs" && find . -type f -print0 | sort -z | xargs -0 sha256sum) \
     >"$temporary/.XBPKG/files.sha256.actual"
-  cmp "$temporary/.XBPKG/files.sha256" \
-    "$temporary/.XBPKG/files.sha256.actual" >/dev/null || {
+  [[ "$(sha256sum <"$temporary/.XBPKG/files.sha256")" == "$(sha256sum <"$temporary/.XBPKG/files.sha256.actual")" ]] || {
       echo "xbpkg: payload checksum mismatch" >&2
       exit 1
     }
@@ -115,42 +832,603 @@ install_package() {
   install -m 0644 "$temporary/.XBPKG/files" "$installed/$name/files"
   install -m 0644 "$temporary/.XBPKG/files.sha256" \
     "$installed/$name/files.sha256"
+  install -m 0644 "$temporary/.XBPKG/conffiles" \
+    "$installed/$name/conffiles"
   printf 'installed %s %s\n' "$name" "$version"
   rm -rf -- "$temporary"
-  trap - EXIT
+}
+
+declare -A resolution_state=()
+declare -A planned_owner=()
+declare -A planned_version=()
+plan_names=()
+plan_versions=()
+plan_archives=()
+
+repository_archive() {
+  local name=$1 operator=${2:-} required=${3:-} archive filename version
+  local -a matches=()
+  shopt -s nullglob
+  matches=("$repository/packages/$name-"*.xbpkg.tar.zst)
+  shopt -u nullglob
+  ((${#matches[@]} > 0)) || {
+    echo "xbpkg: dependency not found in repository: $name" >&2
+    return 1
+  }
+  while IFS= read -r archive; do
+    filename=$(basename "$archive")
+    version=${filename#"$name-"}
+    version=${version%-x86_64.xbpkg.tar.zst}
+    if version_satisfies "$version" "$operator" "$required"; then
+      printf '%s\n' "$archive"
+      return
+    fi
+  done < <(printf '%s\n' "${matches[@]}" | LC_ALL=C sort -Vr)
+  echo "xbpkg: no repository version satisfies: $name $operator $required" >&2
+  return 1
+}
+
+verify_repository_archive() {
+  local archive=$1 relative expected actual
+  relative=${archive#"$repository/"}
+  expected=$(awk -v path="$relative" '$2 == path {print $1; exit}' \
+    "$repository/SHA256SUMS")
+  [[ -n "$expected" ]] || {
+    echo "xbpkg: package is absent from repository checksum manifest: $relative" >&2
+    return 1
+  }
+  actual=$(sha256sum "$archive" | awk '{print $1}')
+  [[ "$actual" == "$expected" ]] || {
+    echo "xbpkg: repository checksum mismatch: $relative" >&2
+    return 1
+  }
+}
+
+plan_repository_package() {
+  local specification=$1 name operator required archive temporary manifest
+  local manifest_name version architecture dependency
+  parse_dependency "$specification" || {
+    echo "xbpkg: invalid dependency specification: $specification" >&2
+    return 1
+  }
+  name=$dependency_name
+  operator=$dependency_operator
+  required=$dependency_version
+  [[ ! -d "$installed/$name" ]] || {
+    version=$(manifest_value "$installed/$name/manifest.yaml" version)
+    version_satisfies "$version" "$operator" "$required" || {
+      echo "xbpkg: installed version does not satisfy: $specification (installed $version)" >&2
+      return 1
+    }
+    resolution_state["$name"]=done
+    return 0
+  }
+  [[ ! -e "$installed/$name" && ! -L "$installed/$name" ]] || {
+    echo "xbpkg: invalid package database entry: $name" >&2
+    return 1
+  }
+  case ${resolution_state["$name"]:-} in
+    visiting)
+      echo "xbpkg: dependency cycle detected at $name" >&2
+      return 1
+      ;;
+    done)
+      version=${planned_version["$name"]}
+      version_satisfies "$version" "$operator" "$required" || {
+        echo "xbpkg: incompatible dependency constraints for $name: selected $version does not satisfy $operator $required" >&2
+        return 1
+      }
+      return 0
+      ;;
+  esac
+  resolution_state["$name"]=visiting
+  archive=$(repository_archive "$name" "$operator" "$required")
+  verify_repository_archive "$archive"
+  temporary=$(mktemp -d)
+  temporary_dirs+=("$temporary")
+  manifest="$temporary/manifest.yaml"
+  if ! tar --zstd -xOf "$archive" .XBPKG/manifest.yaml >"$manifest"; then
+    echo "xbpkg: cannot read package manifest: $archive" >&2
+    return 1
+  fi
+  manifest_name=$(manifest_value "$manifest" name)
+  version=$(manifest_value "$manifest" version)
+  architecture=$(manifest_value "$manifest" architecture)
+  [[ "$manifest_name" == "$name" ]] || {
+    echo "xbpkg: repository package identity mismatch: $name" >&2
+    return 1
+  }
+  [[ -n "$version" && "$architecture" == x86_64 ]] || {
+    echo "xbpkg: invalid repository package metadata: $name" >&2
+    return 1
+  }
+  version_satisfies "$version" "$operator" "$required" || {
+    echo "xbpkg: repository package does not satisfy: $specification" >&2
+    return 1
+  }
+  while IFS= read -r dependency; do
+    parse_dependency "$dependency" || {
+      echo "xbpkg: invalid dependency for $name: $dependency" >&2
+      return 1
+    }
+    [[ "$dependency_name" != "$name" ]] || {
+      echo "xbpkg: invalid dependency for $name: $dependency" >&2
+      return 1
+    }
+    plan_repository_package "$dependency"
+  done < <(package_dependencies "$manifest")
+  plan_names+=("$name")
+  plan_versions+=("$version")
+  plan_archives+=("$archive")
+  planned_version["$name"]=$version
+  resolution_state["$name"]=done
+}
+
+preflight_repository_plan() {
+  local index archive name temporary relative target owner
+  transaction_files=()
+  transaction_packages=()
+  for ((index = 0; index < ${#plan_archives[@]}; index++)); do
+    archive=${plan_archives[index]}
+    name=${plan_names[index]}
+    temporary=$(mktemp -d)
+    temporary_dirs+=("$temporary")
+    tar --zstd -xf "$archive" -C "$temporary"
+    [[ -f "$temporary/.XBPKG/manifest.yaml" &&
+       -f "$temporary/.XBPKG/files" &&
+       -f "$temporary/.XBPKG/files.sha256" &&
+       -d "$temporary/rootfs" ]] || {
+      echo "xbpkg: invalid package layout: $name" >&2
+      return 1
+    }
+    validate_conffiles "$temporary"
+    (cd "$temporary/rootfs" &&
+      find . -type f -print0 | sort -z | xargs -0 sha256sum) \
+      >"$temporary/.XBPKG/files.sha256.actual"
+    [[ "$(sha256sum <"$temporary/.XBPKG/files.sha256")" == "$(sha256sum <"$temporary/.XBPKG/files.sha256.actual")" ]] || {
+      echo "xbpkg: payload checksum mismatch: $name" >&2
+      return 1
+    }
+    while IFS= read -r relative; do
+      [[ "$relative" == /* && "$relative" != *"/../"* ]] || {
+        echo "xbpkg: unsafe package path: $relative" >&2
+        return 1
+      }
+      target="$root$relative"
+      if [[ -e "$target" || -L "$target" ]]; then
+        owner=$(package_owner "$relative" || true)
+        [[ -n "$owner" ]] || owner=unmanaged
+        echo "xbpkg: file collision: $relative is owned by $owner" >&2
+        return 1
+      fi
+      if [[ -n ${planned_owner["$relative"]:-} ]]; then
+        echo "xbpkg: planned file collision: $relative is provided by ${planned_owner["$relative"]} and $name" >&2
+        return 1
+      fi
+      planned_owner["$relative"]=$name
+      transaction_files+=("$relative")
+    done <"$temporary/.XBPKG/files"
+    transaction_packages+=("$name")
+  done
+}
+
+print_repository_plan() {
+  local index
+  printf 'Plan:\n'
+  if ((${#plan_names[@]} == 0)); then
+    printf '  nothing to do\n'
+    return
+  fi
+  for ((index = 0; index < ${#plan_names[@]}; index++)); do
+    printf '  install %s %s\n' "${plan_names[index]}" "${plan_versions[index]}"
+  done
+}
+
+execute_repository_plan() {
+  local index archive
+  ((${#plan_archives[@]} > 0)) || return 0
+  begin_transaction
+  for ((index = 0; index < ${#plan_archives[@]}; index++)); do
+    archive=${plan_archives[index]}
+    printf '%s\n' "${plan_names[index]}" \
+      >"$transaction_dir/current-package"
+    sync -f "$transaction_dir/current-package"
+    install_package "$archive"
+    printf '%s\n' "${plan_names[index]}" >>"$transaction_dir/completed"
+    sync -f "$transaction_dir/completed"
+  done
+  printf 'committed\n' >"$transaction_dir/state"
+  sync -f "$transaction_dir/state"
+  transaction_active=false
+  remove_transaction_journal
+}
+
+update_names=()
+update_versions=()
+update_archives=()
+declare -A update_candidate=()
+declare -A update_archive=()
+declare -A update_manifest=()
+declare -A update_state=()
+
+append_update_package() {
+  local name=$1 dependency
+  [[ ${update_state["$name"]:-} != done ]] || return 0
+  [[ ${update_state["$name"]:-} != visiting ]] || {
+    echo "xbpkg: update dependency cycle at $name" >&2
+    return 1
+  }
+  update_state["$name"]=visiting
+  while IFS= read -r dependency; do
+    parse_dependency "$dependency" || continue
+    [[ -z ${update_archive["$dependency_name"]:-} ]] ||
+      append_update_package "$dependency_name"
+  done < <(package_dependencies "${update_manifest[$name]}")
+  update_names+=("$name")
+  update_versions+=("${update_candidate[$name]}")
+  update_archives+=("${update_archive[$name]}")
+  update_state["$name"]=done
+}
+
+plan_system_update() {
+  local manifest name current archive filename version dependency actual
+  local temporary new_manifest
+  [[ -d "$installed" ]] || return 0
+  for manifest in "$installed"/*/manifest.yaml; do
+    [[ -f "$manifest" ]] || continue
+    name=$(manifest_value "$manifest" name)
+    current=$(manifest_value "$manifest" version)
+    archive=$(repository_archive "$name")
+    verify_repository_archive "$archive"
+    filename=$(basename "$archive")
+    version=${filename#"$name-"}
+    version=${version%-x86_64.xbpkg.tar.zst}
+    update_candidate["$name"]=$current
+    if version_satisfies "$version" ">" "$current"; then
+      update_candidate["$name"]=$version
+      update_archive["$name"]=$archive
+    fi
+  done
+  for name in "${!update_archive[@]}"; do
+    temporary=$(mktemp -d)
+    temporary_dirs+=("$temporary")
+    new_manifest="$temporary/manifest.yaml"
+    tar --zstd -xOf "${update_archive[$name]}" \
+      .XBPKG/manifest.yaml >"$new_manifest"
+    update_manifest["$name"]=$new_manifest
+    while IFS= read -r dependency; do
+      parse_dependency "$dependency" || {
+        echo "xbpkg: invalid dependency for $name: $dependency" >&2
+        return 1
+      }
+      actual=${update_candidate["$dependency_name"]:-}
+      [[ -n "$actual" ]] || {
+        echo "xbpkg: missing update dependency for $name: $dependency_name" >&2
+        return 1
+      }
+      version_satisfies "$actual" \
+        "$dependency_operator" "$dependency_version" || {
+        echo "xbpkg: update constraint conflict for $name: $dependency (candidate $actual)" >&2
+        return 1
+      }
+    done < <(package_dependencies "$new_manifest")
+  done
+  for name in "${!update_archive[@]}"; do
+    append_update_package "$name"
+  done
+}
+
+print_update_plan() {
+  local index current
+  printf 'Update plan:\n'
+  if ((${#update_names[@]} == 0)); then
+    printf '  nothing to do\n'
+    return
+  fi
+  for ((index=0; index<${#update_names[@]}; index++)); do
+    current=$(manifest_value \
+      "$installed/${update_names[index]}/manifest.yaml" version)
+    printf '  upgrade %s %s -> %s\n' \
+      "${update_names[index]}" "$current" "${update_versions[index]}"
+  done
+}
+
+execute_system_update() {
+  local index name archive temporary relative backup_list
+  local -A paths=()
+  ((${#update_names[@]} > 0)) || {
+    record_repository_release
+    return 0
+  }
+  transaction_packages=("${update_names[@]}")
+  transaction_files=()
+  for ((index=0; index<${#update_names[@]}; index++)); do
+    name=${update_names[index]}
+    while IFS= read -r relative; do paths["$relative"]=1; done \
+      <"$installed/$name/files"
+    temporary=$(mktemp -d)
+    temporary_dirs+=("$temporary")
+    tar --zstd -xf "${update_archives[index]}" -C "$temporary"
+    while IFS= read -r relative; do paths["$relative"]=1; done \
+      <"$temporary/.XBPKG/files"
+    while IFS= read -r relative; do
+      paths["$relative.xbpkg-new"]=1
+    done <"$temporary/.XBPKG/conffiles"
+  done
+  transaction_files=("${!paths[@]}")
+  mkdir -p "$transaction_dir"
+  printf '%s\n' "${transaction_files[@]}" >"$transaction_dir/files"
+  printf '%s\n' "${transaction_packages[@]}" >"$transaction_dir/packages"
+  printf 'update\n' >"$transaction_dir/type"
+  printf 'backing-up\n' >"$transaction_dir/state"
+  : >"$transaction_dir/completed"
+  sync_journal
+  backup_list="$transaction_dir/backup.list"
+  : >"$backup_list"
+  for relative in "${transaction_files[@]}"; do
+    [[ -e "$root$relative" || -L "$root$relative" ]] &&
+      printf '%s\n' "${relative#/}" >>"$backup_list"
+  done
+  for name in "${transaction_packages[@]}"; do
+    printf '%s\n' "$database_rel/installed/$name" >>"$backup_list"
+  done
+  tar -cpf "$transaction_dir/backup.tar" -C "$root" \
+    --files-from "$backup_list"
+  sync -f "$transaction_dir/backup.tar"
+  printf 'prepared\n' >"$transaction_dir/state"
+  sync -f "$transaction_dir/state"
+  transaction_kind=update
+  transaction_active=true
+  for ((index=0; index<${#update_names[@]}; index++)); do
+    upgrade_package "${update_archives[index]}"
+    printf '%s\n' "${update_names[index]}" >>"$transaction_dir/completed"
+    sync -f "$transaction_dir/completed"
+  done
+  printf 'committed\n' >"$transaction_dir/state"
+  sync -f "$transaction_dir/state"
+  transaction_active=false
+  remove_transaction_journal
+  record_repository_release
+}
+
+upgrade_package() {
+  local archive=$1 temporary manifest name version architecture dependency
+  local current_version relative target owner old_checksum new_checksum
+  local actual_checksum preserved new_config_root dependent_manifest dependent
+  [[ -f "$archive" ]] || {
+    echo "xbpkg: package not found: $archive" >&2
+    exit 1
+  }
+  temporary=$(mktemp -d)
+  temporary_dirs+=("$temporary")
+  tar --zstd -xf "$archive" -C "$temporary"
+  manifest="$temporary/.XBPKG/manifest.yaml"
+  [[ -f "$manifest" && -d "$temporary/rootfs" ]] || {
+    echo "xbpkg: invalid package layout" >&2
+    exit 1
+  }
+  name=$(manifest_value "$manifest" name)
+  version=$(manifest_value "$manifest" version)
+  architecture=$(manifest_value "$manifest" architecture)
+  [[ "$name" =~ ^[a-z0-9][a-z0-9+._-]*$ && -n "$version" ]] || {
+    echo "xbpkg: invalid package identity" >&2
+    exit 1
+  }
+  [[ "$architecture" == x86_64 ]] || {
+    echo "xbpkg: unsupported architecture: $architecture" >&2
+    exit 1
+  }
+  validate_conffiles "$temporary"
+  [[ -f "$installed/$name/manifest.yaml" ]] || {
+    echo "xbpkg: package is not installed: $name" >&2
+    exit 1
+  }
+  current_version=$(manifest_value "$installed/$name/manifest.yaml" version)
+  [[ "$version" != "$current_version" ]] || {
+    echo "xbpkg: package $name is already at version $version" >&2
+    exit 1
+  }
+
+  for dependent_manifest in "$installed"/*/manifest.yaml; do
+    [[ -f "$dependent_manifest" ]] || continue
+    dependent=$(manifest_value "$dependent_manifest" name)
+    [[ "$dependent" != "$name" ]] || continue
+    while IFS= read -r dependency; do
+      parse_dependency "$dependency" || continue
+      [[ "$dependency_name" == "$name" ]] || continue
+      version_satisfies "$version" \
+        "$dependency_operator" "$dependency_version" || {
+        echo "xbpkg: upgrade to $name $version would violate dependency for $dependent: $dependency" >&2
+        exit 1
+      }
+    done < <(package_dependencies "$dependent_manifest")
+  done
+
+  while IFS= read -r dependency; do
+    validate_installed_dependency "$name" "$dependency" || exit 1
+  done < <(package_dependencies "$manifest")
+
+  (cd "$temporary/rootfs" && find . -type f -print0 | sort -z | xargs -0 sha256sum) \
+    >"$temporary/.XBPKG/files.sha256.actual"
+  [[ "$(sha256sum <"$temporary/.XBPKG/files.sha256")" == "$(sha256sum <"$temporary/.XBPKG/files.sha256.actual")" ]] || {
+      echo "xbpkg: payload checksum mismatch" >&2
+      exit 1
+    }
+
+  while IFS= read -r relative; do
+    [[ "$relative" == /* && "$relative" != *"/../"* ]] || {
+      echo "xbpkg: unsafe package path: $relative" >&2
+      exit 1
+    }
+    target="$root$relative"
+    if [[ -e "$target" || -L "$target" ]]; then
+      owner=$(package_owner "$relative" || true)
+      [[ "$owner" == "$name" ]] || {
+        [[ -n "$owner" ]] || owner=unmanaged
+        echo "xbpkg: file collision: $relative is owned by $owner" >&2
+        exit 1
+      }
+    fi
+  done <"$temporary/.XBPKG/files"
+
+  preserved="$temporary/.XBPKG/conffiles.preserved"
+  new_config_root="$temporary/.XBPKG/new-config"
+  : >"$preserved"
+  mkdir -p "$new_config_root"
+  while IFS= read -r relative; do
+    target="$root$relative"
+    [[ -e "$target" && ! -L "$target" ]] || continue
+    [[ "$(package_owner "$relative" || true)" == "$name" ]] || continue
+    old_checksum=$(checksum_for_path \
+      "$installed/$name/files.sha256" "$relative")
+    [[ -n "$old_checksum" ]] || continue
+    actual_checksum=$(sha256sum "$target" | awk '{print $1}')
+    if [[ "$actual_checksum" != "$old_checksum" ]]; then
+      [[ ! -e "$target.xbpkg-new" && ! -L "$target.xbpkg-new" ]] || {
+        echo "xbpkg: pending configuration update: $relative.xbpkg-new" >&2
+        exit 1
+      }
+      new_checksum=$(checksum_for_path \
+        "$temporary/.XBPKG/files.sha256" "$relative")
+      if [[ "$new_checksum" != "$old_checksum" ]]; then
+        mkdir -p "$new_config_root$(dirname "$relative")"
+        cp -a "$temporary/rootfs$relative" "$new_config_root$relative"
+      fi
+      rm -f -- "$temporary/rootfs$relative"
+      printf '%s\n' "$relative" >>"$preserved"
+      printf 'preserved modified configuration %s\n' "$relative"
+    fi
+  done <"$temporary/.XBPKG/conffiles"
+
+  if [[ -f "$installed/$name/conffiles" ]]; then
+    while IFS= read -r relative; do
+      grep -Fqx -- "$relative" "$temporary/.XBPKG/files" && continue
+      target="$root$relative"
+      [[ -f "$target" && ! -L "$target" ]] || continue
+      old_checksum=$(checksum_for_path \
+        "$installed/$name/files.sha256" "$relative")
+      actual_checksum=$(sha256sum "$target" | awk '{print $1}')
+      if [[ -n "$old_checksum" && "$actual_checksum" != "$old_checksum" ]]; then
+        printf '%s\n' "$relative" >>"$preserved"
+        printf 'preserved obsolete configuration %s\n' "$relative"
+      fi
+    done <"$installed/$name/conffiles"
+  fi
+
+  while IFS= read -r relative; do
+    grep -Fqx -- "$relative" "$preserved" && continue
+    if [[ "$(package_owner "$relative" || true)" == "$name" ]]; then
+      rm -f -- "$root$relative"
+    fi
+  done <"$installed/$name/files"
+  cp -a "$temporary/rootfs/." "$root/"
+  while IFS= read -r relative; do
+    if [[ -f "$new_config_root$relative" ]]; then
+      cp -a "$new_config_root$relative" "$root$relative.xbpkg-new"
+    fi
+  done <"$preserved"
+  install -m 0644 "$manifest" "$installed/$name/manifest.yaml"
+  install -m 0644 "$temporary/.XBPKG/files" "$installed/$name/files"
+  install -m 0644 "$temporary/.XBPKG/files.sha256" \
+    "$installed/$name/files.sha256"
+  install -m 0644 "$temporary/.XBPKG/conffiles" \
+    "$installed/$name/conffiles"
+  printf 'upgraded %s %s -> %s\n' "$name" "$current_version" "$version"
+  rm -rf -- "$temporary"
 }
 
 remove_package() {
-  local name=$1 relative
+  local name=$1 relative manifest dependent dependency essential
+  local expected actual target
   [[ -f "$installed/$name/files" ]] || {
     echo "xbpkg: package is not installed: $name" >&2
     exit 1
   }
+  essential=$(manifest_value "$installed/$name/manifest.yaml" essential)
+  if [[ "$essential" == true ]]; then
+    echo "xbpkg: cannot remove essential package: $name" >&2
+    exit 1
+  fi
+  for manifest in "$installed"/*/manifest.yaml; do
+    [[ -f "$manifest" ]] || continue
+    dependent=$(manifest_value "$manifest" name)
+    [[ "$dependent" != "$name" ]] || continue
+    while IFS= read -r dependency; do
+      parse_dependency "$dependency" || continue
+      if [[ "$dependency_name" == "$name" ]]; then
+        echo "xbpkg: cannot remove $name: required by $dependent" >&2
+        exit 1
+      fi
+    done < <(package_dependencies "$manifest")
+  done
   tac "$installed/$name/files" | while IFS= read -r relative; do
     if [[ "$(package_owner "$relative" || true)" == "$name" ]]; then
+      target="$root$relative"
+      if is_conffile "$installed/$name/conffiles" "$relative" &&
+         [[ -f "$target" && ! -L "$target" ]]; then
+        expected=$(checksum_for_path \
+          "$installed/$name/files.sha256" "$relative")
+        actual=$(sha256sum "$target" | awk '{print $1}')
+        if [[ -n "$expected" && "$actual" != "$expected" ]]; then
+          printf 'preserved modified configuration %s\n' "$relative"
+          continue
+        fi
+      fi
       rm -f -- "$root$relative"
     fi
+  done
+  tac "$installed/$name/files" | while IFS= read -r relative; do
+    prune_empty_parents "$relative"
   done
   rm -rf -- "$installed/$name"
   printf 'removed %s\n' "$name"
 }
 
 verify_package() {
-  local name=$1 expected path checksum status=0
+  local name=$1 relative target expected actual failed=0
+  local conffiles immutable_checksums
   [[ -f "$installed/$name/files.sha256" ]] || {
     echo "xbpkg: package is not installed: $name" >&2
     exit 1
   }
-  while read -r expected path; do
-    path=${path#./}
-    checksum=$(sha256sum "$root/$path" 2>/dev/null | awk '{print $1}' || true)
-    if [[ "$checksum" != "$expected" ]]; then
-      echo "xbpkg: modified or missing: /$path" >&2
-      status=1
+  conffiles="$installed/$name/conffiles"
+  [[ -f "$conffiles" ]] || conffiles=/dev/null
+  immutable_checksums=$(mktemp)
+  awk '
+    FILENAME == ARGV[1] {
+      configurations["." $0] = 1
+      next
+    }
+    !($2 in configurations)
+  ' "$conffiles" "$installed/$name/files.sha256" >"$immutable_checksums"
+  if [[ -s "$immutable_checksums" ]]; then
+    if ! (
+      cd "$root"
+      sha256sum --quiet -c "$immutable_checksums"
+    ); then
+      echo "xbpkg: immutable payload checksum mismatch: $name" >&2
+      failed=1
     fi
-  done <"$installed/$name/files.sha256"
-  (( status == 0 )) && printf 'verified %s\n' "$name"
-  return "$status"
+  fi
+  rm -f -- "$immutable_checksums"
+  while IFS= read -r relative; do
+    target="$root$relative"
+    if [[ ! -f "$target" || -L "$target" ]]; then
+      printf 'missing configuration %s\n' "$relative"
+      continue
+    fi
+    expected=$(checksum_for_path \
+      "$installed/$name/files.sha256" "$relative")
+    actual=$(sha256sum "$target" | awk '{print $1}')
+    if [[ -n "$expected" && "$actual" != "$expected" ]]; then
+      printf 'modified configuration %s\n' "$relative"
+    fi
+  done <"$conffiles"
+  if ((failed)); then
+    echo "xbpkg: verification failed: $name" >&2
+    return 1
+  fi
+  printf 'verified %s\n' "$name"
 }
 
 list_packages() {
@@ -164,28 +1442,305 @@ list_packages() {
   done
 }
 
-command=${1:-}
+declare -A check_owners=()
+declare -A check_dependency_state=()
+check_failed=0
+
+check_dependency_graph() {
+  local name=$1 manifest dependency
+  case ${check_dependency_state["$name"]:-} in
+    visiting)
+      echo "xbpkg: dependency cycle detected at $name" >&2
+      check_failed=1
+      return
+      ;;
+    done)
+      return
+      ;;
+  esac
+  manifest="$installed/$name/manifest.yaml"
+  [[ -f "$manifest" ]] || return
+  check_dependency_state["$name"]=visiting
+  while IFS= read -r dependency; do
+    parse_dependency "$dependency" || continue
+    [[ "$dependency_name" != "$name" ]] || continue
+    [[ -f "$installed/$dependency_name/manifest.yaml" ]] || continue
+    check_dependency_graph "$dependency_name"
+  done < <(package_dependencies "$manifest")
+  check_dependency_state["$name"]=done
+}
+
+check_all_packages() {
+  local package_dir package manifest manifest_name version architecture
+  local metadata dependency relative target owner checksum checksum_path
+  local actual expected immutable_checksums count=0
+  local -A package_paths=()
+  local -A configuration_paths=()
+  local -A expected_checksums=()
+  if [[ -e "$transaction_dir" || -L "$transaction_dir" ]]; then
+    echo "xbpkg: unfinished transaction journal" >&2
+    check_failed=1
+  fi
+  [[ -d "$installed" ]] || {
+    if ((check_failed)); then
+      echo "xbpkg: consistency check failed" >&2
+      return 1
+    fi
+    printf 'checked 0 packages\n'
+    return
+  }
+  for package_dir in "$installed"/*; do
+    [[ -e "$package_dir" || -L "$package_dir" ]] || continue
+    package=$(basename "$package_dir")
+    if [[ ! -d "$package_dir" || -L "$package_dir" ]]; then
+      echo "xbpkg: invalid package database entry: $package" >&2
+      check_failed=1
+      continue
+    fi
+    count=$((count + 1))
+    for metadata in manifest.yaml files files.sha256 conffiles; do
+      if [[ ! -f "$package_dir/$metadata" ||
+            -L "$package_dir/$metadata" ]]; then
+        echo "xbpkg: missing package metadata: $package/$metadata" >&2
+        check_failed=1
+      fi
+    done
+    manifest="$package_dir/manifest.yaml"
+    [[ -f "$manifest" && ! -L "$manifest" ]] || continue
+    manifest_name=$(manifest_value "$manifest" name)
+    version=$(manifest_value "$manifest" version)
+    architecture=$(manifest_value "$manifest" architecture)
+    if [[ "$manifest_name" != "$package" || -z "$version" ||
+          "$architecture" != x86_64 ]]; then
+      echo "xbpkg: invalid installed package identity: $package" >&2
+      check_failed=1
+    fi
+    while IFS= read -r dependency; do
+      if ! parse_dependency "$dependency" ||
+         [[ "$dependency_name" == "$package" ]]; then
+        echo "xbpkg: invalid dependency for $package: $dependency" >&2
+        check_failed=1
+      elif [[ ! -f "$installed/$dependency_name/manifest.yaml" ]]; then
+        echo "xbpkg: missing dependency for $package: $dependency_name" >&2
+        check_failed=1
+      else
+        actual=$(manifest_value \
+          "$installed/$dependency_name/manifest.yaml" version)
+        if ! version_satisfies "$actual" \
+          "$dependency_operator" "$dependency_version"; then
+          echo "xbpkg: dependency version mismatch for $package: $dependency (installed $actual)" >&2
+          check_failed=1
+        fi
+      fi
+    done < <(package_dependencies "$manifest")
+
+    package_paths=()
+    configuration_paths=()
+    expected_checksums=()
+    if [[ -f "$package_dir/conffiles" &&
+          ! -L "$package_dir/conffiles" ]]; then
+      while IFS= read -r relative; do
+        configuration_paths["$relative"]=1
+      done <"$package_dir/conffiles"
+    fi
+    [[ -f "$package_dir/files" && ! -L "$package_dir/files" ]] || continue
+    while IFS= read -r relative; do
+      if [[ "$relative" != /* || "$relative" == *"/../"* ]]; then
+        echo "xbpkg: unsafe installed path for $package: $relative" >&2
+        check_failed=1
+        continue
+      fi
+      package_paths["$relative"]=1
+      if [[ -n ${check_owners["$relative"]:-} &&
+            ${check_owners["$relative"]} != "$package" ]]; then
+        owner=${check_owners["$relative"]}
+        echo "xbpkg: duplicate path ownership: $relative is owned by $owner and $package" >&2
+        check_failed=1
+      else
+        check_owners["$relative"]=$package
+      fi
+      target="$root$relative"
+      if [[ ! -e "$target" && ! -L "$target" ]]; then
+        if [[ -n ${configuration_paths["$relative"]:-} ]]; then
+          printf 'missing configuration %s\n' "$relative"
+        else
+          echo "xbpkg: missing payload: $relative ($package)" >&2
+          check_failed=1
+        fi
+      fi
+    done <"$package_dir/files"
+
+    [[ -f "$package_dir/files.sha256" &&
+       ! -L "$package_dir/files.sha256" ]] || continue
+    while read -r checksum checksum_path; do
+      if [[ "$checksum" == \\* ]]; then
+        checksum=${checksum#\\}
+        checksum_path=${checksum_path//\\\\/\\}
+      fi
+      relative=${checksum_path#.}
+      if [[ ! "$checksum" =~ ^[[:xdigit:]]{64}$ ||
+            "$relative" != /* ]]; then
+        echo "xbpkg: invalid payload checksum entry: $package $checksum_path" >&2
+        check_failed=1
+        continue
+      fi
+      if [[ -z ${package_paths["$relative"]:-} ||
+            -n ${expected_checksums["$relative"]:-} ]]; then
+        echo "xbpkg: invalid payload checksum entry: $package $checksum_path" >&2
+        check_failed=1
+        continue
+      fi
+      expected_checksums["$relative"]=$checksum
+    done <"$package_dir/files.sha256"
+
+    immutable_checksums=$(mktemp)
+    awk '
+      FILENAME == ARGV[1] {
+        configurations["." $0] = 1
+        next
+      }
+      !($2 in configurations)
+    ' "$package_dir/conffiles" "$package_dir/files.sha256" \
+      >"$immutable_checksums"
+    if [[ -s "$immutable_checksums" ]] &&
+       ! (cd "$root" &&
+         sha256sum --quiet -c "$immutable_checksums" >/dev/null 2>&1); then
+      echo "xbpkg: immutable payload checksum mismatch: $package" >&2
+      check_failed=1
+    fi
+    rm -f -- "$immutable_checksums"
+
+    [[ -f "$package_dir/conffiles" &&
+       ! -L "$package_dir/conffiles" ]] || continue
+    while IFS= read -r relative; do
+      if [[ "$relative" != /etc/* ||
+            -z ${package_paths["$relative"]:-} ||
+            -z ${expected_checksums["$relative"]:-} ]]; then
+        echo "xbpkg: invalid installed configuration path: $relative" >&2
+        check_failed=1
+      fi
+      target="$root$relative"
+      expected=${expected_checksums["$relative"]:-}
+      if [[ -n "$expected" && -f "$target" && ! -L "$target" ]]; then
+        actual=$(sha256sum "$target" | awk '{print $1}')
+        if [[ "$actual" != "$expected" ]]; then
+          printf 'modified configuration %s\n' "$relative"
+        fi
+      fi
+      if [[ -e "$root$relative.xbpkg-new" ||
+            -L "$root$relative.xbpkg-new" ]]; then
+        printf 'pending configuration %s.xbpkg-new\n' "$relative"
+      fi
+    done <"$package_dir/conffiles"
+  done
+
+  for package_dir in "$installed"/*; do
+    [[ -d "$package_dir" && ! -L "$package_dir" ]] || continue
+    check_dependency_graph "$(basename "$package_dir")"
+  done
+  if ((check_failed)); then
+    echo "xbpkg: consistency check failed" >&2
+    return 1
+  fi
+  printf 'checked %d packages\n' "$count"
+}
+
 case "$command" in
+  refresh)
+    [[ $# -eq 1 && "$dry_run" == false ]] || usage
+    refresh_repository
+    ;;
   install)
     [[ $# -eq 2 ]] || usage
-    install_package "$2"
+    if [[ -f "$2" ]]; then
+      [[ "$dry_run" == false ]] || {
+        echo "xbpkg: --dry-run requires a repository package name" >&2
+        exit 2
+      }
+      acquire_mutation_lock
+      install_package "$2"
+    elif [[ -n "$repository" ]]; then
+      plan_repository_package "$2"
+      preflight_repository_plan
+      if [[ "$dry_run" == true ]]; then
+        print_repository_plan
+      else
+        acquire_mutation_lock
+        print_repository_plan
+        execute_repository_plan
+        record_repository_release
+      fi
+    else
+      echo "xbpkg: package archive not found and no repository configured: $2" >&2
+      exit 1
+    fi
+    ;;
+  upgrade)
+    [[ $# -eq 2 ]] || usage
+    [[ "$dry_run" == false ]] || usage
+    acquire_mutation_lock
+    upgrade_package "$2"
+    ;;
+  update)
+    [[ $# -eq 1 && -n "$repository" ]] || usage
+    if [[ "$dry_run" == true ]]; then
+      plan_system_update
+      print_update_plan
+    else
+      acquire_mutation_lock
+      plan_system_update
+      print_update_plan
+      execute_system_update
+    fi
     ;;
   remove)
     [[ $# -eq 2 ]] || usage
+    [[ "$dry_run" == false ]] || usage
     [[ "$2" =~ ^[a-z0-9][a-z0-9+._-]*$ ]] || usage
+    acquire_mutation_lock
     remove_package "$2"
     ;;
   verify)
     [[ $# -eq 2 ]] || usage
+    [[ "$dry_run" == false ]] || usage
     [[ "$2" =~ ^[a-z0-9][a-z0-9+._-]*$ ]] || usage
     verify_package "$2"
     ;;
+  check)
+    [[ $# -eq 1 ]] || usage
+    [[ "$dry_run" == false ]] || usage
+    check_all_packages
+    ;;
+  recover)
+    [[ $# -eq 1 ]] || usage
+    [[ "$dry_run" == false ]] || usage
+    recover_transaction
+    ;;
+  trust)
+    [[ $# -eq 1 || ($# -eq 2 && "$2" == accept) ]] || usage
+    [[ "$dry_run" == false ]] || usage
+    if [[ ${2:-} == accept ]]; then
+      acquire_mutation_lock
+    fi
+    verify_trust_root
+    if [[ ${2:-} == accept ]]; then
+      printf '%s\n' "$trust_root_version" >"$database/trust-root-version.tmp"
+      sync -f "$database/trust-root-version.tmp"
+      mv -f "$database/trust-root-version.tmp" \
+        "$database/trust-root-version"
+      sync -f "$database"
+    fi
+    printf 'TRUST-ROOT %s verified; repository keys: %s\n' \
+      "$trust_root_version" "$trust_repository_keys"
+    ;;
   list)
     [[ $# -eq 1 ]] || usage
+    [[ "$dry_run" == false ]] || usage
     list_packages
     ;;
   owner)
     [[ $# -eq 2 && "$2" == /* ]] || usage
+    [[ "$dry_run" == false ]] || usage
     package_owner "$2" || {
       echo "xbpkg: no package owns $2" >&2
       exit 1

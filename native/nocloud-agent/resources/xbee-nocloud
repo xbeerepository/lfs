@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Shared by the monolithic and package-assembled NoCloud images.
 admin_user=${XBEE_NOCLOUD_USER:-xbee}
 state_dir=/var/lib/xbee-nocloud
 seed_mount=/run/xbee-nocloud
@@ -10,6 +11,7 @@ log() {
 
 grow_rootfs() {
   local root_partition root_disk parent partition_number
+  local disk_bytes partition_bytes partition_start
 
   root_partition=$(findmnt -n -o SOURCE / 2>/dev/null || true)
   root_partition=$(readlink -f "$root_partition" 2>/dev/null || true)
@@ -20,6 +22,17 @@ grow_rootfs() {
   if [[ -z "$root_disk" || -z "$partition_number" ||
         ! -b "$root_disk" || ! -b "$root_partition" ]]; then
     log "cannot identify the root partition; skipping automatic resize"
+    return
+  fi
+
+  disk_bytes=$(blockdev --getsize64 "$root_disk" 2>/dev/null || true)
+  partition_bytes=$(blockdev --getsize64 "$root_partition" 2>/dev/null || true)
+  partition_start=$(lsblk -bndo START "$root_partition" 2>/dev/null || true)
+  if [[ "$disk_bytes" =~ ^[0-9]+$ &&
+        "$partition_bytes" =~ ^[0-9]+$ &&
+        "$partition_start" =~ ^[0-9]+$ ]] &&
+      ((partition_start * 512 + partition_bytes >= disk_bytes)); then
+    log "root partition already occupies the disk"
     return
   fi
 

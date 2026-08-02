@@ -7,6 +7,8 @@ require: ../../build-system
 builder:
   - origin: ../package-manager
     alias: manager
+  - origin: ../package-glibc
+    alias: glibc
   - origin: ../package-zlib
     alias: zlib
   - origin: ../package-bzip2
@@ -15,10 +17,182 @@ builder:
     alias: xz
   - origin: ../package-zstd
     alias: zstd
+  - origin: ../package-lz4
+    alias: lz4
+  - origin: ../package-attr
+    alias: attr
+  - origin: ../package-acl
+    alias: acl
+  - origin: ../package-libpipeline
+    alias: libpipeline
+  - origin: ../package-man-db
+    alias: man-db
+  - origin: ../package-ncurses
+    alias: ncurses
+  - origin: ../package-readline
+    alias: readline
+  - origin: ../package-pcre2
+    alias: pcre2
+  - origin: ../package-libcap
+    alias: libcap
+  - origin: ../package-libelf
+    alias: libelf
+  - origin: ../package-gmp
+    alias: gmp
+  - origin: ../package-mpfr
+    alias: mpfr
+  - origin: ../package-mpc
+    alias: mpc
+  - origin: ../package-m4
+    alias: m4
+  - origin: ../package-bison
+    alias: bison
+  - origin: ../package-flex
+    alias: flex
+  - origin: ../package-autoconf
+    alias: autoconf
+  - origin: ../package-automake
+    alias: automake
+  - origin: ../package-libtool
+    alias: libtool
+  - origin: ../package-pkgconf
+    alias: pkgconf
+  - origin: ../package-binutils
+    alias: binutils
+  - origin: ../package-gcc
+    alias: gcc
+  - origin: ../package-libffi
+    alias: libffi
+  - origin: ../package-expat
+    alias: expat
+  - origin: ../package-gdbm
+    alias: gdbm
+  - origin: ../package-openssl
+    alias: openssl
+  - origin: ../package-sqlite
+    alias: sqlite
+  - origin: ../package-python
+    alias: python
+  - origin: ../package-flit-core
+    alias: flit-core
+  - origin: ../package-packaging
+    alias: packaging
+  - origin: ../package-markupsafe
+    alias: markupsafe
+  - origin: ../package-jinja2
+    alias: jinja2
+  - origin: ../package-meson
+    alias: meson
+  - origin: ../package-ninja
+    alias: ninja
+  - origin: ../package-bc
+    alias: bc
+  - origin: ../package-gperf
+    alias: gperf
+  - origin: ../package-libxcrypt
+    alias: libxcrypt
+  - origin: ../package-less
+    alias: less
+  - origin: ../package-kmod
+    alias: kmod
+  - origin: ../package-procps-ng
+    alias: procps-ng
+  - origin: ../package-e2fsprogs
+    alias: e2fsprogs
+  - origin: ../package-shadow
+    alias: shadow
+  - origin: ../package-iproute2
+    alias: iproute2
+  - origin: ../package-inetutils
+    alias: inetutils
+  - origin: ../package-kbd
+    alias: kbd
+  - origin: ../package-psmisc
+    alias: psmisc
+  - origin: ../package-man-pages
+    alias: man-pages
+  - origin: ../package-iana-etc
+    alias: iana-etc
+  - origin: ../package-file
+    alias: file
+  - origin: ../package-tcl
+    alias: tcl
+  - origin: ../package-expect
+    alias: expect
+  - origin: ../package-dejagnu
+    alias: dejagnu
+  - origin: ../package-sed
+    alias: sed
+  - origin: ../package-gettext
+    alias: gettext
+  - origin: ../package-grep
+    alias: grep
+  - origin: ../package-bash
+    alias: bash
+  - origin: ../package-perl
+    alias: perl
+  - origin: ../package-xml-parser
+    alias: xml-parser
+  - origin: ../package-intltool
+    alias: intltool
+  - origin: ../package-wheel
+    alias: wheel
+  - origin: ../package-setuptools
+    alias: setuptools
+  - origin: ../package-coreutils
+    alias: coreutils
+  - origin: ../package-diffutils
+    alias: diffutils
+  - origin: ../package-gawk
+    alias: gawk
+  - origin: ../package-findutils
+    alias: findutils
+  - origin: ../package-groff
+    alias: groff
+  - origin: ../package-gzip
+    alias: gzip
+  - origin: ../package-make
+    alias: make
+  - origin: ../package-patch
+    alias: patch
+  - origin: ../package-tar
+    alias: tar
+  - origin: ../package-texinfo
+    alias: texinfo
+  - origin: ../package-vim
+    alias: vim
+  - origin: ../package-dbus
+    alias: dbus
+  - origin: ../package-util-linux
+    alias: util-linux
+  - origin: ../package-systemd
+    alias: systemd
+  - origin: ../package-grub
+    alias: grub
+  - origin: ../package-linux-headers
+    alias: linux-headers
+  - origin: ../package-linux-kernel
+    alias: linux-kernel
+  - origin: ../package-linux-modules
+    alias: linux-modules
+  - origin: ../package-openssh
+    alias: openssh
+  - origin: ../package-sudo
+    alias: sudo
+  - origin: ../package-ca-certificates
+    alias: ca-certificates
+  - origin: ../package-wget
+    alias: wget
+  - origin: ../package-curl
+    alias: curl
+  - origin: ../package-dhcpcd
+    alias: dhcpcd
+  - origin: ../package-rsync
+    alias: rsync
 
 var:
   xbee:
-    version: "0.1.0"
+    version: "0.34.1"
 
 build:
   - shell:
@@ -26,10 +200,14 @@ build:
         - apt-get update
         - >-
           DEBIAN_FRONTEND=noninteractive apt-get install -y
-          tar zstd
+          openssl tar zstd
+        - >-
+          openssl genpkey -algorithm Ed25519
+          -out "{{ .xbee.src }}/repository-signing-key.pem"
         - >-
           bash "{{ .xbee.resources }}/build-package-repository.sh"
           "/opt/xbee-lfs-native/xbpkg"
           "/opt/xbee-lfs-packages"
+          "{{ .xbee.src }}/repository-signing-key.pem"
           "{{ .xbee.src }}"
           "{{ .xbee.out }}"

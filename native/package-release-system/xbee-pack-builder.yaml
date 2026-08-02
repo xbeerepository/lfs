@@ -1,0 +1,41 @@
+schema-version: 1.0
+
+description: Publish the BIOS and UEFI package-assembled LFS images.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-system
+    alias: bios
+  - origin: ../package-uefi-system
+    alias: uefi
+
+var:
+  xbee:
+    version: "0.3.0"
+  release:
+    name: xbee-lfs-native-13.0-x86_64-packages
+
+provision:
+  - shell:
+      cmd:
+        - apt-get update
+        - DEBIAN_FRONTEND=noninteractive apt-get install -y openssl tar zstd
+
+build:
+  - shell:
+      cmd:
+        - >-
+          openssl genpkey -algorithm Ed25519
+          -out "{{ .xbee.src }}/release-signing-key.pem"
+        - >-
+          bash "{{ .xbee.resources }}/build-package-release-system.sh"
+          "/opt/xbee-lfs-native/xbee-lfs-native-13.0-x86_64-packages.qcow2"
+          "/opt/xbee-lfs-native/package-system-metadata.yaml"
+          "/opt/xbee-lfs-native/xbee-lfs-native-13.0-x86_64-packages-uefi.qcow2"
+          "/opt/xbee-lfs-native/package-uefi-system-metadata.yaml"
+          "{{ .release.name }}"
+          "{{ .xbee.src }}/release-signing-key.pem"
+          "{{ .xbee.resources }}"
+          "{{ .xbee.src }}"
+          "{{ .xbee.out }}"

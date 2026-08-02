@@ -16,9 +16,13 @@ Cette racine contient deux implémentations :
   `cross-toolchain`, `temporary-system`, `chroot-system`, `final-system` et
   `bootable-system`, `provisioned-system`, `cloud-image`, `uefi-system`, puis
   `release-system`. Les packs `system-rootfs` et `lfs-system` rendent aussi le
-  rootfs LFS utilisable comme système d'exécution XBee. Une première couche de
-  paquets immuables fournit `xbpkg` et reconstruit séparément Zlib, Bzip2, XZ
-  et Zstd.
+  rootfs LFS utilisable comme système d'exécution XBee. Une couche de 91
+  paquets immuables fournit `xbpkg`; `package-system` réassemble directement
+  ces paquets en une image BIOS amorçable et `package-uefi-system` en dérive
+  une variante GPT/UEFI, sans réutiliser le rootfs final monolithique. Les deux
+  utilisent l'agent NoCloud partagé pour provisionner le hostname et la clé SSH
+  au premier démarrage. `package-release-system` publie les deux formats avec
+  leurs métadonnées et un manifeste SHA-256 reproductible.
 
 ## Prérequis
 
@@ -137,3 +141,15 @@ Le descripteur [`xbee-pack-system.yaml`](xbee-pack-system.yaml) expose LFS 13.0
 comme distribution XBee. Pour VirtualBox, il sélectionne l'image VMDK publiée
 avec la release, désactive les Guest Additions spécifiques aux distributions
 à base de paquets et utilise le provisionnement NoCloud intégré à LFS.
+
+## Exécuter LFS avec Docker
+
+L'exemple [`examples/docker`](examples/docker/README.md) construit le root
+filesystem LFS natif puis l'exécute avec le provider Docker interne de XBee.
+Il fournit un environnement léger pour valider l'espace utilisateur LFS, sans
+démarrer le noyau ni l'image disque LFS.
+
+L'exemple
+[`examples/xbpkg-virtualbox`](examples/xbpkg-virtualbox/README.md) démarre
+l'image minimale dans VirtualBox et valide la chaîne d'actions XBee
+`gpg` → `repo` → `pkg` en installant réellement `curl`.

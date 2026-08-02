@@ -6,7 +6,7 @@ require: ../../build-system
 
 var:
   xbee:
-    version: "13.0"
+    version: "0.18.1"
 
 build:
   - shell:
@@ -16,9 +16,12 @@ build:
           install -m 0755 "{{ .xbee.resources }}/xbpkg"
           "{{ .xbee.out }}/opt/xbee-lfs-native/xbpkg"
         - >-
+          install -m 0755 "{{ .xbee.resources }}/build-trust-root.sh"
+          "{{ .xbee.out }}/opt/xbee-lfs-native/build-trust-root.sh"
+        - >-
           cd "{{ .xbee.out }}/opt/xbee-lfs-native" &&
           sha256sum xbpkg > xbpkg.sha256
         - >-
           printf
-          'schema-version: 1\nname: xbpkg\nversion: "0.1.0"\nformat: xbpkg.tar.zst\n'
+          'schema-version: 1\nname: xbpkg\nversion: "0.18.1"\nformat: xbpkg.tar.zst\n'
           > "{{ .xbee.out }}/opt/xbee-lfs-native/xbpkg-metadata.yaml"

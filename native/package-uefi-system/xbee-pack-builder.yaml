@@ -1,0 +1,41 @@
+schema-version: 1.0
+
+description: Build a UEFI XBee LFS image from the xbpkg-assembled rootfs.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-system
+    alias: packages
+
+var:
+  xbee:
+    version: "0.1.0"
+  lfs:
+    admin_user: xbee
+  image:
+    name: xbee-lfs-native-13.0-x86_64-packages-uefi
+    extra_size_mib: 1024
+    esp_size_mib: 256
+
+provision:
+  - shell:
+      cmd:
+        - apt-get update
+        - >-
+          DEBIAN_FRONTEND=noninteractive apt-get install -y
+          dosfstools e2fsprogs grub-efi-amd64-bin grub2-common
+          mount parted qemu-utils tar zstd
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "{{ .xbee.resources }}/build-package-uefi-system.sh"
+          "/opt/xbee-lfs-native/package-rootfs.tar.zst"
+          "{{ .lfs.admin_user }}"
+          "{{ .image.name }}"
+          "{{ .image.extra_size_mib }}"
+          "{{ .image.esp_size_mib }}"
+          "{{ .xbee.src }}"
+          "{{ .xbee.out }}"

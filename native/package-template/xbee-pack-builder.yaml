@@ -6,7 +6,7 @@ require: ../../build-system
 
 var:
   xbee:
-    version: "0.1.0"
+    version: "0.2.0"
 
 build:
   - shell:
@@ -15,3 +15,6 @@ build:
         - >-
           install -m 0755 "{{ .xbee.resources }}/build-xbpkg.sh"
           "{{ .xbee.out }}/opt/xbee-lfs-native/build-xbpkg.sh"
+        - >-
+          install -m 0644 "{{ .xbee.resources }}/kernel-x86_64.config"
+          "{{ .xbee.out }}/opt/xbee-lfs-native/kernel-x86_64.config"

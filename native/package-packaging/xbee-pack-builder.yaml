@@ -1,0 +1,45 @@
+schema-version: 1.0
+
+description: Build the packaging package for XBee LFS.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../final-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-python
+    alias: python
+  - origin: ../package-flit-core
+    alias: flit-core
+
+var:
+  xbee:
+    version: "26.0"
+  lfs:
+    jobs: 4
+  package:
+    name: packaging
+    version: "26.0"
+    source: packaging-26.0.tar.gz
+    runtime-dependencies: python,flit-core
+
+provision:
+  - shell:
+      cmd:
+        - apt-get update
+        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ .package.runtime-dependencies }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"

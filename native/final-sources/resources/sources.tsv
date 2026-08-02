@@ -36,6 +36,12 @@ b6335533cbeac3b24cd7be31fdee8c83	man-db-2.13.1.tar.xz	https://download.savannah.
 e1c12d275f8aae9fae71dff3d6891746	meson-1.10.1.tar.gz	https://github.com/mesonbuild/meson/releases/download/1.10.1/meson-1.10.1.tar.gz
 76c00637fde44909cd7d56f8d73f2042	ninja-1.13.2.tar.gz	https://github.com/ninja-build/ninja/archive/v1.13.2/ninja-1.13.2.tar.gz
 589777dc85ebbfeca70161c0c384d572	openssl-3.6.1.tar.gz	https://github.com/openssl/openssl/releases/download/openssl-3.6.1/openssl-3.6.1.tar.gz
+c5fb91ded926b38e8956074cac2cd44f	openssh-10.4p1.tar.gz	https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-10.4p1.tar.gz
+f29e5da4a7ba1ac595e4b894c9243897	cacert-2026-07-16.pem	https://curl.se/ca/cacert-2026-07-16.pem
+c70ba58b36f944e8ba1d655ace552881	wget-1.25.0.tar.gz	https://ftpmirror.gnu.org/wget/wget-1.25.0.tar.gz
+230131079987135cbe1eadb77a04af57	curl-8.21.0.tar.xz	https://curl.se/download/curl-8.21.0.tar.xz
+ce62bc6caf02421ac40135dbb92377b5	dhcpcd-10.2.4.tar.xz	https://github.com/NetworkConfiguration/dhcpcd/releases/download/v10.2.4/dhcpcd-10.2.4.tar.xz
+7357ebabdfc2802a280ee79b94c97cd2	rsync-3.4.4.tar.gz	https://download.samba.org/pub/rsync/src/rsync-3.4.4.tar.gz
 2cbdbb5754f038736c3c361826c6872a	packaging-26.0.tar.gz	https://files.pythonhosted.org/packages/source/p/packaging/packaging-26.0.tar.gz
 aded5840ab5a7d772dd4e16fc294b665	pcre2-10.47.tar.bz2	https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.47/pcre2-10.47.tar.bz2
 3291128c917fdb8fccd8c9e7784b643b	pkgconf-2.5.1.tar.xz	https://distfiles.ariadne.space/pkgconf/pkgconf-2.5.1.tar.xz
@@ -48,6 +54,7 @@ c56d98c09e5dbae816250ba5c2285a37	shadow-4.19.3.tar.xz	https://github.com/shadow-
 49600a5739d382c648b1a317e4b57446	sqlite-autoconf-3510200.tar.gz	https://sqlite.org/2026/sqlite-autoconf-3510200.tar.gz
 6f798c5dcd409ee563684c70be7e16fe	sqlite-doc-3510200.tar.xz	https://anduin.linuxfromscratch.org/LFS/sqlite-doc-3510200.tar.xz
 623f73826e7702ac08c57febb9d20431	systemd-259.1.tar.gz	https://github.com/systemd/systemd/archive/v259.1/systemd-259.1.tar.gz
+dcbf46f739ae06b076e1a11cbb271a10	sudo-1.9.17p2.tar.gz	https://www.sudo.ws/dist/sudo-1.9.17p2.tar.gz
 de40a27b137ef707777811818995363c	systemd-man-pages-259.1.tar.xz	https://anduin.linuxfromscratch.org/LFS/systemd-man-pages-259.1.tar.xz
 1ec3444533f54d0f86cd120058e15e48	tcl8.6.17-src.tar.gz	https://downloads.sourceforge.net/tcl/tcl8.6.17-src.tar.gz
 60c71044e723b0db5f21be82929f3534	tcl8.6.17-html.tar.gz	https://downloads.sourceforge.net/tcl/tcl8.6.17-html.tar.gz

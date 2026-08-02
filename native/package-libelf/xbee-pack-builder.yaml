@@ -1,0 +1,51 @@
+schema-version: 1.0
+
+description: Build the libelf package for XBee LFS.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../final-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-zlib
+    alias: zlib
+  - origin: ../package-zstd
+    alias: zstd
+  - origin: ../package-xz
+    alias: xz
+  - origin: ../package-bzip2
+    alias: bzip2
+
+var:
+  xbee:
+    version: "0.194"
+  lfs:
+    jobs: 4
+  package:
+    name: libelf
+    version: "0.194"
+    source: elfutils-0.194.tar.bz2
+    runtime-dependencies: zlib,zstd,xz,bzip2
+
+provision:
+  - shell:
+      cmd:
+        - apt-get update
+        - >-
+          DEBIAN_FRONTEND=noninteractive apt-get install -y
+          bzip2 tar zstd
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ .package.runtime-dependencies }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
