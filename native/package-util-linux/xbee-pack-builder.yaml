@@ -17,6 +17,12 @@ builder:
     alias: readline
   - origin: ../package-zlib
     alias: zlib
+  - origin: ../package-bzip2
+    alias: bzip2
+  - origin: ../package-xz
+    alias: xz
+  - origin: ../package-zstd
+    alias: zstd
   - origin: ../package-libcap
     alias: libcap
   - origin: ../package-file
@@ -49,5 +55,5 @@ build:
           "/opt/xbee-lfs-native/sources"
           "/opt/xbee-lfs-native/final-rootfs.tar.zst"
           "{{ .package.name }}" "{{ .package.version }}"
-          "{{ .package.source }}" "{{ .package.runtime-dependencies }}"
+          "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
           "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"

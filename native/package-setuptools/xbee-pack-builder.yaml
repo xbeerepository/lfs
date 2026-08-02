@@ -39,5 +39,5 @@ build:
           "/opt/xbee-lfs-native/sources"
           "/opt/xbee-lfs-native/final-rootfs.tar.zst"
           "{{ .package.name }}" "{{ .package.version }}"
-          "{{ .package.source }}" "{{ .package.runtime-dependencies }}"
+          "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
           "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
