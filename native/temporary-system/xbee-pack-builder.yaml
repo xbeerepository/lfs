@@ -16,15 +16,6 @@ var:
   lfs:
     jobs: 4
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - >-
-          DEBIAN_FRONTEND=noninteractive apt-get install -y
-          bash binutils bison coreutils diffutils findutils gawk gcc g++
-          grep gzip make patch perl python3 sed sudo tar texinfo xz-utils zstd
-
 build:
   - shell:
       cmd:

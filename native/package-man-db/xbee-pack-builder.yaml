@@ -27,12 +27,6 @@ var:
     source: man-db-2.13.1.tar.xz
     runtime-dependencies: libpipeline,zlib
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
-
 build:
   - shell:
       cmd:

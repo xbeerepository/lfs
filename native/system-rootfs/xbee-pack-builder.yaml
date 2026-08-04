@@ -17,10 +17,6 @@ var:
 build:
   - shell:
       cmd:
-        - apt-get update
-        - >-
-          DEBIAN_FRONTEND=noninteractive apt-get install -y
-          tar zstd
         - >-
           bash "{{ .xbee.resources }}/build-system-rootfs.sh"
           "/opt/xbee-lfs-native/cloud-rootfs.tar.zst"

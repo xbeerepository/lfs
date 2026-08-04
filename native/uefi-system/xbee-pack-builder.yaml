@@ -21,11 +21,6 @@ var:
 build:
   - shell:
       cmd:
-        - apt-get update
-        - >-
-          DEBIAN_FRONTEND=noninteractive apt-get install -y
-          dosfstools e2fsprogs grub-efi-amd64-bin grub2-common
-          mount parted qemu-utils tar zstd
         - >-
           bash "{{ .xbee.resources }}/build-uefi-system.sh"
           "/opt/xbee-lfs-native/cloud-rootfs.tar.zst"

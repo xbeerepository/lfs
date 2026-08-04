@@ -23,12 +23,6 @@ var:
     source: findutils-4.10.0.tar.xz
     runtime-dependencies: ""
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
-
 build:
   - shell:
       cmd:

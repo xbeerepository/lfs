@@ -23,12 +23,6 @@ var:
     source: zlib-1.3.2.tar.gz
     runtime-dependencies: ""
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar zstd
-
 build:
   - shell:
       cmd:

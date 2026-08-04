@@ -27,12 +27,6 @@ var:
     source: sqlite-autoconf-3510200.tar.gz
     runtime-dependencies: zlib,readline
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
-
 build:
   - shell:
       cmd:

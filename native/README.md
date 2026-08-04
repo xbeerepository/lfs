@@ -1,7 +1,7 @@
 # Début de l'approche LFS native
 
-Cette filière n'utilise pas jhalfs pour exécuter la construction. Les commandes
-des chapitres 5 à 8 du livre LFS 13.0 sont portées dans des builders XBee.
+Cette filière porte les commandes des chapitres 5 à 8 du livre LFS 13.0 dans
+des builders XBee natifs.
 
 ```text
 sources

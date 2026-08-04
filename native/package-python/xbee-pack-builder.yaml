@@ -45,12 +45,6 @@ var:
     source: Python-3.14.3.tar.xz
     runtime-dependencies: bzip2,xz,zlib,zstd,ncurses,readline,libffi,expat,gdbm,openssl,sqlite
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
-
 build:
   - shell:
       cmd:

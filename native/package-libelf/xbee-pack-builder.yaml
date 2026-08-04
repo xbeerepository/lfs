@@ -31,14 +31,6 @@ var:
     source: elfutils-0.194.tar.bz2
     runtime-dependencies: zlib,zstd,xz,bzip2
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - >-
-          DEBIAN_FRONTEND=noninteractive apt-get install -y
-          bzip2 tar zstd
-
 build:
   - shell:
       cmd:

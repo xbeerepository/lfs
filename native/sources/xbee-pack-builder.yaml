@@ -10,12 +10,6 @@ var:
   sources:
     retries: 3
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates wget
-
 build:
   - shell:
       cmd:

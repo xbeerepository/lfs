@@ -27,12 +27,6 @@ var:
     source: texinfo-7.2.tar.xz
     runtime-dependencies: perl,ncurses
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
-
 build:
   - shell:
       cmd:

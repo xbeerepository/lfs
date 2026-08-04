@@ -16,12 +16,6 @@ var:
   release:
     name: xbee-lfs-native-13.0-x86_64-packages
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y openssl tar zstd
-
 build:
   - shell:
       cmd:

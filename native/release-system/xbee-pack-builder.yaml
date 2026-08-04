@@ -19,10 +19,6 @@ var:
 build:
   - shell:
       cmd:
-        - apt-get update
-        - >-
-          DEBIAN_FRONTEND=noninteractive apt-get install -y
-          mount qemu-utils tar zstd
         - >-
           bash "{{ .xbee.resources }}/build-release-system.sh"
           "/opt/xbee-lfs-native/xbee-lfs-native-13.0-x86_64-cloud.qcow2"

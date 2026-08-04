@@ -23,15 +23,6 @@ var:
     name: xbee-lfs-native-13.0-x86_64-minimal
     extra_size_mib: 512
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - >-
-          DEBIAN_FRONTEND=noninteractive apt-get install -y
-          e2fsprogs grub-pc-bin grub2-common mount parted qemu-utils
-          tar zstd
-
 build:
   - shell:
       cmd:

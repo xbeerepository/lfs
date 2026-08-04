@@ -27,12 +27,6 @@ var:
     source: vim-9.2.0078.tar.gz
     runtime-dependencies: ncurses,acl
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
-
 build:
   - shell:
       cmd:

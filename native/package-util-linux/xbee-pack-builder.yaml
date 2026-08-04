@@ -41,12 +41,6 @@ var:
     source: util-linux-2.41.3.tar.xz
     runtime-dependencies: ncurses,readline,zlib,libcap,file,libxcrypt
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
-
 build:
   - shell:
       cmd:

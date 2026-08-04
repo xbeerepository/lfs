@@ -27,12 +27,6 @@ var:
     source: meson-1.10.1.tar.gz
     runtime-dependencies: python,packaging
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
-
 build:
   - shell:
       cmd:

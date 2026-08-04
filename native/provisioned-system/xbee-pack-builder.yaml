@@ -23,11 +23,6 @@ var:
 build:
   - shell:
       cmd:
-        - apt-get update
-        - >-
-          DEBIAN_FRONTEND=noninteractive apt-get install -y
-          ca-certificates curl e2fsprogs grub-pc-bin grub2-common mount
-          parted qemu-utils tar zstd
         - >-
           bash "{{ .xbee.resources }}/download-provisioning-sources.sh"
           "{{ .xbee.src }}/provisioning-sources"

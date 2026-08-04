@@ -29,12 +29,6 @@ var:
     source: shadow-4.19.3.tar.xz
     runtime-dependencies: libxcrypt,attr,acl
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
-
 build:
   - shell:
       cmd:

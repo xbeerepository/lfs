@@ -16,4 +16,42 @@ user: root
 directory: /root
 
 provision:
-
+  - pkg:
+      name:
+        - bash
+        - binutils
+        - bison
+        - bzip2
+        - ca-certificates
+        - coreutils
+        - curl
+        - diffutils
+        - dosfstools
+        - e2fsprogs
+        - findutils
+        - g++
+        - gawk
+        - gcc
+        - grep
+        - grub-efi-amd64-bin
+        - grub-pc-bin
+        - grub2-common
+        - gzip
+        - make
+        - mount
+        - openssl
+        - parted
+        - patch
+        - perl
+        - python3
+        - qemu-utils
+        - sed
+        - sudo
+        - tar
+        - texinfo
+        - wget
+        - xz-utils
+        - zstd
+      env:
+        - DEBIAN_FRONTEND=noninteractive
+      update: true

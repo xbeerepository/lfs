@@ -29,12 +29,6 @@ var:
     source: curl-8.21.0.tar.xz
     runtime-dependencies: openssl,zlib,ca-certificates
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
-
 build:
   - shell:
       cmd:

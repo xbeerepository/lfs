@@ -35,12 +35,6 @@ var:
     source: rsync-3.4.4.tar.gz
     runtime-dependencies: zlib,zstd,lz4,openssl,acl,attr
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
-
 build:
   - shell:
       cmd:

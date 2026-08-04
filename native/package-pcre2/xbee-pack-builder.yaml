@@ -29,14 +29,6 @@ var:
     source: pcre2-10.47.tar.bz2
     runtime-dependencies: zlib,bzip2,readline
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - >-
-          DEBIAN_FRONTEND=noninteractive apt-get install -y
-          bzip2 tar zstd
-
 build:
   - shell:
       cmd:

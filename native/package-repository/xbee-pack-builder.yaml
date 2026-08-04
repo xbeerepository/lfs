@@ -197,10 +197,6 @@ var:
 build:
   - shell:
       cmd:
-        - apt-get update
-        - >-
-          DEBIAN_FRONTEND=noninteractive apt-get install -y
-          openssl tar zstd
         - >-
           openssl genpkey -algorithm Ed25519
           -out "{{ .xbee.src }}/repository-signing-key.pem"

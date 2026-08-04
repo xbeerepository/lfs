@@ -175,8 +175,6 @@ func TestExampleDescriptorsAreValid(t *testing.T) {
 	}{
 		{folder: ".", descriptorName: "xbee-pack-system.yaml"},
 		{folder: "build-system", descriptorName: "xbee-pack-system.yaml"},
-		{folder: "rootfs", descriptorName: "xbee-pack-builder.yaml"},
-		{folder: "image", descriptorName: "xbee-pack-builder.yaml"},
 		{folder: "native/sources", descriptorName: "xbee-pack-builder.yaml"},
 		{folder: "native/cross-toolchain", descriptorName: "xbee-pack-builder.yaml"},
 		{folder: "native/temporary-system", descriptorName: "xbee-pack-builder.yaml"},
@@ -378,8 +376,6 @@ func TestVirtualBoxSystemPackMatchesRelease(t *testing.T) {
 
 func TestBuildScriptsHaveValidBashSyntax(t *testing.T) {
 	scripts := []string{
-		"rootfs/resources/build-rootfs.sh",
-		"image/resources/build-image.sh",
 		"native/sources/resources/download-sources.sh",
 		"native/cross-toolchain/resources/build-cross-toolchain.sh",
 		"native/temporary-system/resources/build-temporary-system.sh",

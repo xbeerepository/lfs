@@ -27,12 +27,6 @@ var:
     source: bash-5.3.tar.gz
     runtime-dependencies: readline,ncurses
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
-
 build:
   - shell:
       cmd:

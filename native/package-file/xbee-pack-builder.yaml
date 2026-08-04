@@ -31,12 +31,6 @@ var:
     source: file-5.46.tar.gz
     runtime-dependencies: zlib,bzip2,xz,zstd
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
-
 build:
   - shell:
       cmd:

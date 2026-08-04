@@ -25,12 +25,6 @@ var:
     source: dbus-1.16.2.tar.xz
     runtime-dependencies: expat
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
-
 build:
   - shell:
       cmd:

@@ -17,14 +17,6 @@ var:
     jobs: 4
     hostname: xbee-lfs
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - >-
-          DEBIAN_FRONTEND=noninteractive apt-get install -y
-          tar zstd
-
 build:
   - shell:
       cmd:

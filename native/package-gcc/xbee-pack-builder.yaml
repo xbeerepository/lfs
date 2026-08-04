@@ -35,12 +35,6 @@ var:
     source: gcc-15.2.0.tar.xz
     runtime-dependencies: binutils,zlib,zstd,gmp,mpfr,mpc
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
-
 build:
   - shell:
       cmd:

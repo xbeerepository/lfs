@@ -29,12 +29,6 @@ var:
     source: sudo-1.9.17p2.tar.gz
     runtime-dependencies: libxcrypt,zlib,openssl
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
-
 build:
   - shell:
       cmd:

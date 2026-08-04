@@ -23,12 +23,6 @@ var:
     source: man-pages-6.17.tar.xz
     runtime-dependencies: ""
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
-
 build:
   - shell:
       cmd:

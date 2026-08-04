@@ -24,10 +24,6 @@ var:
 build:
   - shell:
       cmd:
-        - apt-get update
-        - >-
-          DEBIAN_FRONTEND=noninteractive apt-get install -y
-          e2fsprogs grub-pc-bin grub2-common mount parted qemu-utils tar zstd
         - >-
           bash "{{ .xbee.resources }}/build-bootable-system.sh"
           "/opt/xbee-lfs-native/final-rootfs.tar.zst"

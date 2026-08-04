@@ -25,12 +25,6 @@ var:
     source: mpfr-4.2.2.tar.xz
     runtime-dependencies: gmp
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
-
 build:
   - shell:
       cmd:

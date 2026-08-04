@@ -27,12 +27,6 @@ var:
     source: groff-1.23.0.tar.gz
     runtime-dependencies: gcc,perl
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar xz-utils zstd
-
 build:
   - shell:
       cmd:

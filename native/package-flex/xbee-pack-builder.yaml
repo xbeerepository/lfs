@@ -25,12 +25,6 @@ var:
     source: flex-2.6.4.tar.gz
     runtime-dependencies: m4
 
-provision:
-  - shell:
-      cmd:
-        - apt-get update
-        - DEBIAN_FRONTEND=noninteractive apt-get install -y tar zstd
-
 build:
   - shell:
       cmd:
