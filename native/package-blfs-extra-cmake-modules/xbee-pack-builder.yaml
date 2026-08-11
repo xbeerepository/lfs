@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build Extra CMake Modules 6.23.0 for KDE Frameworks.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-cmake, alias: blfs-cmake }, { origin: ../package-blfs-libarchive, alias: blfs-libarchive }, { origin: ../package-blfs-libxml2, alias: blfs-libxml2 }, { origin: ../package-bzip2, alias: bzip2 }, { origin: ../package-xz, alias: xz }, { origin: ../package-zstd, alias: zstd }, { origin: ../package-expat, alias: expat }, { origin: ../package-blfs-qt6, alias: blfs-qt6 }]
+var: { xbee: { version: "6.23.0-2" }, lfs: { jobs: 4 }, package: { name: extra-cmake-modules, version: "6.23.0", source: extra-cmake-modules-6.23.0.tar.xz, runtime-dependencies: "qt6,libarchive,libxml2,bzip2,xz,zstd,expat" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

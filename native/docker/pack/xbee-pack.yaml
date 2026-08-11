@@ -1,0 +1,13 @@
+schema-version: 1.0
+
+description: Sanity checks for xbee-os in the Docker environment.
+
+require: ../../lfs-system
+
+provision:
+  - shell:
+      cmd:
+        - test -x /bin/bash
+        - test -x /usr/bin/xbee
+        - test -x /usr/bin/xbpkg
+        - test -x /bin/sh

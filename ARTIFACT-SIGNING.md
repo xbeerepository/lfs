@@ -111,11 +111,23 @@ métadonnées et la seed NoCloud qu'elle embarque.
 
 ### Signature
 
-Une nouvelle clé privée Ed25519 est générée pendant le build :
+La release est signée avec une clé privée Ed25519 persistante, conservée hors
+du dépôt Git :
 
 ```bash
-openssl genpkey -algorithm Ed25519 \
-  -out release-signing-key.pem
+~/.xbee/.ssh/xbee-lfs-release-ed25519.pem
+```
+
+Le builder monte ce fichier en lecture seule dans son conteneur sous
+`/run/xbee-secrets/release-signing-key.pem`. La clé privée est utilisée
+uniquement par l'opération de signature ; elle n'est copiée ni dans les
+sources du builder, ni dans l'artefact exporté. Le fichier doit appartenir à
+l'utilisateur qui lance XBee et avoir le mode `0600`.
+
+La clé publique persistante correspondante est conservée dans :
+
+```bash
+~/.xbee/.ssh/xbee-lfs-release-ed25519-public.pem
 ```
 
 La signature détachée du manifeste est créée ainsi :
@@ -183,9 +195,10 @@ publication finale couverte par `ARTIFACTS.sig`.
 
 ## Modèle de confiance actuel
 
-Les clés privées du dépôt et de la publication sont actuellement générées à
-chaque build. Les clés publiques correspondantes sont livrées avec les
-artefacts.
+La clé privée du dépôt de paquets est actuellement générée à chaque build. La
+clé privée de publication BIOS/UEFI est persistante et injectée depuis
+`~/.xbee/.ssh` uniquement pendant la signature. Les clés publiques
+correspondantes sont livrées avec les artefacts.
 
 Ce fonctionnement protège contre une modification des fichiers après leur
 construction, à condition que la clé publique utilisée pour la vérification
@@ -196,8 +209,8 @@ artefacts, la signature et la clé publique.
 
 Pour établir une chaîne de confiance durable, il est recommandé de :
 
-1. conserver une clé privée de publication persistante dans un gestionnaire de
-   secrets ou un module matériel ;
+1. sauvegarder la clé privée de publication persistante dans un gestionnaire
+   de secrets ou un module matériel ;
 2. ne jamais inclure cette clé privée dans les artefacts ou dans le dépôt Git ;
 3. distribuer l'empreinte ou la clé publique par un canal indépendant ;
 4. séparer la clé du dépôt de la clé de publication ;

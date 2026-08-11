@@ -1,0 +1,44 @@
+schema-version: 1.0
+
+description: Build the Mako Python module from BLFS 13.0 for XBee LFS.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../blfs-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-python
+    alias: python
+  - origin: ../package-wheel
+    alias: wheel
+  - origin: ../package-setuptools
+    alias: setuptools
+  - origin: ../package-markupsafe
+    alias: markupsafe
+
+var:
+  xbee:
+    version: "1.3.10"
+  lfs:
+    jobs: 4
+  package:
+    name: mako
+    version: "1.3.10"
+    source: mako-1.3.10.tar.gz
+    runtime-dependencies: python,markupsafe
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
+          "{{ .xbee.resources }}/build.sh"

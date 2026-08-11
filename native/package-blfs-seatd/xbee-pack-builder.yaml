@@ -1,0 +1,44 @@
+schema-version: 1.0
+
+description: Build seatd 0.9.3 for the XBee LFS Wayland stack.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../blfs-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-systemd
+    alias: systemd
+  - origin: ../package-meson
+    alias: meson
+  - origin: ../package-ninja
+    alias: ninja
+  - origin: ../package-pkgconf
+    alias: pkgconf
+
+var:
+  xbee:
+    version: "0.9.3"
+  lfs:
+    jobs: 4
+  package:
+    name: seatd
+    version: "0.9.3"
+    source: seatd-0.9.3.tar.gz
+    runtime-dependencies: systemd
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
+          "{{ .xbee.resources }}/build.sh"

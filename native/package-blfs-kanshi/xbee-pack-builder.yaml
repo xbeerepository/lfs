@@ -1,0 +1,48 @@
+schema-version: 1.0
+
+description: Build Kanshi 1.9.0 dynamic output configuration for Wayland.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../blfs-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-blfs-libscfg
+    alias: blfs-libscfg
+  - origin: ../package-blfs-wayland
+    alias: blfs-wayland
+  - origin: ../package-blfs-libxml2
+    alias: blfs-libxml2
+  - origin: ../package-meson
+    alias: meson
+  - origin: ../package-ninja
+    alias: ninja
+  - origin: ../package-pkgconf
+    alias: pkgconf
+
+var:
+  xbee:
+    version: "1.9.0-1"
+  lfs:
+    jobs: 4
+  package:
+    name: kanshi
+    version: "1.9.0"
+    source: kanshi_1.9.0.orig.tar.xz
+    runtime-dependencies: libscfg,wayland,libxml2
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
+          "{{ .xbee.resources }}/build.sh"

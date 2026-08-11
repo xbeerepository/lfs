@@ -1,0 +1,39 @@
+schema-version: 1.0
+description: Build XDG Desktop Portal 1.22.1 for the native Wayland desktop.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+  - { origin: ../package-dbus, alias: dbus }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+  - { origin: ../package-blfs-fuse3, alias: blfs-fuse3 }
+  - { origin: ../package-blfs-gdk-pixbuf, alias: blfs-gdk-pixbuf }
+  - { origin: ../package-blfs-libjpeg-turbo, alias: blfs-libjpeg-turbo }
+  - { origin: ../package-blfs-libtiff, alias: blfs-libtiff }
+  - { origin: ../package-blfs-shared-mime-info, alias: blfs-shared-mime-info }
+  - { origin: ../package-blfs-json-glib, alias: blfs-json-glib }
+  - { origin: ../package-blfs-pipewire, alias: blfs-pipewire }
+  - { origin: ../package-blfs-bubblewrap, alias: blfs-bubblewrap }
+  - { origin: ../package-blfs-gstreamer, alias: blfs-gstreamer }
+  - { origin: ../package-blfs-gst-plugins-base, alias: blfs-gst-plugins-base }
+var:
+  xbee: { version: "1.22.1-6" }
+  lfs: { jobs: 4 }
+  package:
+    name: xdg-desktop-portal
+    version: "1.22.1"
+    source: xdg-desktop-portal-1.22.1.tar.xz
+    runtime-dependencies: dbus,glib,fuse3,gdk-pixbuf,json-glib,pipewire,bubblewrap,gstreamer,gst-plugins-base
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build cryptsetup 2.8.4 for BLFS.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-json-c, alias: blfs-json-c }, { origin: ../package-blfs-lvm2, alias: blfs-lvm2 }, { origin: ../package-blfs-popt, alias: blfs-popt }, { origin: ../package-blfs-keyutils, alias: blfs-keyutils }]
+var: { xbee: { version: "2.8.4-1" }, lfs: { jobs: 4 }, package: { name: cryptsetup, version: "2.8.4", source: cryptsetup-2.8.4.tar.xz, runtime-dependencies: "json-c,lvm2,popt,keyutils" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

@@ -1,0 +1,42 @@
+schema-version: 1.0
+
+description: Package DocBook XSL non-namespaced stylesheets from BLFS 13.0.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../blfs-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-blfs-docbook-xml
+    alias: blfs-docbook-xml
+  - origin: ../package-blfs-libxml2
+    alias: blfs-libxml2
+  - origin: ../package-blfs-libxslt
+    alias: blfs-libxslt
+
+var:
+  xbee:
+    version: "1.79.2-2"
+  lfs:
+    jobs: 4
+  package:
+    name: docbook-xsl-nons
+    version: "1.79.2"
+    source: docbook-xsl-nons-1.79.2.tar.bz2
+    runtime-dependencies: docbook-xml,libxml2,libxslt
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
+          "{{ .xbee.resources }}/build.sh"

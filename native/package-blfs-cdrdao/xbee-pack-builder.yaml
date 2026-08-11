@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build cdrdao 1.2.6.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-gtkmm, alias: blfs-gtkmm }, { origin: ../package-blfs-libao, alias: blfs-libao }, { origin: ../package-blfs-libvorbis, alias: blfs-libvorbis }, { origin: ../package-blfs-libmad, alias: blfs-libmad }, { origin: ../package-blfs-lame, alias: blfs-lame }]
+var: { xbee: { version: "1.2.6-1" }, lfs: { jobs: 4 }, package: { name: cdrdao, version: "1.2.6", source: cdrdao-1.2.6.tar.bz2, runtime-dependencies: "gtkmm,libao,libvorbis,libmad,lame" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

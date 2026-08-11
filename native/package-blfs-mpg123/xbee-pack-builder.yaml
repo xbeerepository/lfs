@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build mpg123 1.33.4.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-alsa-lib, alias: blfs-alsa-lib }, { origin: ../package-blfs-pulseaudio, alias: blfs-pulseaudio }, { origin: ../package-blfs-sdl2-compat, alias: blfs-sdl2-compat }]
+var: { xbee: { version: "1.33.4-1" }, lfs: { jobs: 4 }, package: { name: mpg123, version: "1.33.4", source: mpg123-1.33.4.tar.bz2, runtime-dependencies: "alsa-lib,pulseaudio,sdl2-compat" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

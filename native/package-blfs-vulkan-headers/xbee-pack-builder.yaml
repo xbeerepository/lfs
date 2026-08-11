@@ -1,0 +1,20 @@
+schema-version: 1.0
+description: Build Vulkan-Headers 1.4.337 for libplacebo.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+var:
+  xbee: { version: "1.4.337-2" }
+  lfs: { jobs: 1 }
+  package: { name: vulkan-headers, version: "1.4.337", source: Vulkan-Headers-450bd2232225d6c7728a4108055ac2e37cef6475.tar.gz, runtime-dependencies: "" }
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

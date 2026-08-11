@@ -1,0 +1,112 @@
+schema-version: 1.0
+
+description: Build the Sway 1.11 Wayland compositor for XBee LFS.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../package-libstdcxx-runtime
+    alias: libstdcxx-runtime
+  - origin: ../blfs-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-blfs-wlroots
+    alias: blfs-wlroots
+  - origin: ../package-blfs-json-c
+    alias: blfs-json-c
+  - origin: ../package-pcre2
+    alias: pcre2
+  - origin: ../package-blfs-wayland
+    alias: blfs-wayland
+  - origin: ../package-blfs-wayland-protocols
+    alias: blfs-wayland-protocols
+  - origin: ../package-blfs-libxml2
+    alias: blfs-libxml2
+  - origin: ../package-blfs-libxkbcommon
+    alias: blfs-libxkbcommon
+  - origin: ../package-blfs-cairo
+    alias: blfs-cairo
+  - origin: ../package-blfs-pango
+    alias: blfs-pango
+  - origin: ../package-blfs-fribidi
+    alias: blfs-fribidi
+  - origin: ../package-blfs-libpng
+    alias: blfs-libpng
+  - origin: ../package-blfs-fontconfig
+    alias: blfs-fontconfig
+  - origin: ../package-blfs-freetype
+    alias: blfs-freetype
+  - origin: ../package-blfs-brotli
+    alias: blfs-brotli
+  - origin: ../package-blfs-harfbuzz
+    alias: blfs-harfbuzz
+  - origin: ../package-blfs-graphite2
+    alias: blfs-graphite2
+  - origin: ../package-blfs-icu
+    alias: blfs-icu
+  - origin: ../package-blfs-glib
+    alias: blfs-glib
+  - origin: ../package-blfs-pixman
+    alias: blfs-pixman
+  - origin: ../package-blfs-libevdev
+    alias: blfs-libevdev
+  - origin: ../package-blfs-mtdev
+    alias: blfs-mtdev
+  - origin: ../package-blfs-libinput
+    alias: blfs-libinput
+  - origin: ../package-blfs-libdrm
+    alias: blfs-libdrm
+  - origin: ../package-blfs-mesa
+    alias: blfs-mesa
+  - origin: ../package-blfs-hwdata
+    alias: blfs-hwdata
+  - origin: ../package-blfs-libdisplay-info
+    alias: blfs-libdisplay-info
+  - origin: ../package-blfs-libliftoff
+    alias: blfs-libliftoff
+  - origin: ../package-blfs-seatd
+    alias: blfs-seatd
+  - origin: ../package-systemd
+    alias: systemd
+  - origin: ../package-zlib
+    alias: zlib
+  - origin: ../package-bzip2
+    alias: bzip2
+  - origin: ../package-expat
+    alias: expat
+  - origin: ../package-libffi
+    alias: libffi
+  - origin: ../package-util-linux
+    alias: util-linux
+  - origin: ../package-meson
+    alias: meson
+  - origin: ../package-ninja
+    alias: ninja
+  - origin: ../package-pkgconf
+    alias: pkgconf
+
+var:
+  xbee:
+    version: "1.11-6"
+  lfs:
+    jobs: 4
+  package:
+    name: sway
+    version: "1.11"
+    source: sway-1.11.tar.gz
+    runtime-dependencies: wlroots,json-c,pcre2,wayland,wayland-protocols,libxml2,libxkbcommon,cairo,pango,pixman,libevdev,mtdev,libinput,libdrm,mesa,hwdata,libdisplay-info,libliftoff,seatd,systemd,libstdcxx-runtime
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
+          "{{ .xbee.resources }}/build.sh"

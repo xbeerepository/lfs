@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build bind 9.20.19 for BLFS.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-libuv, alias: blfs-libuv }, { origin: ../package-blfs-nghttp2, alias: blfs-nghttp2 }, { origin: ../package-blfs-libxml2, alias: blfs-libxml2 }, { origin: ../package-blfs-json-c, alias: blfs-json-c }, { origin: ../package-openssl, alias: openssl }, { origin: ../package-blfs-userspace-rcu, alias: blfs-userspace-rcu }]
+var: { xbee: { version: "9.20.19-2" }, lfs: { jobs: 4 }, package: { name: bind, version: "9.20.19", source: bind-9.20.19.tar.xz, runtime-dependencies: "libuv,nghttp2,libxml2,json-c,openssl,userspace-rcu" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

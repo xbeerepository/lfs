@@ -1,3 +1,4 @@
 #cloud-config
+password_hash: 'YOUR_CRYPT_PASSWORD_HASH'
 ssh_authorized_keys:
   - YOUR_SSH_PUBLIC_KEY

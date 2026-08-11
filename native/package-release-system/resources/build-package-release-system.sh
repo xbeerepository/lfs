@@ -44,9 +44,9 @@ verify_artefact "$uefi_image"
   exit 1
 }
 grep -Fq 'firmware: bios' "$bios_metadata"
-grep -Fq 'package-count: 91' "$bios_metadata"
+grep -Fq 'package-count: 446' "$bios_metadata"
 grep -Fq 'firmware: uefi' "$uefi_metadata"
-grep -Fq 'package-count: 91' "$uefi_metadata"
+grep -Fq 'package-count: 446' "$uefi_metadata"
 for resource in README.release.md meta-data user-data verify-release.sh; do
   [[ -f "$resources/$resource" ]] || {
     echo "release resource not found: $resource" >&2
@@ -80,7 +80,7 @@ lfs-book: "13.0"
 repository-version: "0.34.1"
 architecture: x86_64
 kernel: "6.18.10"
-package-count: 91
+package-count: 446
 images:
   bios:
     file: "images/$(basename "$bios_image")"
@@ -119,7 +119,7 @@ name: "$release_name"
 format: tar.zst
 archive: "$(basename "$archive")"
 archive-checksum: "$(basename "$archive").sha256"
-package-count: 91
+package-count: 446
 artifact-signature: ed25519
 artifact-key-id: ARTIFACTS.keyid
 artifact-manifest: ARTIFACTS

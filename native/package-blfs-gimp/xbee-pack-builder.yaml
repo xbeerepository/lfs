@@ -1,0 +1,105 @@
+schema-version: 1.0
+description: Build gimp 3.0.6 for BLFS.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+  - { origin: ../package-blfs-appstream, alias: blfs-appstream }
+  - { origin: ../package-blfs-appstream-glib, alias: blfs-appstream-glib }
+  - { origin: ../package-curl, alias: curl }
+  - { origin: ../package-ca-certificates, alias: ca-certificates }
+  - { origin: ../package-blfs-nghttp2, alias: blfs-nghttp2 }
+  - { origin: ../package-blfs-c-ares, alias: blfs-c-ares }
+  - { origin: ../package-blfs-libidn2, alias: blfs-libidn2 }
+  - { origin: ../package-blfs-libpsl, alias: blfs-libpsl }
+  - { origin: ../package-blfs-libssh2, alias: blfs-libssh2 }
+  - { origin: ../package-blfs-itstool, alias: blfs-itstool }
+  - { origin: ../package-blfs-python-lxml, alias: blfs-python-lxml }
+  - { origin: ../package-blfs-libfyaml, alias: blfs-libfyaml }
+  - { origin: ../package-blfs-libxmlb, alias: blfs-libxmlb }
+  - { origin: ../package-blfs-docbook-xml, alias: blfs-docbook-xml }
+  - { origin: ../package-blfs-docbook-xsl-nons, alias: blfs-docbook-xsl-nons }
+  - { origin: ../package-blfs-libarchive, alias: blfs-libarchive }
+  - { origin: ../package-openssl, alias: openssl }
+  - { origin: ../package-zstd, alias: zstd }
+  - { origin: ../package-blfs-gegl, alias: blfs-gegl }
+  - { origin: ../package-blfs-gexiv2, alias: blfs-gexiv2 }
+  - { origin: ../package-blfs-exiv2, alias: blfs-exiv2 }
+  - { origin: ../package-blfs-inih, alias: blfs-inih }
+  - { origin: ../package-blfs-glib-networking, alias: blfs-glib-networking }
+  - { origin: ../package-blfs-gnutls, alias: blfs-gnutls }
+  - { origin: ../package-blfs-nettle, alias: blfs-nettle }
+  - { origin: ../package-blfs-libtasn1, alias: blfs-libtasn1 }
+  - { origin: ../package-blfs-p11-kit, alias: blfs-p11-kit }
+  - { origin: ../package-blfs-libunistring, alias: blfs-libunistring }
+  - { origin: ../package-blfs-gsettings-desktop-schemas, alias: blfs-gsettings-desktop-schemas }
+  - { origin: ../package-blfs-make-ca, alias: blfs-make-ca }
+  - { origin: ../package-blfs-gtk3, alias: blfs-gtk3 }
+  - { origin: ../package-blfs-babl, alias: blfs-babl }
+  - { origin: ../package-blfs-at-spi2-core, alias: blfs-at-spi2-core }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+  - { origin: ../package-blfs-json-glib, alias: blfs-json-glib }
+  - { origin: ../package-blfs-gobject-introspection, alias: blfs-gobject-introspection }
+  - { origin: ../package-blfs-glib-gir, alias: blfs-glib-gir }
+  - { origin: ../package-blfs-pygobject, alias: blfs-pygobject }
+  - { origin: ../package-blfs-pycairo, alias: blfs-pycairo }
+  - { origin: ../package-python, alias: python }
+  - { origin: ../package-blfs-libepoxy, alias: blfs-libepoxy }
+  - { origin: ../package-blfs-mesa, alias: blfs-mesa }
+  - { origin: ../package-blfs-cairo, alias: blfs-cairo }
+  - { origin: ../package-blfs-pango, alias: blfs-pango }
+  - { origin: ../package-blfs-fribidi, alias: blfs-fribidi }
+  - { origin: ../package-blfs-gdk-pixbuf, alias: blfs-gdk-pixbuf }
+  - { origin: ../package-blfs-shared-mime-info, alias: blfs-shared-mime-info }
+  - { origin: ../package-blfs-libjpeg-turbo, alias: blfs-libjpeg-turbo }
+  - { origin: ../package-blfs-giflib, alias: blfs-giflib }
+  - { origin: ../package-blfs-libxkbcommon, alias: blfs-libxkbcommon }
+  - { origin: ../package-blfs-wayland, alias: blfs-wayland }
+  - { origin: ../package-blfs-wayland-protocols, alias: blfs-wayland-protocols }
+  - { origin: ../package-blfs-pixman, alias: blfs-pixman }
+  - { origin: ../package-blfs-fontconfig, alias: blfs-fontconfig }
+  - { origin: ../package-blfs-freetype, alias: blfs-freetype }
+  - { origin: ../package-blfs-libpng, alias: blfs-libpng }
+  - { origin: ../package-blfs-brotli, alias: blfs-brotli }
+  - { origin: ../package-blfs-graphite2, alias: blfs-graphite2 }
+  - { origin: ../package-blfs-icu, alias: blfs-icu }
+  - { origin: ../package-libffi, alias: libffi }
+  - { origin: ../package-pcre2, alias: pcre2 }
+  - { origin: ../package-util-linux, alias: util-linux }
+  - { origin: ../package-readline, alias: readline }
+  - { origin: ../package-zlib, alias: zlib }
+  - { origin: ../package-bzip2, alias: bzip2 }
+  - { origin: ../package-xz, alias: xz }
+  - { origin: ../package-expat, alias: expat }
+  - { origin: ../package-blfs-harfbuzz, alias: blfs-harfbuzz }
+  - { origin: ../package-blfs-libmypaint, alias: blfs-libmypaint }
+  - { origin: ../package-blfs-json-c, alias: blfs-json-c }
+  - { origin: ../package-blfs-librsvg, alias: blfs-librsvg }
+  - { origin: ../package-blfs-libtiff, alias: blfs-libtiff }
+  - { origin: ../package-blfs-libxml2, alias: blfs-libxml2 }
+  - { origin: ../package-blfs-libxslt, alias: blfs-libxslt }
+  - { origin: ../package-blfs-lcms2, alias: blfs-lcms2 }
+  - { origin: ../package-blfs-mypaint-brushes, alias: blfs-mypaint-brushes }
+  - { origin: ../package-blfs-poppler, alias: blfs-poppler }
+  - { origin: ../package-blfs-poppler-data, alias: blfs-poppler-data }
+  - { origin: ../package-blfs-aalib, alias: blfs-aalib }
+  - { origin: ../package-blfs-libwebp, alias: blfs-libwebp }
+  - { origin: ../package-blfs-openjpeg, alias: blfs-openjpeg }
+  - { origin: ../package-blfs-desktop-file-utils, alias: blfs-desktop-file-utils }
+  - { origin: ../package-blfs-hicolor-icon-theme, alias: blfs-hicolor-icon-theme }
+var:
+  xbee: { version: "3.0.6-15" }
+  lfs: { jobs: 4 }
+  package:
+    name: gimp
+    version: "3.0.6"
+    source: gimp-3.0.6.tar.xz
+    runtime-dependencies: "appstream,appstream-glib,curl,ca-certificates,nghttp2,c-ares,libidn2,libpsl,libssh2,itstool,python-lxml,libfyaml,libxmlb,docbook-xml,docbook-xsl-nons,libarchive,openssl,zstd,gegl,gexiv2,exiv2,inih,glib-networking,gnutls,nettle,libtasn1,p11-kit,libunistring,gsettings-desktop-schemas,make-ca,gtk3,babl,at-spi2-core,glib,json-glib,gobject-introspection,glib-gir,pygobject,pycairo,python,libepoxy,mesa,cairo,pango,fribidi,gdk-pixbuf,shared-mime-info,libjpeg-turbo,giflib,libxkbcommon,wayland,wayland-protocols,pixman,fontconfig,freetype,libpng,brotli,graphite2,icu,libffi,pcre2,util-linux,readline,zlib,bzip2,xz,expat,harfbuzz,libmypaint,json-c,librsvg,libtiff,libxml2,libxslt,lcms2,mypaint-brushes,poppler,poppler-data,aalib,libwebp,openjpeg,desktop-file-utils,hicolor-icon-theme"
+build:
+  - shell:
+      cmd:
+        - 'bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'

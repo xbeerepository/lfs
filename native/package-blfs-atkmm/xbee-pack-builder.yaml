@@ -1,0 +1,31 @@
+schema-version: 1.0
+description: Build atkmm 2.28.5 for the GTKmm 3 ABI stack.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-blfs-at-spi2-core, alias: blfs-at-spi2-core }
+  - { origin: ../package-blfs-glibmm, alias: blfs-glibmm }
+  - { origin: ../package-blfs-libsigcxx, alias: blfs-libsigcxx }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+var:
+  xbee: { version: "2.28.5-1" }
+  lfs: { jobs: 4 }
+  package:
+    name: atkmm
+    version: "2.28.5"
+    source: atkmm-2.28.5.tar.xz
+    runtime-dependencies: at-spi2-core,glibmm,libsigc++
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

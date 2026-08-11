@@ -1,0 +1,47 @@
+schema-version: 1.0
+description: Build GStreamer Base Plug-ins 1.28.1 for portal media validation.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+  - { origin: ../package-blfs-gstreamer, alias: blfs-gstreamer }
+  - { origin: ../package-blfs-alsa-lib, alias: blfs-alsa-lib }
+  - { origin: ../package-blfs-iso-codes, alias: blfs-iso-codes }
+  - { origin: ../package-blfs-libjpeg-turbo, alias: blfs-libjpeg-turbo }
+  - { origin: ../package-blfs-libogg, alias: blfs-libogg }
+  - { origin: ../package-blfs-libpng, alias: blfs-libpng }
+  - { origin: ../package-blfs-libvorbis, alias: blfs-libvorbis }
+  - { origin: ../package-blfs-mesa, alias: blfs-mesa }
+  - { origin: ../package-blfs-libdrm, alias: blfs-libdrm }
+  - { origin: ../package-blfs-libdisplay-info, alias: blfs-libdisplay-info }
+  - { origin: ../package-blfs-wayland, alias: blfs-wayland }
+  - { origin: ../package-blfs-pango, alias: blfs-pango }
+  - { origin: ../package-blfs-wayland-protocols, alias: blfs-wayland-protocols }
+  - { origin: ../package-blfs-libxml2, alias: blfs-libxml2 }
+  - { origin: ../package-expat, alias: expat }
+  - { origin: ../package-libelf, alias: libelf }
+  - { origin: ../package-zlib, alias: zlib }
+  - { origin: ../package-zstd, alias: zstd }
+  - { origin: ../package-blfs-graphene, alias: blfs-graphene }
+var:
+  xbee: { version: "1.28.1-2" }
+  lfs: { jobs: 4 }
+  package:
+    name: gst-plugins-base
+    version: "1.28.1"
+    source: gst-plugins-base-1.28.1.tar.xz
+    runtime-dependencies: glib,gstreamer,alsa-lib,iso-codes,libjpeg-turbo,libogg,libpng,libvorbis,mesa,libdrm,libdisplay-info,wayland,pango,wayland-protocols,libxml2,expat,libelf,zlib,zstd,graphene
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

@@ -6,7 +6,7 @@ require: ../../build-system
 
 var:
   xbee:
-    version: "0.2.0"
+    version: "0.4.13"
 
 build:
   - shell:

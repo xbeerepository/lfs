@@ -1,0 +1,75 @@
+schema-version: 1.0
+description: Build pavucontrol 6.2 for the native Wayland desktop.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-blfs-gtkmm4, alias: blfs-gtkmm4 }
+  - { origin: ../package-blfs-json-glib, alias: blfs-json-glib }
+  - { origin: ../package-blfs-pulseaudio, alias: blfs-pulseaudio }
+  - { origin: ../package-blfs-libcanberra, alias: blfs-libcanberra }
+  - { origin: ../package-blfs-libvorbis, alias: blfs-libvorbis }
+  - { origin: ../package-blfs-libogg, alias: blfs-libogg }
+  - { origin: ../package-blfs-libsigcxx3, alias: blfs-libsigcxx3 }
+  - { origin: ../package-blfs-gtk4, alias: blfs-gtk4 }
+  - { origin: ../package-blfs-pangomm248, alias: blfs-pangomm248 }
+  - { origin: ../package-blfs-cairomm16, alias: blfs-cairomm16 }
+  - { origin: ../package-blfs-glibmm2, alias: blfs-glibmm2 }
+  - { origin: ../package-blfs-at-spi2-core, alias: blfs-at-spi2-core }
+  - { origin: ../package-blfs-graphene, alias: blfs-graphene }
+  - { origin: ../package-blfs-iso-codes, alias: blfs-iso-codes }
+  - { origin: ../package-blfs-libepoxy, alias: blfs-libepoxy }
+  - { origin: ../package-blfs-librsvg, alias: blfs-librsvg }
+  - { origin: ../package-blfs-mesa, alias: blfs-mesa }
+  - { origin: ../package-blfs-libdrm, alias: blfs-libdrm }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+  - { origin: ../package-blfs-cairo, alias: blfs-cairo }
+  - { origin: ../package-blfs-pango, alias: blfs-pango }
+  - { origin: ../package-blfs-fribidi, alias: blfs-fribidi }
+  - { origin: ../package-blfs-gdk-pixbuf, alias: blfs-gdk-pixbuf }
+  - { origin: ../package-blfs-shared-mime-info, alias: blfs-shared-mime-info }
+  - { origin: ../package-blfs-libjpeg-turbo, alias: blfs-libjpeg-turbo }
+  - { origin: ../package-blfs-giflib, alias: blfs-giflib }
+  - { origin: ../package-blfs-libtiff, alias: blfs-libtiff }
+  - { origin: ../package-blfs-harfbuzz, alias: blfs-harfbuzz }
+  - { origin: ../package-blfs-libxkbcommon, alias: blfs-libxkbcommon }
+  - { origin: ../package-blfs-wayland, alias: blfs-wayland }
+  - { origin: ../package-blfs-wayland-protocols, alias: blfs-wayland-protocols }
+  - { origin: ../package-blfs-libxml2, alias: blfs-libxml2 }
+  - { origin: ../package-blfs-pixman, alias: blfs-pixman }
+  - { origin: ../package-blfs-fontconfig, alias: blfs-fontconfig }
+  - { origin: ../package-blfs-freetype, alias: blfs-freetype }
+  - { origin: ../package-blfs-libpng, alias: blfs-libpng }
+  - { origin: ../package-blfs-brotli, alias: blfs-brotli }
+  - { origin: ../package-blfs-graphite2, alias: blfs-graphite2 }
+  - { origin: ../package-blfs-icu, alias: blfs-icu }
+  - { origin: ../package-blfs-libsndfile, alias: blfs-libsndfile }
+  - { origin: ../package-libffi, alias: libffi }
+  - { origin: ../package-pcre2, alias: pcre2 }
+  - { origin: ../package-util-linux, alias: util-linux }
+  - { origin: ../package-readline, alias: readline }
+  - { origin: ../package-zlib, alias: zlib }
+  - { origin: ../package-bzip2, alias: bzip2 }
+  - { origin: ../package-xz, alias: xz }
+  - { origin: ../package-expat, alias: expat }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+var:
+  xbee: { version: "6.2-4" }
+  lfs: { jobs: 4 }
+  package:
+    name: pavucontrol
+    version: "6.2"
+    source: pavucontrol-6.2.tar.xz
+    runtime-dependencies: gtkmm4,json-glib,libsigc++3,pulseaudio,libcanberra
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

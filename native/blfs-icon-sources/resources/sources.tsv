@@ -1,0 +1,14 @@
+# MD5	filename	URL
+a03d8d68377a88fcf06e090ba6a6ec2f	adwaita-icon-theme-50.0.tar.xz	https://download.gnome.org/sources/adwaita-icon-theme/50/adwaita-icon-theme-50.0.tar.xz
+35bef24dc1e9a336394556d09345e078	libnotify-0.8.8.tar.xz	https://download.gnome.org/sources/libnotify/0.8/libnotify-0.8.8.tar.xz
+b7fdff226d5ac411a54e09c57a558d48	dunst-1.13.2.tar.gz	https://github.com/dunst-project/dunst/archive/refs/tags/v1.13.2.tar.gz
+b5be689e783331def72b03af92a9bf9b	swayidle-1.9.0.tar.gz	https://github.com/swaywm/swayidle/releases/download/v1.9.0/swayidle-1.9.0.tar.gz
+4595e14743d690afef64dfc7cb75e450	swaylock-1.8.6.tar.gz	https://github.com/swaywm/swaylock/releases/download/v1.8.6/swaylock-1.8.6.tar.gz
+b3200b02ab80125b694bae887d7c1ca6	duktape-2.7.0.tar.xz	https://duktape.org/duktape-2.7.0.tar.xz
+2cc95f1b02fc1de6c9e52db986642ec4	polkit-127.tar.gz	https://github.com/polkit-org/polkit/archive/127/polkit-127.tar.gz
+61f56055b9d4564ad29bab799222e386	accountsservice-26.27.3.tar.bz2	https://gitlab.freedesktop.org/accountsservice/accountsservice/-/archive/26.27.3/accountsservice-26.27.3.tar.bz2
+50ecad37c8342fb4a52f590db7530621	polkit-gnome-0.105.tar.xz	https://download.gnome.org/sources/polkit-gnome/0.105/polkit-gnome-0.105.tar.xz
+83e8d2ee60fd4fa963f379f01a263bfd	polkit-gnome-0.105-consolidated_fixes-1.patch	https://www.linuxfromscratch.org/patches/blfs/svn/polkit-gnome-0.105-consolidated_fixes-1.patch
+9d486750569e7025e5d0afdcc509b93c	libndp-1.9.tar.gz	http://libndp.org/files/libndp-1.9.tar.gz
+72a4a00eddb7a499a58113c3361ab094	wpa_supplicant-2.11.tar.gz	https://w1.fi/releases/wpa_supplicant-2.11.tar.gz
+897723f25e84233eb6e54b46947e7e1b	NetworkManager-1.58.0.tar.xz	https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/releases/1.58.0/downloads/NetworkManager-1.58.0.tar.xz

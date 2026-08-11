@@ -1,0 +1,20 @@
+schema-version: 1.0
+description: Provide the notification-daemon interface through Wayland-native Dunst.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-blfs-dunst, alias: blfs-dunst }
+var:
+  xbee: { version: "3.20.0-2" }
+  lfs: { jobs: 4 }
+  package:
+    name: notification-daemon
+    version: "3.20.0"
+    source: notification-daemon-3.20.0.tar.xz
+    runtime-dependencies: "dunst"
+build:
+  - shell:
+      cmd:
+        - 'bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'

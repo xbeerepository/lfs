@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build Userspace RCU 0.15.2 for BLFS.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }]
+var: { xbee: { version: "0.15.2-1" }, lfs: { jobs: 4 }, package: { name: userspace-rcu, version: "0.15.2", source: userspace-rcu-0.15.2.tar.bz2, runtime-dependencies: "" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

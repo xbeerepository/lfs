@@ -17,6 +17,10 @@ profile_file=$8
 source_root=$9
 output_root=${10}
 profile=$(basename "$profile_file" .txt)
+desktop_profile=false
+if [[ "$profile" == full || "$profile" == desktop-sway ]]; then
+  desktop_profile=true
+fi
 
 if [[ ! "$admin_user" =~ ^[a-z_][a-z0-9_-]{0,31}$ ||
       ! "$lfs_hostname" =~ ^[A-Za-z0-9][A-Za-z0-9.-]*$ ||
@@ -106,8 +110,8 @@ while IFS= read -r name; do
 done <"$profile_file"
 package_count=$("$manager" --root "$rootfs" list | wc -l)
 ((package_count > 0))
-if [[ "$profile" == full && "$package_count" -ne 91 ]]; then
-  echo "full profile must install 91 packages, got $package_count" >&2
+if [[ "$profile" == full && "$package_count" -ne 446 ]]; then
+  echo "full profile must install 446 packages, got $package_count" >&2
   exit 1
 fi
 if [[ "$profile" == minimal ]]; then
@@ -171,6 +175,7 @@ systemd-network:x:192:192:systemd Network Management:/:/bin/false
 systemd-oom:x:195:195:systemd Userspace OOM Killer:/:/bin/false
 systemd-resolve:x:193:193:systemd Resolver:/:/bin/false
 systemd-timesync:x:194:194:systemd Time Synchronization:/:/bin/false
+polkitd:x:102:102:PolicyKit Daemon:/var/lib/polkit-1:/bin/false
 nobody:x:65534:65534:Unprivileged User:/dev/null:/bin/false
 $admin_user:x:1000:1000:XBee Administrator:/home/$admin_user:/bin/bash
 EOF
@@ -186,6 +191,7 @@ audio:x:11:$admin_user
 video:x:12:$admin_user
 utmp:x:13:
 messagebus:x:18:
+polkitd:x:102:
 cdrom:x:20:$admin_user
 clock:x:21:
 input:x:24:$admin_user
@@ -193,6 +199,7 @@ tape:x:26:
 dialout:x:27:$admin_user
 lp:x:28:
 kvm:x:61:$admin_user
+netdev:x:86:$admin_user
 systemd-journal:x:190:
 systemd-network:x:192:
 systemd-resolve:x:193:
@@ -211,11 +218,83 @@ systemd-network:!:1::::::
 systemd-resolve:!:1::::::
 systemd-timesync:!:1::::::
 systemd-oom:!:1::::::
+polkitd:!:1::::::
 nobody:!:1::::::
-$admin_user::1::::::
+$admin_user:!:1::::::
 EOF
 chmod 0644 "$rootfs/etc/passwd" "$rootfs/etc/group"
 chmod 0400 "$rootfs/etc/shadow"
+if [[ "$desktop_profile" == true ]]; then
+  mkdir -p "$rootfs/home/$admin_user/.config/sway"
+  cat >"$rootfs/home/$admin_user/.config/sway/config" <<'EOF'
+include /etc/sway/config
+
+# Start the freedesktop.org notification daemon with the Sway session.
+exec dunst
+
+# Lock after five minutes when a password has been provisioned, blank the
+# displays after ten minutes, and lock before system sleep.
+exec /usr/bin/xbee-swayidle
+
+# Present graphical privilege prompts inside the Wayland session.
+exec /usr/libexec/polkit-gnome-authentication-agent-1
+EOF
+  cat >"$rootfs/usr/bin/xbee-swayidle" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+if passwd -S "$USER" | awk '$2 == "P" { found=1 } END { exit !found }'; then
+  exec swayidle -w \
+    timeout 300 'swaylock -f -c 000000' \
+    timeout 600 'swaymsg "output * power off"' \
+    resume 'swaymsg "output * power on"' \
+    before-sleep 'swaylock -f -c 000000'
+fi
+
+exec swayidle -w \
+  timeout 600 'swaymsg "output * power off"' \
+  resume 'swaymsg "output * power on"'
+EOF
+  chmod 0755 "$rootfs/usr/bin/xbee-swayidle"
+  [[ -x "$rootfs/usr/bin/dunst" &&
+     -x "$rootfs/usr/bin/notify-send" &&
+     -x "$rootfs/usr/bin/swayidle" &&
+     -x "$rootfs/usr/bin/swaylock" &&
+     -x "$rootfs/usr/bin/pkexec" &&
+     -x "$rootfs/usr/lib/polkit-1/polkitd" &&
+     -x "$rootfs/usr/libexec/accounts-daemon" &&
+     -x "$rootfs/usr/libexec/polkit-gnome-authentication-agent-1" &&
+     -x "$rootfs/usr/sbin/NetworkManager" &&
+     -x "$rootfs/usr/bin/nmcli" &&
+     -x "$rootfs/usr/sbin/wpa_supplicant" &&
+     -f "$rootfs/etc/pam.d/polkit-1" &&
+     -f "$rootfs/usr/lib/systemd/system/NetworkManager.service" &&
+     -f "$rootfs/usr/lib/systemd/system/polkit.service" &&
+     -f "$rootfs/usr/lib/systemd/system/accounts-daemon.service" &&
+     -f "$rootfs/etc/pam.d/swaylock" &&
+     -f "$rootfs/usr/share/dbus-1/services/org.knopwob.dunst.service" &&
+     -f "$rootfs/usr/lib/systemd/user/dunst.service" ]] || {
+    echo "$profile profile desktop service stack is incomplete" >&2
+    exit 1
+  }
+  install -d -m 0750 -o 0 -g 102 "$rootfs/etc/polkit-1/rules.d"
+  install -d -m 0755 "$rootfs/etc/systemd/system/NetworkManager.service.d"
+  cat >"$rootfs/etc/systemd/system/NetworkManager.service.d/xbee-dbus.conf" <<'EOF'
+[Service]
+# The image uses dbus-daemon without socket activation. Avoid systemd's
+# implicit dbus.socket dependency while keeping NetworkManager on D-Bus.
+Type=simple
+BusName=
+EOF
+  cat >"$rootfs/etc/polkit-1/rules.d/50-networkmanager.rules" <<'EOF'
+polkit.addRule(function(action, subject) {
+    if (action.id.indexOf("org.freedesktop.NetworkManager.") == 0 &&
+        subject.isInGroup("netdev")) {
+        return polkit.Result.YES;
+    }
+});
+EOF
+fi
 chown -R 1000:1000 "$rootfs/home/$admin_user"
 
 printf '%s\n' "$lfs_hostname" >"$rootfs/etc/hostname"
@@ -301,8 +380,13 @@ ln -sfn /usr/lib/systemd/system/multi-user.target \
   "$rootfs/etc/systemd/system/default.target"
 ln -sfn /usr/lib/systemd/system/sshd.service \
   "$rootfs/etc/systemd/system/multi-user.target.wants/sshd.service"
-ln -sfn /usr/lib/systemd/system/dhcpcd.service \
-  "$rootfs/etc/systemd/system/multi-user.target.wants/dhcpcd.service"
+if [[ "$desktop_profile" == true ]]; then
+  ln -sfn /usr/lib/systemd/system/NetworkManager.service \
+    "$rootfs/etc/systemd/system/multi-user.target.wants/NetworkManager.service"
+else
+  ln -sfn /usr/lib/systemd/system/dhcpcd.service \
+    "$rootfs/etc/systemd/system/multi-user.target.wants/dhcpcd.service"
+fi
 ln -sfn /usr/lib/systemd/system/dbus.service \
   "$rootfs/etc/systemd/system/multi-user.target.wants/dbus.service"
 ln -sfn /usr/lib/systemd/system/xbee-nocloud.service \

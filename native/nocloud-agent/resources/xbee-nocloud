@@ -72,6 +72,36 @@ metadata_value() {
   sed -n "s/^[[:space:]]*$key:[[:space:]]*//p" "$file" | head -n 1
 }
 
+password_hash_value() {
+  local value
+  value=$(metadata_value password_hash "$1")
+  if [[ "$value" == \"*\" && "$value" == *\" ]] ||
+     [[ "$value" == \'* && "$value" == *\' ]]; then
+    value=${value:1:${#value}-2}
+  fi
+  printf '%s\n' "$value"
+}
+
+valid_password_hash() {
+  [[ "$1" =~ ^\$y\$[./A-Za-z0-9]+\$[./A-Za-z0-9]+\$[./A-Za-z0-9]+$ ||
+     "$1" =~ ^\$6\$(rounds=[0-9]+\$)?[./A-Za-z0-9]{1,16}\$[./A-Za-z0-9]{86}$ ]]
+}
+
+install_password_hash() {
+  local file=$1
+  local password_hash
+
+  [[ -f "$file" ]] || return 0
+  password_hash=$(password_hash_value "$file")
+  [[ -n "$password_hash" ]] || return 0
+  if ! valid_password_hash "$password_hash"; then
+    log "password_hash is not a supported crypt hash"
+    return 1
+  fi
+  usermod --password "$password_hash" "$admin_user"
+  log "installed a hashed password for user $admin_user"
+}
+
 collect_user_data_keys() {
   local file=$1
   awk '
@@ -199,6 +229,7 @@ if [[ -n "$hostname" && "$hostname" =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]*$ ]]; then
 fi
 
 apply_cloud_config "$user_data"
+install_password_hash "$user_data"
 install_keys "$metadata" "$user_data" || true
 if [[ ! -s "$(getent passwd "$admin_user" | cut -d: -f6)/.ssh/authorized_keys" ]]; then
   log "provisioning did not install an SSH public key"

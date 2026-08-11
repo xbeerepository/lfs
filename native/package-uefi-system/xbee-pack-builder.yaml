@@ -10,7 +10,7 @@ builder:
 
 var:
   xbee:
-    version: "0.1.0"
+    version: "0.1.2"
   lfs:
     admin_user: xbee
   image:

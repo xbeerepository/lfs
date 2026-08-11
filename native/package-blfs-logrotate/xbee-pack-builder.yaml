@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build Logrotate 3.22.0 for BLFS.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-popt, alias: blfs-popt }]
+var: { xbee: { version: "3.22.0-1" }, lfs: { jobs: 4 }, package: { name: logrotate, version: "3.22.0", source: logrotate-3.22.0.tar.xz, runtime-dependencies: "popt" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

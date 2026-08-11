@@ -1,0 +1,38 @@
+schema-version: 1.0
+description: Build gvfs 1.58.2 for BLFS.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+  - { origin: ../package-dbus, alias: dbus }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+  - { origin: ../package-blfs-gsettings-desktop-schemas, alias: blfs-gsettings-desktop-schemas }
+  - { origin: ../package-blfs-gcr, alias: blfs-gcr }
+  - { origin: ../package-blfs-libgcrypt, alias: blfs-libgcrypt }
+  - { origin: ../package-blfs-libgpg-error, alias: blfs-libgpg-error }
+  - { origin: ../package-blfs-p11-kit, alias: blfs-p11-kit }
+  - { origin: ../package-blfs-libtasn1, alias: blfs-libtasn1 }
+  - { origin: ../package-blfs-libusb, alias: blfs-libusb }
+  - { origin: ../package-blfs-libsecret, alias: blfs-libsecret }
+  - { origin: ../package-blfs-gtk3, alias: blfs-gtk3 }
+  - { origin: ../package-blfs-libcdio, alias: blfs-libcdio }
+  - { origin: ../package-blfs-libgudev, alias: blfs-libgudev }
+  - { origin: ../package-blfs-libsoup, alias: blfs-libsoup }
+  - { origin: ../package-blfs-libpsl, alias: blfs-libpsl }
+  - { origin: ../package-blfs-libidn2, alias: blfs-libidn2 }
+  - { origin: ../package-blfs-libunistring, alias: blfs-libunistring }
+  - { origin: ../package-blfs-nghttp2, alias: blfs-nghttp2 }
+  - { origin: ../package-sqlite, alias: sqlite }
+  - { origin: ../package-systemd, alias: systemd }
+  - { origin: ../package-blfs-udisks, alias: blfs-udisks }
+  - { origin: ../package-blfs-polkit, alias: blfs-polkit }
+  - { origin: ../package-blfs-duktape, alias: blfs-duktape }
+  - { origin: ../package-blfs-linux-pam, alias: blfs-linux-pam }
+  - { origin: ../package-blfs-libarchive, alias: blfs-libarchive }
+  - { origin: ../package-blfs-libxml2, alias: blfs-libxml2 }
+var: { xbee: { version: "1.58.2-3" }, lfs: { jobs: 4 }, package: { name: gvfs, version: "1.58.2", source: gvfs-1.58.2.tar.xz, runtime-dependencies: "dbus,glib,gsettings-desktop-schemas,gcr,libgcrypt,libgpg-error,p11-kit,libtasn1,libusb,libsecret,gtk3,libcdio,libgudev,libsoup,libpsl,libidn2,libunistring,nghttp2,sqlite,systemd,udisks,polkit,duktape,linux-pam,libarchive,libxml2" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

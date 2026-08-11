@@ -1,0 +1,27 @@
+schema-version: 1.0
+description: Build libsoup 3.6.6 for BLFS.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+  - { origin: ../package-blfs-glib-gir, alias: blfs-glib-gir }
+  - { origin: ../package-blfs-gobject-introspection, alias: blfs-gobject-introspection }
+  - { origin: ../package-blfs-libpsl, alias: blfs-libpsl }
+  - { origin: ../package-blfs-libidn2, alias: blfs-libidn2 }
+  - { origin: ../package-blfs-libunistring, alias: blfs-libunistring }
+  - { origin: ../package-blfs-nghttp2, alias: blfs-nghttp2 }
+  - { origin: ../package-sqlite, alias: sqlite }
+  - { origin: ../package-blfs-glib-networking, alias: blfs-glib-networking }
+  - { origin: ../package-blfs-gnutls, alias: blfs-gnutls }
+  - { origin: ../package-blfs-nettle, alias: blfs-nettle }
+  - { origin: ../package-blfs-libtasn1, alias: blfs-libtasn1 }
+  - { origin: ../package-blfs-p11-kit, alias: blfs-p11-kit }
+  - { origin: ../package-blfs-gsettings-desktop-schemas, alias: blfs-gsettings-desktop-schemas }
+  - { origin: ../package-blfs-make-ca, alias: blfs-make-ca }
+var: { xbee: { version: "3.6.6-3" }, lfs: { jobs: 4 }, package: { name: libsoup, version: "3.6.6", source: libsoup-3.6.6.tar.xz, runtime-dependencies: "glib,glib-gir,gobject-introspection,libpsl,libidn2,libunistring,nghttp2,sqlite,glib-networking,gnutls,nettle,libtasn1,p11-kit,gsettings-desktop-schemas,make-ca" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

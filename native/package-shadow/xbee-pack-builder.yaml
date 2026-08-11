@@ -17,17 +17,19 @@ builder:
     alias: attr
   - origin: ../package-acl
     alias: acl
+  - origin: ../package-blfs-linux-pam
+    alias: blfs-linux-pam
 
 var:
   xbee:
-    version: "4.19.3"
+    version: "4.19.3-2"
   lfs:
     jobs: 4
   package:
     name: shadow
     version: "4.19.3"
     source: shadow-4.19.3.tar.xz
-    runtime-dependencies: libxcrypt,attr,acl
+    runtime-dependencies: libxcrypt,attr,acl,linux-pam
 
 build:
   - shell:
@@ -39,3 +41,4 @@ build:
           "{{ .package.name }}" "{{ .package.version }}"
           "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
           "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
+          "{{ .xbee.resources }}/build.sh"

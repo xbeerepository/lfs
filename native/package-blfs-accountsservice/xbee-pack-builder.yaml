@@ -1,0 +1,43 @@
+schema-version: 1.0
+description: Build AccountsService 26.27.3 for XBee LFS.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-icon-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-blfs-polkit, alias: blfs-polkit }
+  - { origin: ../package-blfs-duktape, alias: blfs-duktape }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+  - { origin: ../package-blfs-json-c, alias: blfs-json-c }
+  - { origin: ../package-blfs-linux-pam, alias: blfs-linux-pam }
+  - { origin: ../package-systemd, alias: systemd }
+  - { origin: ../package-shadow, alias: shadow }
+  - { origin: ../package-libxcrypt, alias: libxcrypt }
+  - { origin: ../package-libffi, alias: libffi }
+  - { origin: ../package-pcre2, alias: pcre2 }
+  - { origin: ../package-util-linux, alias: util-linux }
+  - { origin: ../package-libcap, alias: libcap }
+  - { origin: ../package-expat, alias: expat }
+  - { origin: ../package-zlib, alias: zlib }
+  - { origin: ../package-xz, alias: xz }
+  - { origin: ../package-zstd, alias: zstd }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+var:
+  xbee: { version: "26.27.3-3" }
+  lfs: { jobs: 4 }
+  package:
+    name: accountsservice
+    version: "26.27.3"
+    source: accountsservice-26.27.3.tar.bz2
+    runtime-dependencies: polkit,glib,json-c,systemd,shadow
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

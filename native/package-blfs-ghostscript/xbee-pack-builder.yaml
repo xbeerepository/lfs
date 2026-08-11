@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build ghostscript 10.06.0 for BLFS.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-cups, alias: blfs-cups }, { origin: ../package-blfs-fontconfig, alias: blfs-fontconfig }, { origin: ../package-blfs-freetype, alias: blfs-freetype }, { origin: ../package-blfs-brotli, alias: blfs-brotli }, { origin: ../package-blfs-lcms2, alias: blfs-lcms2 }, { origin: ../package-blfs-libjpeg-turbo, alias: blfs-libjpeg-turbo }, { origin: ../package-blfs-libpng, alias: blfs-libpng }, { origin: ../package-blfs-libtiff, alias: blfs-libtiff }, { origin: ../package-blfs-openjpeg, alias: blfs-openjpeg }]
+var: { xbee: { version: "10.06.0-3" }, lfs: { jobs: 4 }, package: { name: ghostscript, version: "10.06.0", source: ghostscript-10.06.0.tar.xz, runtime-dependencies: "cups,fontconfig,freetype,brotli,lcms2,libjpeg-turbo,libpng,libtiff,openjpeg" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

@@ -1,0 +1,10 @@
+schema-version: "1.0"
+
+default:
+  host:
+    system: ../lfs-system
+    net: xbee_host
+
+host:
+  xbee:
+    pack: ./pack

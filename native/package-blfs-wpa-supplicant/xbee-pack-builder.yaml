@@ -1,0 +1,30 @@
+schema-version: 1.0
+description: Build wpa_supplicant 2.11 with nl80211 and D-Bus.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-icon-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-blfs-libnl, alias: blfs-libnl }
+  - { origin: ../package-blfs-libxml2, alias: blfs-libxml2 }
+  - { origin: ../package-dbus, alias: dbus }
+  - { origin: ../package-readline, alias: readline }
+  - { origin: ../package-ncurses, alias: ncurses }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+var:
+  xbee: { version: "2.11-1" }
+  lfs: { jobs: 4 }
+  package:
+    name: wpa-supplicant
+    version: "2.11"
+    source: wpa_supplicant-2.11.tar.gz
+    runtime-dependencies: libnl,dbus,readline
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

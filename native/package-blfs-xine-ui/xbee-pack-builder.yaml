@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build xine-ui 0.99.14.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-xine-lib, alias: blfs-xine-lib }, { origin: ../package-blfs-shared-mime-info, alias: blfs-shared-mime-info }]
+var: { xbee: { version: "0.99.14-1" }, lfs: { jobs: 4 }, package: { name: xine-ui, version: "0.99.14", source: xine-ui-0.99.14.tar.xz, runtime-dependencies: "xine-lib,shared-mime-info" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

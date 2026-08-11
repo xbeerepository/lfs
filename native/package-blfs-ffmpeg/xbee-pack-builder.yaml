@@ -1,0 +1,60 @@
+schema-version: 1.0
+description: Build FFmpeg 8.0.1 with the available BLFS multimedia libraries.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-blfs-dav1d, alias: blfs-dav1d }
+  - { origin: ../package-blfs-fdk-aac, alias: blfs-fdk-aac }
+  - { origin: ../package-blfs-freetype, alias: blfs-freetype }
+  - { origin: ../package-blfs-libvorbis, alias: blfs-libvorbis }
+  - { origin: ../package-blfs-libogg, alias: blfs-libogg }
+  - { origin: ../package-blfs-nasm, alias: blfs-nasm }
+  - { origin: ../package-blfs-alsa-lib, alias: blfs-alsa-lib }
+  - { origin: ../package-blfs-fontconfig, alias: blfs-fontconfig }
+  - { origin: ../package-blfs-fribidi, alias: blfs-fribidi }
+  - { origin: ../package-blfs-frei0r, alias: blfs-frei0r }
+  - { origin: ../package-blfs-libdrm, alias: blfs-libdrm }
+  - { origin: ../package-blfs-pulseaudio, alias: blfs-pulseaudio }
+  - { origin: ../package-blfs-libsndfile, alias: blfs-libsndfile }
+  - { origin: ../package-openssl, alias: openssl }
+  - { origin: ../package-blfs-libaom, alias: blfs-libaom }
+  - { origin: ../package-blfs-libva, alias: blfs-libva }
+  - { origin: ../package-blfs-libass, alias: blfs-libass }
+  - { origin: ../package-blfs-harfbuzz, alias: blfs-harfbuzz }
+  - { origin: ../package-blfs-libpng, alias: blfs-libpng }
+  - { origin: ../package-blfs-brotli, alias: blfs-brotli }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+  - { origin: ../package-blfs-graphite2, alias: blfs-graphite2 }
+  - { origin: ../package-expat, alias: expat }
+  - { origin: ../package-blfs-libplacebo, alias: blfs-libplacebo }
+  - { origin: ../package-libstdcxx-runtime, alias: libstdcxx-runtime }
+  - { origin: ../package-blfs-vulkan-headers, alias: blfs-vulkan-headers }
+  - { origin: ../package-blfs-libvpx, alias: blfs-libvpx }
+  - { origin: ../package-blfs-lame, alias: blfs-lame }
+  - { origin: ../package-blfs-opus, alias: blfs-opus }
+  - { origin: ../package-blfs-svt-av1, alias: blfs-svt-av1 }
+  - { origin: ../package-blfs-x264, alias: blfs-x264 }
+  - { origin: ../package-blfs-x265, alias: blfs-x265 }
+  - { origin: ../package-blfs-sdl2-compat, alias: blfs-sdl2-compat }
+  - { origin: ../package-blfs-speex, alias: blfs-speex }
+  - { origin: ../package-blfs-v4l-utils, alias: blfs-v4l-utils }
+  - { origin: ../package-blfs-xvid, alias: blfs-xvid }
+var:
+  xbee: { version: "8.0.1-13" }
+  lfs: { jobs: 4 }
+  package:
+    name: ffmpeg
+    version: "8.0.1"
+    source: ffmpeg-8.0.1.tar.xz
+    runtime-dependencies: dav1d,fdk-aac,freetype,libvorbis,libogg,alsa-lib,fontconfig,fribidi,frei0r,libdrm,pulseaudio,libsndfile,openssl,libaom,libva,libass,harfbuzz,libpng,brotli,glib,graphite2,expat,libplacebo,libstdcxx-runtime,vulkan-headers,libvpx,lame,opus,svt-av1,x264,x265,sdl2-compat,speex,v4l-utils,xvid
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

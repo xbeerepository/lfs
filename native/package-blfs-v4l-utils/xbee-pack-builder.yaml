@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build v4l-utils 1.32.0 media device utilities.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-meson, alias: meson }, { origin: ../package-ninja, alias: ninja }, { origin: ../package-pkgconf, alias: pkgconf }, { origin: ../package-blfs-alsa-lib, alias: blfs-alsa-lib }, { origin: ../package-blfs-libjpeg-turbo, alias: blfs-libjpeg-turbo }, { origin: ../package-blfs-sdl2-compat, alias: blfs-sdl2-compat }]
+var: { xbee: { version: "1.32.0-1" }, lfs: { jobs: 4 }, package: { name: v4l-utils, version: "1.32.0", source: v4l-utils-1.32.0.tar.xz, runtime-dependencies: "alsa-lib,libjpeg-turbo,sdl2-compat" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build nmap 7.98 for BLFS.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-libpcap, alias: blfs-libpcap }, { origin: ../package-openssl, alias: openssl }]
+var: { xbee: { version: "7.98-1" }, lfs: { jobs: 4 }, package: { name: nmap, version: "7.98", source: nmap-7.98.tar.bz2, runtime-dependencies: "libpcap,openssl" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

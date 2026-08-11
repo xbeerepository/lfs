@@ -1,0 +1,21 @@
+schema-version: 1.0
+
+description: Export the minimal XBee OS rootfs as an XBee execution system.
+
+require: ../../build-system
+
+builder:
+  - origin: ../xbee-os-image
+    alias: image
+
+var:
+  xbee:
+    version: "13.0"
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "{{ .xbee.resources }}/build-xbee-os-rootfs.sh"
+          "/opt/xbee-os/xbee-os-13.0-rootfs.tar.zst"
+          "{{ .xbee.out }}"

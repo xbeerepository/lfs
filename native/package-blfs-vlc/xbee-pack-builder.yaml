@@ -1,0 +1,50 @@
+schema-version: 1.0
+description: Build vlc 3.0.23.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-blfs-alsa-lib, alias: blfs-alsa-lib }
+  - { origin: ../package-blfs-ffmpeg, alias: blfs-ffmpeg }
+  - { origin: ../package-blfs-liba52, alias: blfs-liba52 }
+  - { origin: ../package-blfs-libgcrypt, alias: blfs-libgcrypt }
+  - { origin: ../package-blfs-libmad, alias: blfs-libmad }
+  - { origin: ../package-blfs-lua, alias: blfs-lua }
+  - { origin: ../package-blfs-qt6, alias: blfs-qt6 }
+  - { origin: ../package-blfs-libarchive, alias: blfs-libarchive }
+  - { origin: ../package-blfs-libcddb, alias: blfs-libcddb }
+  - { origin: ../package-blfs-libdv, alias: blfs-libdv }
+  - { origin: ../package-blfs-libdvdcss, alias: blfs-libdvdcss }
+  - { origin: ../package-blfs-libdvdread, alias: blfs-libdvdread }
+  - { origin: ../package-blfs-libdvdnav, alias: blfs-libdvdnav }
+  - { origin: ../package-blfs-v4l-utils, alias: blfs-v4l-utils }
+  - { origin: ../package-blfs-dav1d, alias: blfs-dav1d }
+  - { origin: ../package-blfs-faad2, alias: blfs-faad2 }
+  - { origin: ../package-blfs-flac, alias: blfs-flac }
+  - { origin: ../package-blfs-libaom, alias: blfs-libaom }
+  - { origin: ../package-blfs-libass, alias: blfs-libass }
+  - { origin: ../package-blfs-libmpeg2, alias: blfs-libmpeg2 }
+  - { origin: ../package-blfs-libpng, alias: blfs-libpng }
+  - { origin: ../package-blfs-libva, alias: blfs-libva }
+  - { origin: ../package-blfs-libogg, alias: blfs-libogg }
+  - { origin: ../package-blfs-libvorbis, alias: blfs-libvorbis }
+  - { origin: ../package-blfs-opus, alias: blfs-opus }
+  - { origin: ../package-blfs-speex, alias: blfs-speex }
+  - { origin: ../package-blfs-libvpx, alias: blfs-libvpx }
+  - { origin: ../package-blfs-x264, alias: blfs-x264 }
+  - { origin: ../package-blfs-x265, alias: blfs-x265 }
+  - { origin: ../package-blfs-pulseaudio, alias: blfs-pulseaudio }
+  - { origin: ../package-blfs-libsamplerate, alias: blfs-libsamplerate }
+  - { origin: ../package-blfs-taglib, alias: blfs-taglib }
+var:
+  xbee: { version: "3.0.23-3" }
+  lfs: { jobs: 4 }
+  package:
+    name: vlc
+    version: "3.0.23"
+    source: vlc-3.0.23.tar.xz
+    runtime-dependencies: alsa-lib,ffmpeg,liba52,libgcrypt,libmad,lua,qt6,libarchive,libcddb,libdv,libdvdcss,libdvdread,libdvdnav,v4l-utils,dav1d,faad2,flac,libaom,libass,libmpeg2,libpng,libva,libogg,libvorbis,opus,speex,libvpx,x264,x265,pulseaudio,libsamplerate,taglib
+build:
+  - shell:
+      cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"']

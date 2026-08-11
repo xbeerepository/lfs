@@ -1,0 +1,40 @@
+schema-version: 1.0
+
+description: Build SGML Common from BLFS 13.0 for XBee LFS.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../blfs-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-autoconf
+    alias: autoconf
+  - origin: ../package-automake
+    alias: automake
+
+var:
+  xbee:
+    version: "0.6.3-3"
+  lfs:
+    jobs: 4
+  package:
+    name: sgml-common
+    version: "0.6.3"
+    source: sgml-common-0.6.3.tgz
+    runtime-dependencies: ""
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
+          "{{ .xbee.resources }}/build.sh"

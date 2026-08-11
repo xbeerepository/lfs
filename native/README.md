@@ -77,7 +77,7 @@ uniquement l'artefact vérifié du premier builder.
 
 L'agent minimal `nocloud-agent` est un artefact partagé : `cloud-image` et
 `package-system` installent donc le même script de provisionnement, contrôlé
-par une somme SHA-256, au lieu d'en maintenir deux copies.
+par une somme SHA-256, au lieu d'en maintenir deux copies.-mi
 
 ## 1. Sources
 
@@ -110,7 +110,7 @@ présent :
 cd native/cross-toolchain
 xbee validate
 xbee show build
-xbee build --var lfs.jobs=8
+xbee build --var lfs.jobs=16
 ```
 
 Artefacts :
@@ -134,8 +134,8 @@ cd native/temporary-system
 xbee validate
 xbee show build
 xbee build \
-  --var cross.lfs.jobs=8 \
-  --var lfs.jobs=8
+  --var cross.lfs.jobs=16 \
+  --var lfs.jobs=16
 ```
 
 Artefacts :
@@ -160,9 +160,9 @@ cd native/chroot-system
 xbee validate
 xbee show build
 xbee build \
-  --var temporary.cross.lfs.jobs=8 \
-  --var temporary.lfs.jobs=8 \
-  --var lfs.jobs=8
+  --var temporary.cross.lfs.jobs=16 \
+  --var temporary.lfs.jobs=16 \
+  --var lfs.jobs=16
 ```
 
 Artefacts :
@@ -191,10 +191,10 @@ cd native/final-system
 xbee validate
 xbee show build
 xbee build \
-  --var chroot.temporary.cross.lfs.jobs=8 \
-  --var chroot.temporary.lfs.jobs=8 \
-  --var chroot.lfs.jobs=8 \
-  --var lfs.jobs=8 \
+  --var chroot.temporary.cross.lfs.jobs=16 \
+  --var chroot.temporary.lfs.jobs=16 \
+  --var chroot.lfs.jobs=16 \
+  --var lfs.jobs=16 \
   --var lfs.timezone=Europe/Paris
 ```
 
@@ -220,11 +220,11 @@ cd native/bootable-system
 xbee validate
 xbee show build
 xbee build \
-  --var final.chroot.temporary.cross.lfs.jobs=8 \
-  --var final.chroot.temporary.lfs.jobs=8 \
-  --var final.chroot.lfs.jobs=8 \
-  --var final.lfs.jobs=8 \
-  --var lfs.jobs=8 \
+  --var final.chroot.temporary.cross.lfs.jobs=16 \
+  --var final.chroot.temporary.lfs.jobs=16 \
+  --var final.chroot.lfs.jobs=16 \
+  --var final.lfs.jobs=16 \
+  --var lfs.jobs=16 \
   --var lfs.hostname=xbee-lfs \
   --var lfs.locale=en_US.UTF-8 \
   --var image.extra_size_mib=1024
@@ -259,13 +259,14 @@ et la connexion SSH de root sont désactivés. L'accès distant exige une clé
 publique :
 
 ```bash
+ssh-keygen -q -t ed25519 -N '' -f ~/.ssh/id_ed25519 -C "contact@iodasolutions.com"
 public_key_base64=$(base64 -w0 ~/.ssh/id_ed25519.pub)
 
 cd native/provisioned-system
 xbee validate
 xbee show build
 xbee build \
-  --var lfs.jobs=8 \
+  --var lfs.jobs=16 \
   --var access.authorized_key_base64="$public_key_base64"
 ```
 
@@ -327,6 +328,7 @@ EOF
 
 cat >seed/user-data <<EOF
 #cloud-config
+password_hash: '$(openssl passwd -6)'
 ssh_authorized_keys:
   - $(cat ~/.ssh/id_ed25519.pub)
 EOF
@@ -350,8 +352,9 @@ qemu-system-x86_64 \
 ssh -p 2222 xbee@127.0.0.1
 ```
 
-Cette compatibilité NoCloud est volontairement limitée à `instance-id`,
-`local-hostname`, `public-keys`, `hostname` et `ssh_authorized_keys`. Elle
+Cette compatibilité NoCloud accepte `instance-id`, `local-hostname`,
+`public-keys`, `hostname`, `ssh_authorized_keys` et un `password_hash`
+yescrypt ou SHA-512 crypt. Elle
 n'exécute pas `runcmd`, `bootcmd`, des paquets ou du contenu utilisateur
 arbitraire.
 
@@ -725,10 +728,11 @@ configurations modifiées.
 ## 13. Image assemblée depuis les paquets
 
 L'assembleur partagé `package-system-tools` accepte un profil de paquets
-racines. `profiles/full.txt` conserve l'image historique de 91 paquets, tandis
-que `profiles/minimal.txt` laisse `xbpkg` résoudre une base amorçable et
-administrable de 44 paquets. Les deux profils utilisent exactement le même
-script de partitionnement, de configuration et d'installation.
+racines. `profiles/full.txt` contient tous les paquets, `profiles/minimal.txt`
+laisse `xbpkg` résoudre une base amorçable et administrable, et
+`profiles/desktop-sway.txt` construit un poste Wayland ciblé. Les trois profils
+utilisent exactement le même script de
+partitionnement, de configuration et d'installation.
 
 Le profil minimal conserve `wget` pour amorcer les dépôts HTTP et
 `e2fsprogs` pour l'agrandissement NoCloud du système de fichiers ainsi
@@ -737,6 +741,28 @@ console virtuelle, mais exclut
 volontairement `curl` et GCC. `xbpkg refresh` utilise `curl` lorsqu'il est
 présent et se replie sur `wget`, ce qui permet ensuite d'installer `curl` avec
 l'action XBee `pkg`.
+
+Le profil `desktop-sway` ajoute Sway, Foot, Waybar, PipeWire/WirePlumber,
+Polkit, NetworkManager, les portails XDG, les notifications, le verrouillage
+de session, les thèmes et les polices. Ses dépendances transitives sont
+résolues par `xbpkg`. Le runtime C++ est fourni par le paquet léger
+`libstdcxx-runtime`, sans installer GCC dans l'image. Le graphe obtenu contient
+169 paquets :
+
+```bash
+cd native/package-desktop-sway-system
+xbee validate
+xbee build
+```
+
+Artefacts du bureau Sway :
+
+```text
+/opt/xbee-lfs-native/xbee-lfs-native-13.0-x86_64-desktop-sway.qcow2
+/opt/xbee-lfs-native/xbee-lfs-native-13.0-x86_64-desktop-sway.qcow2.sha256
+/opt/xbee-lfs-native/desktop-sway-rootfs.tar.zst
+/opt/xbee-lfs-native/desktop-sway-system-metadata.yaml
+```
 
 ```bash
 cd native/package-minimal-system
@@ -753,7 +779,7 @@ Artefacts minimaux :
 /opt/xbee-lfs-native/minimal-system-metadata.yaml
 ```
 
-Le profil complet de `package-system` crée une racine vide, installe les 91 paquets
+Le profil complet de `package-system` crée une racine vide, installe les 148 paquets
 dans l'ordre de leurs dépendances, ajoute la configuration système minimale et
 produit une image BIOS amorçable. L'image contient également `xbpkg`, les
 métadonnées des paquets installés, OpenSSH, sudo, un réseau DHCP et l'agent
@@ -793,7 +819,7 @@ qemu-system-x86_64 \
   -nographic
 ```
 
-Après connexion, `sudo xbpkg list` doit afficher 91 paquets. Ce chemin valide
+Après connexion, `sudo xbpkg list` doit afficher 148 paquets. Ce chemin valide
 que l'image peut être reproduite depuis le dépôt de paquets, indépendamment du
 rootfs monolithique de `final-system`.
 
@@ -853,6 +879,12 @@ cd native/package-release-system
 xbee validate
 xbee build
 ```
+
+Le build attend la clé privée persistante
+`~/.xbee/.ssh/xbee-lfs-release-ed25519.pem` (mode `0600`). Elle est montée dans
+le conteneur uniquement pendant la signature et n'est pas exportée dans
+l'artefact. La clé publique correspondante peut être distribuée depuis
+`~/.xbee/.ssh/xbee-lfs-release-ed25519-public.pem` par un canal indépendant.
 
 Artefacts :
 

@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build bluez-tools 0.2.0+git.f653217 for the BLFS Bluetooth stack.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-pkgconf, alias: pkgconf }, { origin: ../package-blfs-bluez, alias: blfs-bluez }, { origin: ../package-dbus, alias: dbus }, { origin: ../package-blfs-glib, alias: blfs-glib }]
+var: { xbee: { version: "0.2.0.git.f653217-2" }, lfs: { jobs: 4 }, package: { name: bluez-tools, version: "0.2.0+git.f653217", source: bluez-tools-f65321736475429316f07ee94ec0deac8e46ec4a.tar.gz, runtime-dependencies: "bluez,dbus,glib" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

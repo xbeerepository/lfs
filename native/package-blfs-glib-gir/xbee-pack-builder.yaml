@@ -1,0 +1,29 @@
+schema-version: 1.0
+description: Build the GLib GIR and typelib data needed by downstream Vala packages.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+  - { origin: ../package-blfs-gobject-introspection-core, alias: blfs-gobject-introspection-core }
+var:
+  xbee: { version: "2.86.4-2" }
+  lfs: { jobs: 4 }
+  package:
+    name: glib-gir
+    version: "2.86.4"
+    source: glib-2.86.4.tar.xz
+    runtime-dependencies: "glib,gobject-introspection-core"
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

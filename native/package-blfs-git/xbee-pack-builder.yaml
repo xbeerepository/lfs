@@ -1,0 +1,40 @@
+schema-version: 1.0
+description: Build Git 2.53.0 with HTTPS and PCRE2 support.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-curl, alias: curl }
+  - { origin: ../package-blfs-nghttp2, alias: blfs-nghttp2 }
+  - { origin: ../package-blfs-c-ares, alias: blfs-c-ares }
+  - { origin: ../package-blfs-libunistring, alias: blfs-libunistring }
+  - { origin: ../package-blfs-libidn2, alias: blfs-libidn2 }
+  - { origin: ../package-blfs-libpsl, alias: blfs-libpsl }
+  - { origin: ../package-blfs-brotli, alias: blfs-brotli }
+  - { origin: ../package-blfs-libssh2, alias: blfs-libssh2 }
+  - { origin: ../package-zstd, alias: zstd }
+  - { origin: ../package-pcre2, alias: pcre2 }
+  - { origin: ../package-openssl, alias: openssl }
+  - { origin: ../package-zlib, alias: zlib }
+  - { origin: ../package-expat, alias: expat }
+  - { origin: ../package-python, alias: python }
+  - { origin: ../package-perl, alias: perl }
+  - { origin: ../package-gettext, alias: gettext }
+var:
+  xbee: { version: "2.53.0-2" }
+  lfs: { jobs: 4 }
+  package:
+    name: git
+    version: "2.53.0"
+    source: git-2.53.0.tar.xz
+    runtime-dependencies: curl,nghttp2,c-ares,libunistring,libidn2,libpsl,brotli,libssh2,zstd,pcre2,openssl,zlib,expat,python,perl
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

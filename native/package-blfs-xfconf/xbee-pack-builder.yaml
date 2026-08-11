@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build xfconf 4.20.0 for BLFS.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-glib, alias: blfs-glib }, { origin: ../package-blfs-libxfce4util, alias: blfs-libxfce4util }, { origin: ../package-dbus, alias: dbus }]
+var: { xbee: { version: "4.20.0-1" }, lfs: { jobs: 4 }, package: { name: xfconf, version: "4.20.0", source: xfconf-4.20.0.tar.bz2, runtime-dependencies: "glib,libxfce4util,dbus" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

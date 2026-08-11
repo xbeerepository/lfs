@@ -10,9 +10,14 @@ builder:
   - origin: ../package-uefi-system
     alias: uefi
 
+bind:
+  release-signing-key:
+    from: ${HOME}/.xbee/.ssh/xbee-lfs-release-ed25519.pem
+    to: /run/xbee-secrets/release-signing-key.pem:ro
+
 var:
   xbee:
-    version: "0.3.0"
+    version: "0.3.2"
   release:
     name: xbee-lfs-native-13.0-x86_64-packages
 
@@ -20,16 +25,13 @@ build:
   - shell:
       cmd:
         - >-
-          openssl genpkey -algorithm Ed25519
-          -out "{{ .xbee.src }}/release-signing-key.pem"
-        - >-
           bash "{{ .xbee.resources }}/build-package-release-system.sh"
           "/opt/xbee-lfs-native/xbee-lfs-native-13.0-x86_64-packages.qcow2"
           "/opt/xbee-lfs-native/package-system-metadata.yaml"
           "/opt/xbee-lfs-native/xbee-lfs-native-13.0-x86_64-packages-uefi.qcow2"
           "/opt/xbee-lfs-native/package-uefi-system-metadata.yaml"
           "{{ .release.name }}"
-          "{{ .xbee.src }}/release-signing-key.pem"
+          "/run/xbee-secrets/release-signing-key.pem"
           "{{ .xbee.resources }}"
           "{{ .xbee.src }}"
           "{{ .xbee.out }}"

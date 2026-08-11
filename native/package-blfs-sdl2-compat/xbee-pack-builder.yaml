@@ -1,0 +1,8 @@
+schema-version: 1.0
+description: Build sdl2-compat 2.32.64 over SDL3.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-cmake, alias: blfs-cmake }, { origin: ../package-blfs-libarchive, alias: blfs-libarchive }, { origin: ../package-blfs-libxml2, alias: blfs-libxml2 }, { origin: ../package-openssl, alias: openssl }, { origin: ../package-zlib, alias: zlib }, { origin: ../package-bzip2, alias: bzip2 }, { origin: ../package-xz, alias: xz }, { origin: ../package-zstd, alias: zstd }, { origin: ../package-expat, alias: expat }, { origin: ../package-ninja, alias: ninja }, { origin: ../package-blfs-sdl3, alias: blfs-sdl3 }]
+var: { xbee: { version: "2.32.64-3" }, lfs: { jobs: 4 }, package: { name: sdl2-compat, version: "2.32.64", source: sdl2-compat-2.32.64.tar.gz, runtime-dependencies: "sdl3,libarchive,libxml2,openssl,zlib,bzip2,xz,zstd,expat" } }
+build:
+  - shell:
+      cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"']

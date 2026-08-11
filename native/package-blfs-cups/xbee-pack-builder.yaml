@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build cups 2.4.16 for BLFS.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-gnutls, alias: blfs-gnutls }, { origin: ../package-blfs-colord, alias: blfs-colord }, { origin: ../package-blfs-libusb, alias: blfs-libusb }, { origin: ../package-blfs-linux-pam, alias: blfs-linux-pam }]
+var: { xbee: { version: "2.4.16-1" }, lfs: { jobs: 4 }, package: { name: cups, version: "2.4.16", source: cups-2.4.16-source.tar.gz, runtime-dependencies: "gnutls,colord,libusb,linux-pam" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

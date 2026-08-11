@@ -1,0 +1,46 @@
+schema-version: 1.0
+
+description: Build libpsl from BLFS 13.0 for XBee LFS.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../blfs-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-meson
+    alias: meson
+  - origin: ../package-ninja
+    alias: ninja
+  - origin: ../package-pkgconf
+    alias: pkgconf
+  - origin: ../package-blfs-libidn2
+    alias: blfs-libidn2
+  - origin: ../package-blfs-libunistring
+    alias: blfs-libunistring
+
+var:
+  xbee:
+    version: "0.21.5"
+  lfs:
+    jobs: 4
+  package:
+    name: libpsl
+    version: "0.21.5"
+    source: libpsl-0.21.5.tar.gz
+    runtime-dependencies: libidn2,libunistring
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
+          "{{ .xbee.resources }}/build.sh"

@@ -1,0 +1,60 @@
+schema-version: 1.0
+description: Build gtk-layer-shell 0.10.1 for native Wayland panels.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-blfs-gtk3, alias: blfs-gtk3 }
+  - { origin: ../package-blfs-at-spi2-core, alias: blfs-at-spi2-core }
+  - { origin: ../package-blfs-libepoxy, alias: blfs-libepoxy }
+  - { origin: ../package-blfs-mesa, alias: blfs-mesa }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+  - { origin: ../package-blfs-cairo, alias: blfs-cairo }
+  - { origin: ../package-blfs-pango, alias: blfs-pango }
+  - { origin: ../package-blfs-fribidi, alias: blfs-fribidi }
+  - { origin: ../package-blfs-gdk-pixbuf, alias: blfs-gdk-pixbuf }
+  - { origin: ../package-blfs-shared-mime-info, alias: blfs-shared-mime-info }
+  - { origin: ../package-blfs-libjpeg-turbo, alias: blfs-libjpeg-turbo }
+  - { origin: ../package-blfs-giflib, alias: blfs-giflib }
+  - { origin: ../package-blfs-libtiff, alias: blfs-libtiff }
+  - { origin: ../package-blfs-harfbuzz, alias: blfs-harfbuzz }
+  - { origin: ../package-blfs-libxkbcommon, alias: blfs-libxkbcommon }
+  - { origin: ../package-blfs-wayland, alias: blfs-wayland }
+  - { origin: ../package-blfs-wayland-protocols, alias: blfs-wayland-protocols }
+  - { origin: ../package-blfs-libxml2, alias: blfs-libxml2 }
+  - { origin: ../package-blfs-pixman, alias: blfs-pixman }
+  - { origin: ../package-blfs-fontconfig, alias: blfs-fontconfig }
+  - { origin: ../package-blfs-freetype, alias: blfs-freetype }
+  - { origin: ../package-blfs-libpng, alias: blfs-libpng }
+  - { origin: ../package-blfs-brotli, alias: blfs-brotli }
+  - { origin: ../package-blfs-graphite2, alias: blfs-graphite2 }
+  - { origin: ../package-blfs-icu, alias: blfs-icu }
+  - { origin: ../package-libffi, alias: libffi }
+  - { origin: ../package-pcre2, alias: pcre2 }
+  - { origin: ../package-util-linux, alias: util-linux }
+  - { origin: ../package-readline, alias: readline }
+  - { origin: ../package-zlib, alias: zlib }
+  - { origin: ../package-bzip2, alias: bzip2 }
+  - { origin: ../package-xz, alias: xz }
+  - { origin: ../package-expat, alias: expat }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+var:
+  xbee: { version: "0.10.1-1" }
+  lfs: { jobs: 4 }
+  package:
+    name: gtk-layer-shell
+    version: "0.10.1"
+    source: gtk-layer-shell-0.10.1.tar.gz
+    runtime-dependencies: gtk3,wayland,wayland-protocols
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

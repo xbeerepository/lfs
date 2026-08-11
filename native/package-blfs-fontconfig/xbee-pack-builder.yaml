@@ -1,0 +1,50 @@
+schema-version: 1.0
+
+description: Build Fontconfig from BLFS 13.0 for XBee LFS.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../blfs-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-blfs-freetype
+    alias: blfs-freetype
+  - origin: ../package-blfs-libpng
+    alias: blfs-libpng
+  - origin: ../package-blfs-brotli
+    alias: blfs-brotli
+  - origin: ../package-zlib
+    alias: zlib
+  - origin: ../package-bzip2
+    alias: bzip2
+  - origin: ../package-expat
+    alias: expat
+  - origin: ../package-pkgconf
+    alias: pkgconf
+
+var:
+  xbee:
+    version: "2.17.1"
+  lfs:
+    jobs: 4
+  package:
+    name: fontconfig
+    version: "2.17.1"
+    source: fontconfig-2.17.1.tar.xz
+    runtime-dependencies: freetype,expat
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
+          "{{ .xbee.resources }}/build.sh"

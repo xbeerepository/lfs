@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build lvm2 2.03.38 for BLFS.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-libaio, alias: blfs-libaio }]
+var: { xbee: { version: "2.03.38-1" }, lfs: { jobs: 4 }, package: { name: lvm2, version: "2.03.38", source: LVM2.2.03.38.tgz, runtime-dependencies: "libaio" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

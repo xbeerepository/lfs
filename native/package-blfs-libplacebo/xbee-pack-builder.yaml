@@ -1,0 +1,8 @@
+schema-version: 1.0
+description: Build libplacebo 7.360.0 with OpenGL support.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-meson, alias: meson }, { origin: ../package-ninja, alias: ninja }, { origin: ../package-pkgconf, alias: pkgconf }, { origin: ../package-blfs-glad, alias: blfs-glad }, { origin: ../package-blfs-mesa, alias: blfs-mesa }, { origin: ../package-blfs-vulkan-headers, alias: blfs-vulkan-headers }, { origin: ../package-libstdcxx-runtime, alias: libstdcxx-runtime }]
+var: { xbee: { version: "7.360.0-3" }, lfs: { jobs: 4 }, package: { name: libplacebo, version: "7.360.0", source: libplacebo-7.360.0.tar.gz, runtime-dependencies: "mesa,vulkan-headers,libstdcxx-runtime" } }
+build:
+  - shell:
+      cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"']

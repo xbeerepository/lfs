@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build dvd-rw-tools 7.1.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-cdrtools, alias: blfs-cdrtools }]
+var: { xbee: { version: "7.1-2" }, lfs: { jobs: 4 }, package: { name: dvd-rw-tools, version: "7.1", source: dvd+rw-tools-7.1.tar.gz, runtime-dependencies: "cdrtools" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

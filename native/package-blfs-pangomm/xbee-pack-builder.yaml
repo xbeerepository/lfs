@@ -1,0 +1,47 @@
+schema-version: 1.0
+description: Build pangomm 2.46.5 for the GTKmm 3 ABI stack.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-blfs-glibmm, alias: blfs-glibmm }
+  - { origin: ../package-blfs-cairomm, alias: blfs-cairomm }
+  - { origin: ../package-blfs-libsigcxx, alias: blfs-libsigcxx }
+  - { origin: ../package-blfs-pango, alias: blfs-pango }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+  - { origin: ../package-blfs-cairo, alias: blfs-cairo }
+  - { origin: ../package-blfs-pixman, alias: blfs-pixman }
+  - { origin: ../package-blfs-harfbuzz, alias: blfs-harfbuzz }
+  - { origin: ../package-blfs-fribidi, alias: blfs-fribidi }
+  - { origin: ../package-blfs-fontconfig, alias: blfs-fontconfig }
+  - { origin: ../package-blfs-freetype, alias: blfs-freetype }
+  - { origin: ../package-blfs-libpng, alias: blfs-libpng }
+  - { origin: ../package-blfs-brotli, alias: blfs-brotli }
+  - { origin: ../package-blfs-graphite2, alias: blfs-graphite2 }
+  - { origin: ../package-blfs-icu, alias: blfs-icu }
+  - { origin: ../package-zlib, alias: zlib }
+  - { origin: ../package-bzip2, alias: bzip2 }
+  - { origin: ../package-expat, alias: expat }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+var:
+  xbee:
+    version: "2.46.5-4"
+  lfs:
+    jobs: 4
+  package:
+    name: pangomm
+    version: "2.46.5"
+    source: pangomm-2.46.5.tar.xz
+    runtime-dependencies: glibmm,cairomm,pango
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

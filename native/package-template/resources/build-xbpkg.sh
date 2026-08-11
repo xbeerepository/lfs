@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -ne 9 ]]; then
-  echo "usage: build-xbpkg.sh SOURCES ROOTFS NAME VERSION SOURCE DEPS JOBS SRC OUT" >&2
+if [[ $# -ne 9 && $# -ne 10 ]]; then
+  echo "usage: build-xbpkg.sh SOURCES ROOTFS NAME VERSION SOURCE DEPS JOBS SRC OUT [RECIPE]" >&2
   exit 2
 fi
 
@@ -15,6 +15,7 @@ dependencies=$6
 jobs=$7
 source_root=$8
 output_root=$9
+recipe=${10:-}
 tool_root=$(cd "$(dirname "$0")" && pwd)
 
 if [[ ! "$package_name" =~ ^[a-z0-9][a-z0-9+._-]*$ ||
@@ -34,6 +35,10 @@ for artefact in "$rootfs_archive" "$sources/$source_name"; do
     exit 1
   }
 done
+if [[ -n "$recipe" && ! -f "$recipe" ]]; then
+  echo "package recipe not found: $recipe" >&2
+  exit 1
+fi
 expected=$(awk 'NR == 1 {print $1}' "$rootfs_archive.sha256")
 actual=$(sha256sum "$rootfs_archive" | awk '{print $1}')
 [[ -n "$expected" && "$expected" == "$actual" ]] || {
@@ -104,6 +109,17 @@ for dependency_archive in "${dependency_archives[@]}"; do
     }
     rm -f "$rootfs$dependency_path"
   done <"$dependency_root/.XBPKG/files"
+  # Preserve the merged-/usr links from the bootstrap rootfs when an older
+  # package payload contains a real top-level compatibility directory.
+  for merged_usr_dir in bin sbin lib lib64; do
+    if [[ -L "$rootfs/$merged_usr_dir" &&
+          -d "$dependency_root/rootfs/$merged_usr_dir" &&
+          ! -L "$dependency_root/rootfs/$merged_usr_dir" ]]; then
+      cp -a "$dependency_root/rootfs/$merged_usr_dir/." \
+        "$rootfs/$merged_usr_dir/"
+      rm -rf "$dependency_root/rootfs/$merged_usr_dir"
+    fi
+  done
   cp -a "$dependency_root/rootfs/." "$rootfs/"
   rm -rf "$dependency_root"
 done
@@ -112,10 +128,35 @@ mkdir -p "$rootfs/sources" "$stage"
 if [[ "$package_name" == ca-certificates ]]; then
   mkdir -p "$build_dir"
   cp "$sources/$source_name" "$build_dir/ca-certificates.crt"
+elif [[ "$source_name" == *.zip ]]; then
+  mkdir -p "$build_dir"
+  cp "$sources/$source_name" "$rootfs/sources/"
+  chroot "$rootfs" /usr/bin/unzip -q \
+    "/sources/$source_name" -d "/sources/xbpkg-$package_name"
 else
   tar -xf "$sources/$source_name" -C "$rootfs/sources"
-  source_directory=$(tar -tf "$sources/$source_name" | sed -n '1{s@/.*@@;p;}')
+  source_directory=$(tar -tf "$sources/$source_name" | awk '
+    {
+      sub(/^\.\//, "")
+      if (!found && $0 ~ /^[^/]+\//) {
+        sub(/\/.*/, "")
+        print
+        found = 1
+      }
+    }
+  ')
+  [[ "$source_directory" =~ ^[A-Za-z0-9][A-Za-z0-9+._~-]*$ &&
+     -d "$rootfs/sources/$source_directory" ]] || {
+    echo "invalid or missing archive root directory: $source_name" >&2
+    exit 1
+  }
   mv "$rootfs/sources/$source_directory" "$build_dir"
+fi
+
+if [[ -n "$recipe" ]]; then
+  install -m 0755 "$recipe" "$rootfs/sources/xbpkg-recipe.sh"
+  find "$sources" -maxdepth 1 -type f -name '*.patch' \
+    -exec cp -t "$rootfs/sources" {} +
 fi
 
 case "$package_name" in
@@ -147,6 +188,38 @@ case "$package_name" in
   systemd)
     cp "$sources/systemd-man-pages-259.1.tar.xz" "$rootfs/sources/"
     ;;
+  rustc)
+    cp "$sources/rustc-1.96.0-x86_64-unknown-linux-gnu.tar.xz" \
+      "$sources/rust-std-1.96.0-x86_64-unknown-linux-gnu.tar.xz" \
+      "$sources/cargo-1.96.0-x86_64-unknown-linux-gnu.tar.xz" \
+      "$rootfs/sources/"
+    ;;
+  cargo-c)
+    cp "$sources/cargo-c-0.10.24-Cargo.lock" \
+      "$sources/cargo-c-0.10.24-crates.tar.zst" \
+      "$rootfs/sources/"
+    ;;
+  librsvg)
+    cp "$sources/librsvg-2.62.3-Cargo.lock" \
+      "$sources/librsvg-2.62.3-crates.tar.zst" \
+      "$rootfs/sources/"
+    ;;
+  libcdio)
+    cp "$sources/libcdio-paranoia-10.2+2.0.2.tar.bz2" "$rootfs/sources/"
+    ;;
+  audacious)
+    cp "$sources/audacious-plugins-$package_version.tar.bz2" \
+      "$rootfs/sources/"
+    ;;
+  speex)
+    cp "$sources/speexdsp-1.2.1.tar.gz" "$rootfs/sources/"
+    ;;
+  sassc)
+    cp "$sources/libsass-3.6.6.tar.gz" "$rootfs/sources/"
+    ;;
+  gst-plugins-rs)
+    cp "$(dirname "$recipe")/cargo-vendor-1.28.1.tar.zst" "$rootfs/sources/"
+    ;;
 esac
 
 mount --bind /dev "$rootfs/dev"
@@ -160,6 +233,13 @@ mounted+=("$rootfs/sys")
 mount -t tmpfs tmpfs "$rootfs/run"
 mounted+=("$rootfs/run")
 
+if [[ -n "$recipe" ]]; then
+  chroot "$rootfs" /usr/bin/env -i \
+    HOME=/root TERM="${TERM:-dumb}" PATH=/usr/bin:/usr/sbin \
+    PACKAGE_NAME="$package_name" PACKAGE_VERSION="$package_version" \
+    JOBS="$jobs" SOURCE_DIR="/sources/xbpkg-$package_name" STAGE=/stage \
+    bash -lc 'cd "$SOURCE_DIR" && /sources/xbpkg-recipe.sh'
+else
 case "$package_name" in
   ca-certificates)
     chroot "$rootfs" /usr/bin/env -i \
@@ -190,10 +270,10 @@ case "$package_name" in
         ./configure --prefix=/usr \
           --with-openssl \
           --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt \
-          --disable-static --enable-threaded-resolver \
-          --without-libpsl --without-libidn2 --without-brotli \
-          --without-nghttp2 --without-nghttp3 --without-ngtcp2 \
-          --without-libssh2 --without-zstd &&
+          --disable-static --enable-ares \
+          --with-libpsl --with-libidn2 --with-brotli \
+          --with-nghttp2 --without-nghttp3 --without-ngtcp2 \
+          --with-libssh2 --with-zstd &&
         make -j$jobs &&
         make DESTDIR=/stage install"
     ;;
@@ -1483,6 +1563,7 @@ s=open(p).read(); open(p,\"w\").write(s.replace(b+d+\"{\",b+d+b+\"{\"))' &&
     exit 2
     ;;
 esac
+fi
 
 if [[ -z "$(find "$stage" -mindepth 1 -print -quit)" ]]; then
   echo "package payload is empty: $package_name" >&2
@@ -1494,6 +1575,26 @@ fi
 rm -f "$stage/usr/share/info/dir"
 
 mkdir -p "$metadata/.XBPKG" "$metadata/rootfs"
+if [[ -d "$stage/.xbpkg-hooks" ]]; then
+  find "$stage/.xbpkg-hooks" -mindepth 1 -maxdepth 1 -type f \
+    ! -name post-install ! -name pre-remove ! -name paths -print -quit |
+    grep -q . && {
+      echo "unsupported package hook for $package_name" >&2
+      exit 1
+    }
+  install -d -m 0755 "$metadata/.XBPKG/hooks"
+  for hook in post-install pre-remove; do
+    [[ ! -f "$stage/.xbpkg-hooks/$hook" ]] ||
+      install -m 0755 "$stage/.xbpkg-hooks/$hook" \
+        "$metadata/.XBPKG/hooks/$hook"
+  done
+  [[ ! -f "$stage/.xbpkg-hooks/paths" ]] || {
+    install -m 0644 "$stage/.xbpkg-hooks/paths" \
+      "$metadata/.XBPKG/hook-paths"
+    rm -f "$metadata/.XBPKG/hooks/paths"
+  }
+  rm -rf "$stage/.xbpkg-hooks"
+fi
 cp -a "$stage/." "$metadata/rootfs/"
 (
   cd "$metadata/rootfs"
@@ -1519,6 +1620,11 @@ files: .XBPKG/files
 checksums: .XBPKG/files.sha256
 conffiles: .XBPKG/conffiles
 EOF
+if [[ -d "$metadata/.XBPKG/hooks" ]]; then
+  printf '%s\n' 'hooks: .XBPKG/hooks' >>"$metadata/.XBPKG/manifest.yaml"
+  printf '%s\n' 'hook-paths: .XBPKG/hook-paths' \
+    >>"$metadata/.XBPKG/manifest.yaml"
+fi
 if [[ "$package_name" == glibc ]]; then
   printf '%s\n' 'essential: true' >>"$metadata/.XBPKG/manifest.yaml"
 fi

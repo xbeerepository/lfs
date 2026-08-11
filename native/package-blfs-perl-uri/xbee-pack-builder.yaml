@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build perl-uri 5.34 for KDE Frameworks 6.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-perl, alias: perl }, { origin: ../package-blfs-perl-mime-base32, alias: blfs-perl-mime-base32 }]
+var: { xbee: { version: "5.34-3" }, lfs: { jobs: 4 }, package: { name: perl-uri, version: "5.34", source: URI-5.34.tar.gz, runtime-dependencies: "perl,perl-mime-base32" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

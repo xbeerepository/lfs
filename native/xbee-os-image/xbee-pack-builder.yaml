@@ -1,0 +1,26 @@
+schema-version: 1.0
+
+description: Build the minimal XBee OS 13.0 Docker distribution image.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-repository
+    alias: repository
+
+var:
+  xbee:
+    version: "0.1.0"
+  image:
+    name: xbee-os
+    tag: "13.0"
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "{{ .xbee.resources }}/build-xbee-os.sh"
+          "/opt/xbee-lfs-repository"
+          "{{ .xbee.resources }}/container-minimal.txt"
+          "{{ .image.name }}" "{{ .image.tag }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}"

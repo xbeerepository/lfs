@@ -1,0 +1,28 @@
+schema-version: 1.0
+description: Install the Freedesktop 0.8 desktop sound theme.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-intltool, alias: intltool }
+  - { origin: ../package-gettext, alias: gettext }
+  - { origin: ../package-perl, alias: perl }
+  - { origin: ../package-xml-parser, alias: xml-parser }
+var:
+  xbee: { version: "0.8-1" }
+  lfs: { jobs: 4 }
+  package:
+    name: sound-theme-freedesktop
+    version: "0.8"
+    source: sound-theme-freedesktop-0.8.tar.bz2
+    runtime-dependencies: ""
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

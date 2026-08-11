@@ -1,0 +1,8 @@
+schema-version: 1.0
+description: Build SBC 2.2 Bluetooth audio codec.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-pkgconf, alias: pkgconf }, { origin: ../package-blfs-libsndfile, alias: blfs-libsndfile }]
+var: { xbee: { version: "2.2-1" }, lfs: { jobs: 4 }, package: { name: sbc, version: "2.2", source: sbc-2.2.tar.xz, runtime-dependencies: libsndfile } }
+build:
+  - shell:
+      cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"']

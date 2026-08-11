@@ -1,0 +1,8 @@
+schema-version: 1.0
+description: Build neon 0.36.0 HTTP and WebDAV library.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-openssl, alias: openssl }]
+var: { xbee: { version: "0.36.0-2" }, lfs: { jobs: 4 }, package: { name: neon, version: "0.36.0", source: neon-0.36.0.tar.gz, runtime-dependencies: "openssl" } }
+build:
+  - shell:
+      cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"']

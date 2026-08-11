@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build SVT-AV1 4.0.1 encoder.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-cmake, alias: blfs-cmake }, { origin: ../package-blfs-libarchive, alias: blfs-libarchive }, { origin: ../package-blfs-libxml2, alias: blfs-libxml2 }, { origin: ../package-openssl, alias: openssl }, { origin: ../package-zlib, alias: zlib }, { origin: ../package-bzip2, alias: bzip2 }, { origin: ../package-xz, alias: xz }, { origin: ../package-zstd, alias: zstd }, { origin: ../package-expat, alias: expat }, { origin: ../package-ninja, alias: ninja }, { origin: ../package-blfs-nasm, alias: blfs-nasm }]
+var: { xbee: { version: "4.0.1-2" }, lfs: { jobs: 4 }, package: { name: svt-av1, version: "4.0.1", source: SVT-AV1-v4.0.1.tar.gz, runtime-dependencies: "libarchive,libxml2,openssl,zlib,bzip2,xz,zstd,expat" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

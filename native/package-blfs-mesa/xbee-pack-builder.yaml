@@ -1,0 +1,64 @@
+schema-version: 1.0
+
+description: Build a Wayland-only Mesa stack from BLFS 13.0 for XBee LFS.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../blfs-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-blfs-libdrm
+    alias: blfs-libdrm
+  - origin: ../package-blfs-libdisplay-info
+    alias: blfs-libdisplay-info
+  - origin: ../package-blfs-mako
+    alias: blfs-mako
+  - origin: ../package-blfs-pyyaml
+    alias: blfs-pyyaml
+  - origin: ../package-blfs-wayland
+    alias: blfs-wayland
+  - origin: ../package-blfs-wayland-protocols
+    alias: blfs-wayland-protocols
+  - origin: ../package-blfs-libxml2
+    alias: blfs-libxml2
+  - origin: ../package-expat
+    alias: expat
+  - origin: ../package-libelf
+    alias: libelf
+  - origin: ../package-zlib
+    alias: zlib
+  - origin: ../package-zstd
+    alias: zstd
+  - origin: ../package-meson
+    alias: meson
+  - origin: ../package-ninja
+    alias: ninja
+  - origin: ../package-pkgconf
+    alias: pkgconf
+
+var:
+  xbee:
+    version: "25.3.5-2"
+  lfs:
+    jobs: 4
+  package:
+    name: mesa
+    version: "25.3.5"
+    source: mesa-25.3.5.tar.xz
+    runtime-dependencies: libdrm,libdisplay-info,mako,pyyaml,wayland,wayland-protocols,libxml2,expat,libelf,zlib,zstd
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
+          "{{ .xbee.resources }}/build.sh"

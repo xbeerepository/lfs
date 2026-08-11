@@ -1,0 +1,36 @@
+schema-version: 1.0
+description: Build PipeWire 1.6.8 for the native Wayland desktop.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+  - { origin: ../package-systemd, alias: systemd }
+  - { origin: ../package-dbus, alias: dbus }
+  - { origin: ../package-readline, alias: readline }
+  - { origin: ../package-ncurses, alias: ncurses }
+  - { origin: ../package-blfs-alsa-lib, alias: blfs-alsa-lib }
+  - { origin: ../package-blfs-libsndfile, alias: blfs-libsndfile }
+  - { origin: ../package-blfs-sbc, alias: blfs-sbc }
+  - { origin: ../package-blfs-bluez, alias: blfs-bluez }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+var:
+  xbee: { version: "1.6.8-5" }
+  lfs: { jobs: 4 }
+  package:
+    name: pipewire
+    version: "1.6.8"
+    source: pipewire-1.6.8.tar.gz
+    runtime-dependencies: alsa-lib,libsndfile,systemd,dbus,readline,sbc,bluez,glib
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

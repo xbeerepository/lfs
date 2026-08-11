@@ -1,0 +1,31 @@
+schema-version: 1.0
+description: Build glibmm 2.66.9 for the GTKmm 3 ABI stack.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-blfs-libsigcxx, alias: blfs-libsigcxx }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+var:
+  xbee:
+    version: "2.66.9-1"
+  lfs:
+    jobs: 4
+  package:
+    name: glibmm
+    version: "2.66.9"
+    source: glibmm-2.66.9.tar.xz
+    runtime-dependencies: libsigc++,glib
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

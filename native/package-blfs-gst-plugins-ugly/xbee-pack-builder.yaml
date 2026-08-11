@@ -1,0 +1,33 @@
+schema-version: 1.0
+description: Build GStreamer Ugly Plug-ins 1.28.1.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+  - { origin: ../package-blfs-gstreamer, alias: blfs-gstreamer }
+  - { origin: ../package-blfs-gst-plugins-base, alias: blfs-gst-plugins-base }
+  - { origin: ../package-blfs-liba52, alias: blfs-liba52 }
+  - { origin: ../package-blfs-libcdio, alias: blfs-libcdio }
+  - { origin: ../package-blfs-libmpeg2, alias: blfs-libmpeg2 }
+var:
+  xbee: { version: "1.28.1-4" }
+  lfs: { jobs: 4 }
+  package:
+    name: gst-plugins-ugly
+    version: "1.28.1"
+    source: gst-plugins-ugly-1.28.1.tar.xz
+    runtime-dependencies: glib,gstreamer,gst-plugins-base,liba52,libcdio,libmpeg2
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

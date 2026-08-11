@@ -1,0 +1,41 @@
+schema-version: 1.0
+
+description: BLFS package builder template (clone this folder and adapt fields).
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../final-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  # Keep dependencies explicit:
+  # - origin: ../package-<dep>
+  #   alias: <dep_alias>
+
+var:
+  xbee:
+    version: "13.0"
+  lfs:
+    jobs: 4
+  package:
+    # Replace these fields for the BLFS package you build.
+    name: blfs-package-name
+    version: "x.y.z"
+    source: "blfs-package-name-x.y.z.tar.gz"
+    runtime-dependencies: ""
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "{{ .xbee.resources }}/build-blfs-xbpkg.sh"
+          "{{ .package.name }}"
+          "{{ .package.version }}"
+          "{{ .package.source }}"
+          "{{ .package.runtime-dependencies }}"
+          "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}"
+          "{{ .xbee.out }}"

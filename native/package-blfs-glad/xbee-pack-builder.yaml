@@ -1,0 +1,8 @@
+schema-version: 1.0
+description: Build and install Glad 2.0.8 for Python 3.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-python, alias: python }, { origin: ../package-wheel, alias: wheel }, { origin: ../package-jinja2, alias: jinja2 }]
+var: { xbee: { version: "2.0.8-1" }, lfs: { jobs: 4 }, package: { name: glad, version: "2.0.8", source: glad-2.0.8.tar.gz, runtime-dependencies: "python,jinja2" } }
+build:
+  - shell:
+      cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"']

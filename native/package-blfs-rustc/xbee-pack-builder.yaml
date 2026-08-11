@@ -1,0 +1,52 @@
+schema-version: 1.0
+
+description: Build Rustc 1.97.1 and Cargo for XBee LFS.
+
+require: ../../build-system
+
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-blfs-cmake, alias: blfs-cmake }
+  - { origin: ../package-blfs-libarchive, alias: blfs-libarchive }
+  - { origin: ../package-blfs-libxml2, alias: blfs-libxml2 }
+  - { origin: ../package-bzip2, alias: bzip2 }
+  - { origin: ../package-xz, alias: xz }
+  - { origin: ../package-expat, alias: expat }
+  - { origin: ../package-curl, alias: curl }
+  - { origin: ../package-openssl, alias: openssl }
+  - { origin: ../package-zlib, alias: zlib }
+  - { origin: ../package-ca-certificates, alias: ca-certificates }
+  - { origin: ../package-blfs-nghttp2, alias: blfs-nghttp2 }
+  - { origin: ../package-blfs-c-ares, alias: blfs-c-ares }
+  - { origin: ../package-blfs-libunistring, alias: blfs-libunistring }
+  - { origin: ../package-blfs-libidn2, alias: blfs-libidn2 }
+  - { origin: ../package-blfs-libpsl, alias: blfs-libpsl }
+  - { origin: ../package-blfs-brotli, alias: blfs-brotli }
+  - { origin: ../package-blfs-libssh2, alias: blfs-libssh2 }
+  - { origin: ../package-zstd, alias: zstd }
+  - { origin: ../package-sqlite, alias: sqlite }
+
+var:
+  xbee:
+    version: "1.97.1-6"
+  lfs:
+    jobs: 4
+  package:
+    name: rustc
+    version: "1.97.1"
+    source: rustc-1.97.1-src.tar.xz
+    runtime-dependencies: cmake,libarchive,libxml2,bzip2,xz,expat,curl,openssl,zlib,ca-certificates,nghttp2,c-ares,libunistring,libidn2,libpsl,brotli,libssh2,zstd,sqlite
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
+          "{{ .xbee.resources }}/build.sh"

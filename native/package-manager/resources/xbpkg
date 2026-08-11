@@ -560,6 +560,7 @@ remove_transaction_journal() {
 }
 
 begin_transaction() {
+  local relative backup_list
   [[ ! -e "$transaction_dir" && ! -L "$transaction_dir" ]] || {
     echo "xbpkg: unfinished transaction; run xbpkg --root $root recover" >&2
     return 1
@@ -567,9 +568,21 @@ begin_transaction() {
   mkdir -p "$transaction_dir"
   printf '%s\n' "${transaction_files[@]}" >"$transaction_dir/files"
   printf '%s\n' "${transaction_packages[@]}" >"$transaction_dir/packages"
-  printf 'prepared\n' >"$transaction_dir/state"
+  printf 'install\n' >"$transaction_dir/type"
+  printf 'backing-up\n' >"$transaction_dir/state"
   : >"$transaction_dir/completed"
   sync_journal
+  backup_list="$transaction_dir/backup.list"
+  : >"$backup_list"
+  for relative in "${transaction_files[@]}"; do
+    [[ -e "$root$relative" || -L "$root$relative" ]] &&
+      printf '%s\n' "${relative#/}" >>"$backup_list"
+  done
+  tar -cpf "$transaction_dir/backup.tar" -C "$root" \
+    --files-from "$backup_list"
+  sync -f "$transaction_dir/backup.tar"
+  printf 'prepared\n' >"$transaction_dir/state"
+  sync -f "$transaction_dir/state"
   transaction_active=true
 }
 
@@ -621,9 +634,10 @@ rollback_transaction() {
   for package in "${transaction_packages[@]}"; do
     rm -rf -- "$installed/$package" || failed=1
   done
-  if [[ "$transaction_kind" == update ]]; then
-    [[ -f "$transaction_dir/backup.tar" ]] || return 1
+  if [[ -f "$transaction_dir/backup.tar" ]]; then
     tar -xpf "$transaction_dir/backup.tar" -C "$root" || return 1
+  elif [[ "$transaction_kind" == update ]]; then
+    return 1
   fi
   ((failed == 0)) || return 1
   remove_transaction_journal
@@ -770,6 +784,65 @@ validate_conffiles() {
   done <"$conffiles"
 }
 
+validate_hooks() {
+  local temporary=$1 hook_paths="$temporary/.XBPKG/hook-paths"
+  local hooks="$temporary/.XBPKG/hooks" relative hook
+  if [[ ! -d "$hooks" ]]; then
+    [[ ! -e "$hook_paths" && ! -L "$hook_paths" ]] || {
+      echo "xbpkg: hook paths without hooks" >&2
+      exit 1
+    }
+    return
+  fi
+  [[ -f "$hook_paths" && ! -L "$hook_paths" ]] || {
+    echo "xbpkg: missing package hook paths" >&2
+    exit 1
+  }
+  for hook in "$hooks"/*; do
+    [[ -f "$hook" && ! -L "$hook" ]] || {
+      echo "xbpkg: invalid package hook" >&2
+      exit 1
+    }
+    case "$(basename "$hook")" in
+      post-install|pre-remove) ;;
+      *)
+        echo "xbpkg: unsupported package hook: $(basename "$hook")" >&2
+        exit 1
+        ;;
+    esac
+  done
+  [[ -z "$(sort "$hook_paths" | uniq -d)" ]] || {
+    echo "xbpkg: duplicate package hook path" >&2
+    exit 1
+  }
+  while IFS= read -r relative; do
+    [[ "$relative" == /etc/* && "$relative" != *"/../"* &&
+       "$relative" != */ ]] || {
+      echo "xbpkg: invalid package hook path: $relative" >&2
+      exit 1
+    }
+  done <"$hook_paths"
+}
+
+run_hook() {
+  local hooks=$1 hook=$2 name=$3 version=$4 script
+  script="$hooks/$hook"
+  [[ -f "$script" ]] || return 0
+  XBPKG_ROOT="$root" XBPKG_PACKAGE_NAME="$name" \
+    XBPKG_PACKAGE_VERSION="$version" /bin/bash "$script"
+}
+
+install_hook_metadata() {
+  local temporary=$1 name=$2
+  rm -rf -- "$installed/$name/hooks"
+  rm -f -- "$installed/$name/hook-paths"
+  if [[ -d "$temporary/.XBPKG/hooks" ]]; then
+    cp -a "$temporary/.XBPKG/hooks" "$installed/$name/hooks"
+    install -m 0644 "$temporary/.XBPKG/hook-paths" \
+      "$installed/$name/hook-paths"
+  fi
+}
+
 install_package() {
   local archive=$1 temporary manifest name version architecture dependency
   local relative target owner
@@ -797,6 +870,7 @@ install_package() {
     exit 1
   }
   validate_conffiles "$temporary"
+  validate_hooks "$temporary"
   [[ ! -e "$installed/$name" ]] || {
     echo "xbpkg: package already installed: $name" >&2
     exit 1
@@ -834,6 +908,8 @@ install_package() {
     "$installed/$name/files.sha256"
   install -m 0644 "$temporary/.XBPKG/conffiles" \
     "$installed/$name/conffiles"
+  install_hook_metadata "$temporary" "$name"
+  run_hook "$installed/$name/hooks" post-install "$name" "$version"
   printf 'installed %s %s\n' "$name" "$version"
   rm -rf -- "$temporary"
 }
@@ -849,7 +925,7 @@ repository_archive() {
   local name=$1 operator=${2:-} required=${3:-} archive filename version
   local -a matches=()
   shopt -s nullglob
-  matches=("$repository/packages/$name-"*.xbpkg.tar.zst)
+  matches=("$repository/packages/$name-"[0-9]*.xbpkg.tar.zst)
   shopt -u nullglob
   ((${#matches[@]} > 0)) || {
     echo "xbpkg: dependency not found in repository: $name" >&2
@@ -982,6 +1058,7 @@ preflight_repository_plan() {
       return 1
     }
     validate_conffiles "$temporary"
+    validate_hooks "$temporary"
     (cd "$temporary/rootfs" &&
       find . -type f -print0 | sort -z | xargs -0 sha256sum) \
       >"$temporary/.XBPKG/files.sha256.actual"
@@ -1008,6 +1085,11 @@ preflight_repository_plan() {
       planned_owner["$relative"]=$name
       transaction_files+=("$relative")
     done <"$temporary/.XBPKG/files"
+    if [[ -f "$temporary/.XBPKG/hook-paths" ]]; then
+      while IFS= read -r relative; do
+        transaction_files+=("$relative")
+      done <"$temporary/.XBPKG/hook-paths"
+    fi
     transaction_packages+=("$name")
   done
 }
@@ -1146,11 +1228,19 @@ execute_system_update() {
     name=${update_names[index]}
     while IFS= read -r relative; do paths["$relative"]=1; done \
       <"$installed/$name/files"
+    if [[ -f "$installed/$name/hook-paths" ]]; then
+      while IFS= read -r relative; do paths["$relative"]=1; done \
+        <"$installed/$name/hook-paths"
+    fi
     temporary=$(mktemp -d)
     temporary_dirs+=("$temporary")
     tar --zstd -xf "${update_archives[index]}" -C "$temporary"
     while IFS= read -r relative; do paths["$relative"]=1; done \
       <"$temporary/.XBPKG/files"
+    if [[ -f "$temporary/.XBPKG/hook-paths" ]]; then
+      while IFS= read -r relative; do paths["$relative"]=1; done \
+        <"$temporary/.XBPKG/hook-paths"
+    fi
     while IFS= read -r relative; do
       paths["$relative.xbpkg-new"]=1
     done <"$temporary/.XBPKG/conffiles"
@@ -1219,6 +1309,7 @@ upgrade_package() {
     exit 1
   }
   validate_conffiles "$temporary"
+  validate_hooks "$temporary"
   [[ -f "$installed/$name/manifest.yaml" ]] || {
     echo "xbpkg: package is not installed: $name" >&2
     exit 1
@@ -1315,6 +1406,7 @@ upgrade_package() {
     done <"$installed/$name/conffiles"
   fi
 
+  run_hook "$installed/$name/hooks" pre-remove "$name" "$current_version"
   while IFS= read -r relative; do
     grep -Fqx -- "$relative" "$preserved" && continue
     if [[ "$(package_owner "$relative" || true)" == "$name" ]]; then
@@ -1333,6 +1425,8 @@ upgrade_package() {
     "$installed/$name/files.sha256"
   install -m 0644 "$temporary/.XBPKG/conffiles" \
     "$installed/$name/conffiles"
+  install_hook_metadata "$temporary" "$name"
+  run_hook "$installed/$name/hooks" post-install "$name" "$version"
   printf 'upgraded %s %s -> %s\n' "$name" "$current_version" "$version"
   rm -rf -- "$temporary"
 }
@@ -1361,6 +1455,8 @@ remove_package() {
       fi
     done < <(package_dependencies "$manifest")
   done
+  run_hook "$installed/$name/hooks" pre-remove "$name" \
+    "$(manifest_value "$installed/$name/manifest.yaml" version)"
   tac "$installed/$name/files" | while IFS= read -r relative; do
     if [[ "$(package_owner "$relative" || true)" == "$name" ]]; then
       target="$root$relative"
@@ -1658,7 +1754,16 @@ case "$command" in
         exit 2
       }
       acquire_mutation_lock
-      install_package "$2"
+      temporary=$(mktemp -d)
+      temporary_dirs+=("$temporary")
+      tar --zstd -xf "$2" -C "$temporary"
+      plan_names=("$(manifest_value \
+        "$temporary/.XBPKG/manifest.yaml" name)")
+      plan_versions=("$(manifest_value \
+        "$temporary/.XBPKG/manifest.yaml" version)")
+      plan_archives=("$2")
+      preflight_repository_plan
+      execute_repository_plan
     elif [[ -n "$repository" ]]; then
       plan_repository_package "$2"
       preflight_repository_plan

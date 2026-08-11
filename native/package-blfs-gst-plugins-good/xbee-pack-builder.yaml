@@ -1,0 +1,39 @@
+schema-version: 1.0
+description: Build GStreamer Good Plug-ins 1.28.1.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+  - { origin: ../package-blfs-gstreamer, alias: blfs-gstreamer }
+  - { origin: ../package-blfs-gst-plugins-base, alias: blfs-gst-plugins-base }
+  - { origin: ../package-blfs-cairo, alias: blfs-cairo }
+  - { origin: ../package-blfs-flac, alias: blfs-flac }
+  - { origin: ../package-blfs-libvorbis, alias: blfs-libvorbis }
+  - { origin: ../package-blfs-gdk-pixbuf, alias: blfs-gdk-pixbuf }
+  - { origin: ../package-blfs-nasm, alias: blfs-nasm }
+  - { origin: ../package-blfs-pulseaudio, alias: blfs-pulseaudio }
+  - { origin: ../package-blfs-libsndfile, alias: blfs-libsndfile }
+  - { origin: ../package-blfs-libdv, alias: blfs-libdv }
+  - { origin: ../package-blfs-libvpx, alias: blfs-libvpx }
+var:
+  xbee: { version: "1.28.1-6" }
+  lfs: { jobs: 4 }
+  package:
+    name: gst-plugins-good
+    version: "1.28.1"
+    source: gst-plugins-good-1.28.1.tar.xz
+    runtime-dependencies: glib,gstreamer,gst-plugins-base,cairo,flac,libvorbis,gdk-pixbuf,pulseaudio,libsndfile,libdv,libvpx
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

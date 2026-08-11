@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build itstool 2.0.7 for BLFS.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-python, alias: python }, { origin: ../package-blfs-python-lxml, alias: blfs-python-lxml }]
+var: { xbee: { version: "2.0.7-1" }, lfs: { jobs: 4 }, package: { name: itstool, version: "2.0.7", source: itstool-2.0.7.tar.gz, runtime-dependencies: "python-lxml" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build libbytesize 2.12 for BLFS.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-python, alias: python }, { origin: ../package-pkgconf, alias: pkgconf }, { origin: ../package-blfs-python-pygments, alias: blfs-python-pygments }]
+var: { xbee: { version: "2.12-1" }, lfs: { jobs: 4 }, package: { name: libbytesize, version: "2.12", source: libbytesize-2.12.tar.gz, runtime-dependencies: "python-pygments" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

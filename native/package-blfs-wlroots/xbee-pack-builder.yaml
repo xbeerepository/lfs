@@ -1,0 +1,68 @@
+schema-version: 1.0
+
+description: Build wlroots 0.19.3 for a native Wayland XBee LFS system.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../blfs-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-blfs-libdrm
+    alias: blfs-libdrm
+  - origin: ../package-blfs-libxkbcommon
+    alias: blfs-libxkbcommon
+  - origin: ../package-blfs-pixman
+    alias: blfs-pixman
+  - origin: ../package-blfs-wayland
+    alias: blfs-wayland
+  - origin: ../package-blfs-wayland-protocols
+    alias: blfs-wayland-protocols
+  - origin: ../package-blfs-libxml2
+    alias: blfs-libxml2
+  - origin: ../package-blfs-mesa
+    alias: blfs-mesa
+  - origin: ../package-blfs-hwdata
+    alias: blfs-hwdata
+  - origin: ../package-blfs-libdisplay-info
+    alias: blfs-libdisplay-info
+  - origin: ../package-blfs-libliftoff
+    alias: blfs-libliftoff
+  - origin: ../package-blfs-libinput
+    alias: blfs-libinput
+  - origin: ../package-blfs-seatd
+    alias: blfs-seatd
+  - origin: ../package-systemd
+    alias: systemd
+  - origin: ../package-meson
+    alias: meson
+  - origin: ../package-ninja
+    alias: ninja
+  - origin: ../package-pkgconf
+    alias: pkgconf
+
+var:
+  xbee:
+    version: "0.19.3-2"
+  lfs:
+    jobs: 4
+  package:
+    name: wlroots
+    version: "0.19.3"
+    source: wlroots-0.19.3.tar.bz2
+    runtime-dependencies: libdrm,libxkbcommon,pixman,wayland,wayland-protocols,libxml2,mesa,hwdata,libdisplay-info,libliftoff,libinput,seatd,systemd
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
+          "{{ .xbee.resources }}/build.sh"

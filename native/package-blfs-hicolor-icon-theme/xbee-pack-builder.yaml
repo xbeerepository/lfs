@@ -1,0 +1,26 @@
+schema-version: 1.0
+description: Build hicolor-icon-theme 0.18 for the native desktop.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+var:
+  xbee: { version: "0.18-1" }
+  lfs: { jobs: 4 }
+  package:
+    name: hicolor-icon-theme
+    version: "0.18"
+    source: hicolor-icon-theme-0.18.tar.xz
+    runtime-dependencies: ""
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

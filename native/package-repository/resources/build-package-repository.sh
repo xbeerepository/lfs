@@ -68,15 +68,15 @@ for package in "$packages_root"/*.xbpkg.tar.zst; do
   install -m 0644 "$package" "$repository/packages/"
   package_count=$((package_count + 1))
 done
-[[ "$package_count" -eq 91 ]] || {
-  echo "expected 91 packages, found $package_count" >&2
+[[ "$package_count" -eq 447 ]] || {
+  echo "expected 447 packages, found $package_count" >&2
   exit 1
 }
 
 cat >"$repository/index.yaml" <<'EOF'
 schema-version: 1
 repository: xbee-lfs-native
-version: "0.34.1"
+version: "1.2.0"
 architecture: x86_64
 format: xbpkg.tar.zst
 packages:
@@ -177,6 +177,10 @@ packages:
       - gmp
       - mpfr
       - mpc
+  - name: libstdcxx-runtime
+    version: "15.2.0"
+    dependencies:
+      - glibc
   - name: libffi
     version: "3.5.2"
   - name: expat
@@ -262,12 +266,17 @@ packages:
       - ncurses
   - name: e2fsprogs
     version: "1.47.3"
+  - name: linux-pam
+    version: "1.7.2"
+    dependencies:
+      - libxcrypt
   - name: shadow
     version: "4.19.3"
     dependencies:
       - libxcrypt
       - attr
       - acl
+      - linux-pam
   - name: iproute2
     version: "6.18.0"
     dependencies:
@@ -435,6 +444,7 @@ packages:
       - zlib
       - bzip2
       - dbus
+      - linux-pam
   - name: grub
     version: "2.14"
     dependencies:
@@ -483,6 +493,14 @@ packages:
       - openssl
       - zlib
       - ca-certificates
+      - nghttp2
+      - c-ares
+      - libunistring
+      - libidn2
+      - libpsl
+      - brotli
+      - libssh2
+      - zstd
   - name: dhcpcd
     version: "10.2.4"
     dependencies:
@@ -497,15 +515,1700 @@ packages:
       - openssl
       - acl
       - attr
+  - name: libxml2
+    version: "2.15.1"
+    dependencies:
+      - readline
+      - zlib
+      - xz
+  - name: libxslt
+    version: "1.1.45"
+    dependencies:
+      - libxml2
+      - zlib
+  - name: sgml-common
+    version: "0.6.3"
+  - name: libarchive
+    version: "3.8.5"
+    dependencies:
+      - libxml2
+      - openssl
+      - zlib
+      - bzip2
+      - xz
+      - zstd
+      - expat
+  - name: docbook-xml
+    version: "4.5"
+    dependencies:
+      - libarchive
+      - libxml2
+  - name: docbook-xsl-nons
+    version: "1.79.2"
+    dependencies:
+      - docbook-xml
+      - libxml2
+      - libxslt
+  - name: nghttp2
+    version: "1.68.0"
+    dependencies:
+      - libxml2
+  - name: cmake
+    version: "4.2.3"
+    dependencies:
+      - libarchive
+      - libxml2
+      - openssl
+      - zlib
+      - bzip2
+      - xz
+      - zstd
+      - expat
+  - name: c-ares
+    version: "1.34.6"
+  - name: libunistring
+    version: "1.4.1"
+  - name: libidn2
+    version: "2.3.8"
+    dependencies:
+      - libunistring
+  - name: libpsl
+    version: "0.21.5"
+    dependencies:
+      - libidn2
+      - libunistring
+  - name: brotli
+    version: "1.2.0"
+  - name: libssh2
+    version: "1.11.1"
+    dependencies:
+      - openssl
+      - zlib
+  - name: libpng
+    version: "1.6.55"
+    dependencies:
+      - zlib
+  - name: freetype
+    version: "2.14.1"
+    dependencies:
+      - libpng
+      - brotli
+      - zlib
+      - bzip2
+  - name: fontconfig
+    version: "2.17.1"
+    dependencies:
+      - freetype
+      - expat
+  - name: graphite2
+    version: "1.3.14"
+  - name: icu
+    version: "78.2"
+  - name: glib
+    version: "2.86.4"
+    dependencies:
+      - libffi
+      - pcre2
+      - zlib
+      - util-linux
+  - name: harfbuzz
+    version: "12.3.2"
+    dependencies:
+      - freetype
+      - graphite2
+      - icu
+      - glib
+      - gobject-introspection-core
+      - glib-gir
+  - name: pixman
+    version: "0.46.4"
+  - name: cairo
+    version: "1.18.4"
+    dependencies:
+      - libpng
+      - pixman
+      - fontconfig
+      - glib
+  - name: fribidi
+    version: "1.0.16"
+  - name: pango
+    version: "1.57.0"
+    dependencies:
+      - fontconfig
+      - fribidi
+      - glib
+      - harfbuzz
+      - cairo
+  - name: shared-mime-info
+    version: "2.4"
+    dependencies:
+      - glib
+      - libxml2
+  - name: gdk-pixbuf
+    version: "2.44.5"
+    dependencies:
+      - glib
+      - shared-mime-info
+      - libjpeg-turbo
+      - giflib
+      - libtiff
+  - name: libjpeg-turbo
+    version: "3.1.3"
+  - name: giflib
+    version: "5.2.2"
+  - name: libtiff
+    version: "4.7.1"
+    dependencies:
+      - libjpeg-turbo
+      - zlib
+      - xz
+      - zstd
+  - name: wayland
+    version: "1.24.0"
+    dependencies:
+      - libxml2
+      - expat
+      - libffi
+  - name: wayland-protocols
+    version: "1.47"
+    dependencies:
+      - wayland
+  - name: xkeyboard-config
+    version: "2.46"
+  - name: libxkbcommon
+    version: "1.13.1"
+    dependencies:
+      - xkeyboard-config
+      - wayland
+      - libxml2
+  - name: libevdev
+    version: "1.13.6"
+  - name: mtdev
+    version: "1.1.7"
+  - name: libinput
+    version: "1.31.0"
+    dependencies:
+      - libevdev
+      - mtdev
+      - systemd
+  - name: seatd
+    version: "0.9.3"
+    dependencies:
+      - systemd
+  - name: hwdata
+    version: "0.404"
+  - name: libdisplay-info
+    version: "0.3.0"
+    dependencies:
+      - hwdata
+  - name: libdrm
+    version: "2.4.131"
+    dependencies:
+      - systemd
+      - libpciaccess
+  - name: libpciaccess
+    version: "0.18.1"
+  - name: mako
+    version: "1.3.10"
+    dependencies:
+      - python
+      - markupsafe
+  - name: pyyaml
+    version: "6.0.3"
+    dependencies:
+      - python
+  - name: mesa
+    version: "25.3.5"
+    dependencies:
+      - libdrm
+      - libdisplay-info
+      - mako
+      - pyyaml
+      - wayland
+      - libxml2
+      - expat
+      - libelf
+      - zlib
+      - zstd
+  - name: json-c
+    version: "0.18"
+  - name: libliftoff
+    version: "0.5.0"
+    dependencies:
+      - libdrm
+  - name: wlroots
+    version: "0.19.3"
+    dependencies:
+      - libdrm
+      - libxkbcommon
+      - pixman
+      - wayland
+      - wayland-protocols
+      - libxml2
+      - mesa
+      - hwdata
+      - libdisplay-info
+      - libliftoff
+      - libinput
+      - seatd
+      - systemd
+      - libstdcxx-runtime
+  - name: sway
+    version: "1.11"
+    dependencies:
+      - wlroots
+      - json-c
+      - pcre2
+      - wayland
+      - wayland-protocols
+      - libxml2
+      - libxkbcommon
+      - cairo
+      - pango
+      - pixman
+      - libevdev
+      - mtdev
+      - libinput
+      - libdrm
+      - mesa
+      - hwdata
+      - libdisplay-info
+      - libliftoff
+      - seatd
+      - systemd
+  - name: swaybg
+    version: "1.2.2"
+    dependencies:
+      - wayland
+      - wayland-protocols
+      - libxml2
+      - cairo
+      - gdk-pixbuf
+  - name: wmenu
+    version: "0.2.0"
+    dependencies:
+      - wayland
+      - wayland-protocols
+      - libxml2
+      - libxkbcommon
+      - cairo
+      - pango
+  - name: tllist
+    version: "1.1.0"
+  - name: fcft
+    version: "3.3.3"
+    dependencies:
+      - tllist
+      - fontconfig
+      - freetype
+      - harfbuzz
+      - pixman
+  - name: foot
+    version: "1.27.0"
+    dependencies:
+      - fcft
+      - tllist
+      - wayland
+      - wayland-protocols
+      - libxml2
+      - libxkbcommon
+      - fontconfig
+      - freetype
+      - harfbuzz
+      - pixman
+  - name: wl-clipboard
+    version: "2.3.0"
+    dependencies:
+      - wayland
+      - wayland-protocols
+      - libxml2
+  - name: grim
+    version: "1.4.0"
+    dependencies:
+      - wayland
+      - wayland-protocols
+      - libxml2
+      - libpng
+      - libjpeg-turbo
+      - pixman
+  - name: slurp
+    version: "1.5.0"
+    dependencies:
+      - wayland
+      - wayland-protocols
+      - libxml2
+      - libxkbcommon
+      - cairo
+      - pixman
+  - name: libscfg
+    version: "0.2.0"
+  - name: kanshi
+    version: "1.9.0"
+    dependencies:
+      - libscfg
+      - wayland
+      - libxml2
+  - name: fmt
+    version: "12.1.0"
+  - name: spdlog
+    version: "1.17.0"
+    dependencies:
+      - fmt
+  - name: jsoncpp
+    version: "1.9.7"
+  - name: libsigc++
+    version: "2.12.1"
+  - name: libsigc++3
+    version: "3.6.0"
+  - name: glibmm
+    version: "2.66.9"
+    dependencies:
+      - libsigc++
+      - glib
+  - name: glibmm2
+    version: "2.86.0"
+    dependencies:
+      - libsigc++3
+      - glib
+  - name: cairomm
+    version: "1.14.6"
+    dependencies:
+      - libsigc++
+      - cairo
+  - name: cairomm16
+    version: "1.18.0"
+    dependencies:
+      - libsigc++3
+      - cairo
+  - name: pangomm
+    version: "2.46.5"
+    dependencies:
+      - glibmm
+      - cairomm
+      - pango
+  - name: pangomm248
+    version: "2.56.1"
+    dependencies:
+      - glibmm2
+      - cairomm16
+      - pango
+  - name: at-spi2-core
+    version: "2.60.5"
+    dependencies:
+      - glib
+      - libxml2
+      - dbus
+  - name: graphene
+    version: "1.10.8"
+    dependencies:
+      - glib
+  - name: iso-codes
+    version: "4.20.1"
+  - name: gtk4
+    version: "4.20.3"
+    dependencies:
+      - at-spi2-core
+      - graphene
+      - iso-codes
+      - libepoxy
+      - librsvg
+      - mesa
+      - libdrm
+      - glib
+      - cairo
+      - pango
+      - fribidi
+      - gdk-pixbuf
+      - harfbuzz
+      - libxkbcommon
+      - wayland
+      - wayland-protocols
+  - name: gtkmm4
+    version: "4.20.0"
+    dependencies:
+      - gtk4
+      - pangomm248
+      - cairomm16
+      - glibmm2
+      - libsigc++3
+  - name: pavucontrol
+    version: "6.2"
+    dependencies:
+      - gtkmm4
+      - json-glib
+      - libsigc++3
+      - pulseaudio
+      - libcanberra
+  - name: libogg
+    version: "1.3.6"
+  - name: libvorbis
+    version: "1.3.7"
+    dependencies:
+      - libogg
+  - name: libcanberra
+    version: "0.30"
+    dependencies:
+      - libvorbis
+      - libogg
+      - alsa-lib
+      - gstreamer
+      - gtk3
+      - pulseaudio
+      - glib
+  - name: sound-theme-freedesktop
+    version: "0.8"
+  - name: libepoxy
+    version: "1.5.10"
+    dependencies:
+      - mesa
+  - name: atkmm
+    version: "2.28.5"
+    dependencies:
+      - at-spi2-core
+      - glibmm
+      - libsigc++
+  - name: gtk3
+    version: "3.24.52"
+    dependencies:
+      - at-spi2-core
+      - libepoxy
+      - mesa
+      - glib
+      - cairo
+      - pango
+      - fribidi
+      - gdk-pixbuf
+      - harfbuzz
+      - libxkbcommon
+      - wayland
+      - wayland-protocols
+      - libxml2
+  - name: gtkmm
+    version: "3.24.11"
+    dependencies:
+      - gtk3
+      - atkmm
+      - pangomm
+      - cairomm
+      - glibmm
+      - libsigc++
+  - name: gtk-layer-shell
+    version: "0.10.1"
+    dependencies:
+      - gtk3
+      - wayland
+      - wayland-protocols
+  - name: waybar
+    version: "0.15.0"
+    dependencies:
+      - gtkmm
+      - gtk-layer-shell
+      - fmt
+      - spdlog
+      - jsoncpp
+      - libsigc++
+      - wayland
+      - wayland-protocols
+      - libxkbcommon
+      - glib
+      - libinput
+      - libevdev
+      - libnl
+      - pulseaudio
+      - pipewire
+      - wireplumber
+      - systemd
+  - name: libnl
+    version: "3.12.0"
+  - name: pulseaudio
+    version: "17.0"
+    dependencies:
+      - libsndfile
+      - glib
+  - name: libsndfile
+    version: "1.2.2"
+    dependencies: [flac, libvorbis]
+  - name: alsa-lib
+    version: "1.2.16.1"
+  - name: alsa-utils
+    version: "1.2.15.2"
+    dependencies:
+      - alsa-lib
+      - ncurses
+  - name: alsa-tools
+    version: "1.2.15"
+    dependencies:
+      - alsa-lib
+      - gtk3
+      - gtk4
+  - name: alsa-firmware
+    version: "1.2.4"
+    dependencies:
+      - alsa-tools
+  - name: audiofile
+    version: "0.3.6"
+    dependencies:
+      - alsa-lib
+  - name: nasm
+    version: "3.01"
+  - name: dav1d
+    version: "1.5.3"
+  - name: faac
+    version: "1.31.1"
+  - name: faad2
+    version: "2.11.2"
+  - name: fdk-aac
+    version: "2.0.3"
+  - name: flac
+    version: "1.5.0"
+    dependencies:
+      - libogg
+  - name: gavl
+    version: "1.4.0"
+    dependencies:
+      - libpng
+  - name: frei0r
+    version: "2.5.1"
+    dependencies:
+      - gavl
+  - name: pipewire
+    version: "1.6.8"
+    dependencies:
+      - alsa-lib
+      - libsndfile
+      - systemd
+      - dbus
+      - readline
+      - sbc
+  - name: lua
+    version: "5.4.8"
+  - name: wireplumber
+    version: "0.5.15"
+    dependencies:
+      - glib
+      - pipewire
+      - lua
+      - systemd
+  - name: dejavu-fonts
+    version: "2.37"
+    dependencies:
+      - fontconfig
+  - name: liberation-fonts
+    version: "2.1.5"
+    dependencies:
+      - fontconfig
+  - name: fuse3
+    version: "3.18.2"
+  - name: json-glib
+    version: "1.10.8"
+    dependencies:
+      - glib
+  - name: bubblewrap
+    version: "0.11.2"
+  - name: inih
+    version: "62"
+  - name: gstreamer
+    version: "1.28.1"
+    dependencies:
+      - glib
+  - name: gst-plugins-base
+    version: "1.28.1"
+    dependencies:
+      - glib
+      - gstreamer
+      - alsa-lib
+      - iso-codes
+      - libjpeg-turbo
+      - libogg
+      - libpng
+      - libvorbis
+      - mesa
+      - pango
+      - wayland-protocols
+  - name: gst-plugins-good
+    version: "1.28.1"
+    dependencies:
+      - glib
+      - gstreamer
+      - gst-plugins-base
+      - cairo
+      - flac
+      - gdk-pixbuf
+      - pulseaudio
+      - libdv
+      - libvpx
+  - name: gst-plugins-bad
+    version: "1.28.1"
+    dependencies:
+      - glib
+      - gstreamer
+      - gst-plugins-base
+      - gst-plugins-good
+      - curl
+      - faac
+      - faad2
+      - fdk-aac
+      - gtk3
+      - json-glib
+      - librsvg
+      - libsndfile
+      - libssh2
+      - libxkbcommon
+      - libxml2
+      - openssl
+      - pango
+      - wayland
+      - libaom
+      - libva
+      - libass
+      - libde265
+      - libdvdread
+      - libdvdnav
+  - name: gst-plugins-ugly
+    version: "1.28.1"
+    dependencies:
+      - glib
+      - gstreamer
+      - gst-plugins-base
+      - liba52
+      - libcdio
+      - libmpeg2
+  - name: git
+    version: "2.53.0"
+    dependencies:
+      - curl
+      - pcre2
+      - openssl
+      - zlib
+      - expat
+      - python
+      - perl
+  - name: gst-plugins-rs
+    version: "1.28.1"
+    dependencies:
+      - glib
+      - gstreamer
+      - gst-plugins-base
+      - dav1d
+      - gtk4
+  - name: ffmpeg
+    version: "8.0.1"
+    dependencies:
+      - dav1d
+      - fdk-aac
+      - freetype
+      - libvorbis
+      - alsa-lib
+      - fontconfig
+      - fribidi
+      - frei0r
+      - libdrm
+      - pulseaudio
+      - openssl
+      - libaom
+      - libva
+      - libass
+      - libplacebo
+      - libvpx
+      - lame
+      - opus
+      - svt-av1
+      - x264
+      - x265
+      - sdl2-compat
+      - speex
+      - v4l-utils
+      - xvid
+  - name: gst-libav
+    version: "1.28.1"
+    dependencies:
+      - glib
+      - gstreamer
+      - gst-plugins-base
+      - ffmpeg
+  - name: id3lib
+    version: "3.8.3"
+    dependencies:
+      - zlib
+  - name: gmmlib
+    version: "22.8.2"
+  - name: libva
+    version: "2.23.0"
+    dependencies:
+      - libdrm
+      - mesa
+      - wayland
+  - name: intel-media-driver
+    version: "25.3.4"
+    dependencies:
+      - gmmlib
+      - libva
+      - libdrm
+  - name: intel-vaapi-driver
+    version: "2.4.1"
+    dependencies:
+      - libva
+      - libdrm
+  - name: liba52
+    version: "0.8.0"
+  - name: libao
+    version: "1.2.0"
+    dependencies:
+      - alsa-lib
+      - pulseaudio
+  - name: libaom
+    version: "3.13.1"
+  - name: libass
+    version: "0.17.4"
+    dependencies:
+      - freetype
+      - fribidi
+      - fontconfig
+      - harfbuzz
+  - name: libcddb
+    version: "1.3.2"
+  - name: libcdio
+    version: "2.1.0"
+    dependencies:
+      - libcddb
+      - ncurses
+  - name: libde265
+    version: "1.0.16"
+  - name: libdvdcss
+    version: "1.5.0"
+  - name: libdvdread
+    version: "7.0.1"
+    dependencies:
+      - libdvdcss
+  - name: libdvdnav
+    version: "7.0.0"
+    dependencies:
+      - libdvdread
+  - name: libdv
+    version: "1.0.0"
+  - name: libmad
+    version: "0.15.1b"
+  - name: libmpeg2
+    version: "0.5.1"
+  - name: neon
+    version: "0.36.0"
+    dependencies: [openssl]
+  - name: libmusicbrainz
+    version: "5.1.0"
+    dependencies: [libxml2, neon]
+  - name: glad
+    version: "2.0.8"
+    dependencies: [python, jinja2]
+  - name: libplacebo
+    version: "7.360.0"
+    dependencies: [mesa, vulkan-headers]
+  - name: vulkan-headers
+    version: "1.4.337"
+  - name: libsamplerate
+    version: "0.2.2"
+    dependencies: [alsa-lib, libsndfile]
+  - name: libvpx
+    version: "1.16.0"
+  - name: mlt
+    version: "7.36.1"
+    dependencies: [ffmpeg, frei0r, libsamplerate]
+  - name: opus
+    version: "1.6.1"
+  - name: sbc
+    version: "2.2"
+    dependencies: [libsndfile]
+  - name: sdl3
+    version: "3.4.0"
+    dependencies: [alsa-lib, libxkbcommon, mesa, pipewire, pulseaudio, wayland-protocols]
+  - name: sdl2-compat
+    version: "2.32.64"
+    dependencies: [sdl3]
+  - name: soundtouch
+    version: "2.4.0"
+  - name: speex
+    version: "1.2.1"
+    dependencies: [libogg]
+  - name: svt-av1
+    version: "4.0.1"
+  - name: utfcpp
+    version: "4.0.9"
+  - name: taglib
+    version: "2.2"
+    dependencies: [utfcpp]
+  - name: v4l-utils
+    version: "1.32.0"
+    dependencies: [alsa-lib, libjpeg-turbo, sdl2-compat]
+  - name: x264
+    version: "20250815"
+  - name: x265
+    version: "4.1"
+  - name: xine-lib
+    version: "1.2.13"
+    dependencies: [ffmpeg, alsa-lib, pulseaudio, libdvdnav, faad2, flac, gdk-pixbuf, liba52, libdvdcss, libmad, libvorbis, libvpx, mesa, speex, v4l-utils]
+  - name: qt6
+    version: "6.10.2"
+    dependencies: [dbus, openssl, sqlite, systemd, zlib, alsa-lib, glib, ffmpeg, gst-plugins-base, gst-plugins-good, gst-plugins-bad, harfbuzz, graphite2, freetype, brotli, icu, libjpeg-turbo, libinput, libpng, libtiff, libxkbcommon, libdrm, mesa, mtdev, wayland, pulseaudio]
+  - name: extra-cmake-modules
+    version: "6.23.0"
+    dependencies: [qt6, libarchive, libxml2, bzip2, xz, zstd, expat]
+  - name: breeze-icons
+    version: "6.23.0"
+    dependencies: [qt6, extra-cmake-modules, libarchive, libxml2, bzip2, xz, zstd, expat, icu, glib, systemd, pcre2, zlib, libdrm, wayland, mesa]
+  - name: plasma-wayland-protocols
+    version: "1.20.0"
+    dependencies: [extra-cmake-modules, libarchive, libxml2, bzip2, xz, zstd, expat, wayland]
+  - { name: libgpg-error, version: "1.59" }
+  - { name: libgcrypt, version: "1.12.0", dependencies: [libgpg-error] }
+  - { name: libical, version: "3.0.20", dependencies: [glib, libxml2] }
+  - { name: libsecret, version: "0.21.7", dependencies: [glib, libgpg-error, libgcrypt, libxml2, libxslt, docbook-xml, docbook-xsl-nons] }
+  - { name: lmdb, version: "0.9.35" }
+  - { name: qca, version: "2.3.10", dependencies: [qt6, libgcrypt, libgpg-error, openssl, libarchive, libxml2, bzip2, xz, zstd, expat, icu, glib, systemd, pcre2, zlib, brotli, libdrm, wayland, mesa] }
+  - { name: libqrencode, version: "4.1.1", dependencies: [libpng] }
+  - { name: perl-mime-base32, version: "1.303", dependencies: [perl] }
+  - { name: perl-uri, version: "5.34", dependencies: [perl, perl-mime-base32] }
+  - name: kf6-frameworks
+    version: "6.23.0"
+    dependencies: [qt6, extra-cmake-modules, breeze-icons, plasma-wayland-protocols, docbook-xml, docbook-xsl-nons, libcanberra, pulseaudio, libsndfile, flac, libogg, libvorbis, libgpg-error, libgcrypt, libical, libsecret, libxslt, lmdb, qca, libqrencode, pyyaml, perl-uri, libarchive, libxml2, bzip2, xz, zstd, expat, icu, glib, systemd, pcre2, zlib, brotli, libpng, freetype, graphite2, harfbuzz, libdrm, wayland, wayland-protocols, mesa, libxkbcommon, networkmanager, modemmanager]
+  - { name: fftw, version: "3.3.10" }
+  - { name: xvid, version: "1.3.7" }
+  - { name: audacious, version: "4.5.1", dependencies: [glib, json-glib, at-spi2-core, libepoxy, mesa, cairo, pango, fribidi, gdk-pixbuf, shared-mime-info, libjpeg-turbo, libtiff, harfbuzz, libxkbcommon, wayland, wayland-protocols, gtk3, qt6, libarchive, mpg123, ffmpeg, neon, alsa-lib, faad2, flac, libogg, lame, libxml2, libcdio, libnotify, libsndfile, libvorbis, opus, pipewire, pulseaudio, sdl3] }
+  - { name: cdparanoia, version: "10.2" }
+  - { name: kwave, version: "25.12.2", dependencies: [libarchive, audiofile, fftw, id3lib, kf6-frameworks, alsa-lib, flac, libogg, pulseaudio] }
+  - { name: lame, version: "3.100", dependencies: [libsndfile] }
+  - { name: mpg123, version: "1.33.4", dependencies: [alsa-lib, pulseaudio, sdl2-compat] }
+  - { name: vorbis-tools, version: "1.4.3", dependencies: [libvorbis, libao, flac, speex] }
+  - { name: mpv, version: "0.41.0", dependencies: [alsa-lib, ffmpeg, libass, libplacebo, mesa, pulseaudio, libjpeg-turbo, libva, libdvdcss, libdvdread, libdvdnav, pipewire, sdl2-compat] }
+  - { name: vlc, version: "3.0.23", dependencies: [alsa-lib, ffmpeg, liba52, libgcrypt, libmad, lua, qt6, libarchive, libcddb, libdv, libdvdcss, libdvdread, libdvdnav, v4l-utils, dav1d, faad2, flac, libaom, libass, libmpeg2, libpng, libva, libvorbis, opus, speex, libvpx, x264, pulseaudio, libsamplerate, taglib] }
+  - { name: cdrdao, version: "1.2.6", dependencies: [gtkmm, libao, libvorbis, libmad, lame] }
+  - { name: cdrtools, version: "3.02a09", dependencies: [alsa-lib] }
+  - { name: dvd-rw-tools, version: "7.1", dependencies: [cdrtools] }
+  - { name: libburn, version: "1.5.6" }
+  - { name: libisoburn, version: "1.5.6", dependencies: [libburn, libisofs] }
+  - { name: libisofs, version: "1.5.6" }
+  - name: xdg-desktop-portal
+    version: "1.22.1"
+    dependencies:
+      - dbus
+      - glib
+      - fuse3
+      - gdk-pixbuf
+      - json-glib
+      - pipewire
+      - bubblewrap
+      - gst-plugins-base
+  - name: xdg-desktop-portal-wlr
+    version: "0.8.3"
+    dependencies:
+      - systemd
+      - inih
+      - libdrm
+      - mesa
+      - pipewire
+      - wayland
+      - wayland-protocols
+      - xdg-desktop-portal
+  - name: xdg-desktop-portal-gtk
+    version: "1.15.3"
+    dependencies:
+      - gtk3
+      - gsettings-desktop-schemas
+      - xdg-desktop-portal
+  - name: gsettings-desktop-schemas
+    version: "49.1"
+    dependencies:
+      - glib
+  - name: desktop-file-utils
+    version: "0.28"
+    dependencies:
+      - glib
+  - name: hicolor-icon-theme
+    version: "0.18"
+  - name: xdg-user-dirs
+    version: "0.19"
+  - name: rustc
+    version: "1.97.1"
+    dependencies:
+      - cmake
+      - libarchive
+      - libxml2
+      - bzip2
+      - xz
+      - expat
+      - curl
+      - openssl
+      - zlib
+      - ca-certificates
+      - nghttp2
+      - c-ares
+      - libunistring
+      - libidn2
+      - libpsl
+      - brotli
+      - libssh2
+      - zstd
+      - sqlite
+  - name: cargo-c
+    version: "0.10.24"
+    dependencies:
+      - rustc
+  - name: librsvg
+    version: "2.62.3"
+    dependencies:
+      - cairo
+      - pango
+      - gdk-pixbuf
+      - glib
+  - name: adwaita-icon-theme
+    version: "50.0"
+    dependencies:
+      - gtk3
+      - librsvg
+      - hicolor-icon-theme
+  - name: libnotify
+    version: "0.8.8"
+    dependencies:
+      - glib
+      - gdk-pixbuf
+  - name: dunst
+    version: "1.13.2"
+    dependencies:
+      - glib
+      - gdk-pixbuf
+      - pango
+      - cairo
+      - wayland
+      - libnotify
+  - name: swayidle
+    version: "1.9.0"
+    dependencies:
+      - wayland
+      - systemd
+  - name: swaylock
+    version: "1.8.6"
+    dependencies:
+      - wayland
+      - libxkbcommon
+      - cairo
+      - gdk-pixbuf
+      - linux-pam
+  - name: duktape
+    version: "2.7.0"
+  - name: polkit
+    version: "127"
+    dependencies:
+      - duktape
+      - glib
+      - linux-pam
+      - systemd
+  - name: accountsservice
+    version: "26.27.3"
+    dependencies:
+      - polkit
+      - glib
+      - json-c
+      - systemd
+      - shadow
+  - name: polkit-gnome
+    version: "0.105"
+    dependencies:
+      - gtk3
+      - polkit
+      - accountsservice
+  - name: libndp
+    version: "1.9"
+  - name: wpa-supplicant
+    version: "2.11"
+    dependencies:
+      - libnl
+      - dbus
+      - readline
+  - name: networkmanager
+    version: "1.58.0"
+    dependencies:
+      - libndp
+      - glib
+      - polkit
+      - libpsl
+      - systemd
+      - dbus
+      - wpa-supplicant
+  - name: nettle
+    version: "3.10.2"
+    dependencies:
+      - gmp
+  - name: libtasn1
+    version: "4.21.0"
+  - name: p11-kit
+    version: "0.26.2"
+    dependencies:
+      - libtasn1
+  - name: make-ca
+    version: "1.16.1"
+    dependencies:
+      - p11-kit
+  - name: gnutls
+    version: "3.8.12"
+    dependencies:
+      - nettle
+      - libtasn1
+      - p11-kit
+      - make-ca
+      - libunistring
+  - name: libusb
+    version: "1.0.29"
+  - name: libdaemon
+    version: "0.14"
+  - name: avahi
+    version: "0.8"
+    dependencies:
+      - glib
+      - libdaemon
+      - dbus
+  - name: lcms2
+    version: "2.18"
+  - name: libexif
+    version: "0.6.25"
+  - name: libwebp
+    version: "1.6.0"
+    dependencies:
+      - libjpeg-turbo
+      - libpng
+      - libtiff
+  - name: openjpeg
+    version: "2.5.4"
+    dependencies:
+      - libpng
+      - libtiff
+      - lcms2
+  - name: poppler
+    version: "26.02.0"
+    dependencies:
+      - fontconfig
+      - cairo
+      - lcms2
+      - libjpeg-turbo
+      - libpng
+      - openjpeg
+  - name: qpdf
+    version: "12.3.2"
+    dependencies:
+      - libjpeg-turbo
+  - name: colord
+    version: "1.4.8"
+    dependencies:
+      - glib
+      - lcms2
+      - libgudev
+      - libgusb
+      - polkit
+      - dbus
+      - systemd
+  - name: libgusb
+    version: "0.4.9"
+    dependencies:
+      - json-glib
+      - libusb
+      - hwdata
+  - name: python-lxml
+    version: "6.0.2"
+    dependencies:
+      - libxml2
+      - libxslt
+  - name: itstool
+    version: "2.0.7"
+    dependencies:
+      - python-lxml
+  - name: libadwaita
+    version: "1.8.4"
+    dependencies:
+      - gtk4
+  - name: cups
+    version: "2.4.16"
+    dependencies:
+      - gnutls
+      - colord
+      - libusb
+      - linux-pam
+  - name: ghostscript
+    version: "10.06.0"
+    dependencies:
+      - cups
+      - fontconfig
+      - freetype
+      - lcms2
+      - libjpeg-turbo
+      - libpng
+      - libtiff
+      - openjpeg
+  - name: gutenprint
+    version: "5.3.5"
+    dependencies:
+      - cups
+  - name: libcupsfilters
+    version: "2.1.1"
+    dependencies:
+      - cups
+      - glib
+      - ghostscript
+      - lcms2
+      - poppler
+      - qpdf
+      - libexif
+      - libjpeg-turbo
+      - libpng
+      - libtiff
+  - name: libppd
+    version: "2.1.1"
+    dependencies:
+      - libcupsfilters
+  - name: cups-filters
+    version: "2.0.1"
+    dependencies:
+      - libcupsfilters
+      - libppd
+  - name: cups-browsed
+    version: "2.1.1"
+    dependencies:
+      - avahi
+      - libcupsfilters
+      - libppd
+  - name: sane
+    version: "1.4.0"
+    dependencies:
+      - avahi
+      - cups
+      - libjpeg-turbo
+      - libtiff
+      - libusb
+      - v4l-utils
+  - name: simple-scan
+    version: "49.1"
+    dependencies:
+      - colord
+      - itstool
+      - libgusb
+      - libadwaita
+      - libwebp
+      - sane
+  - name: libgudev
+    version: "238"
+    dependencies:
+      - glib
+      - systemd
+  - name: keyutils
+    version: "1.6.3"
+  - name: libaio
+    version: "0.3.113"
+  - name: popt
+    version: "1.19"
+  - name: python-pygments
+    version: "2.19.2"
+    dependencies:
+      - python
+  - name: libatasmart
+    version: "0.19"
+  - name: libbytesize
+    version: "2.12"
+    dependencies:
+      - python-pygments
+  - name: libnvme
+    version: "1.16.1"
+    dependencies:
+      - json-c
+      - keyutils
+  - name: lvm2
+    version: "2.03.38"
+    dependencies:
+      - libaio
+  - name: cryptsetup
+    version: "2.8.4"
+    dependencies:
+      - json-c
+      - lvm2
+      - popt
+      - keyutils
+  - name: parted
+    version: "3.6"
+    dependencies:
+      - lvm2
+  - name: libblockdev
+    version: "3.4.0"
+    dependencies:
+      - glib
+      - cryptsetup
+      - keyutils
+      - libatasmart
+      - libbytesize
+      - libnvme
+      - lvm2
+      - parted
+  - name: udisks
+    version: "2.11.1"
+    dependencies:
+      - libatasmart
+      - libblockdev
+      - libgudev
+      - polkit
+      - glib
+      - dbus
+      - systemd
+      - lvm2
+      - parted
+  - name: upower
+    version: "1.91.1"
+    dependencies:
+      - libgudev
+      - libusb
+      - glib
+      - dbus
+      - systemd
+  - name: boost
+    version: "1.90.0"
+  - name: gobject-introspection-core
+    version: "1.86.0"
+    dependencies:
+      - glib
+      - mako
+  - name: glib-gir
+    version: "2.86.4"
+    dependencies:
+      - glib
+      - gobject-introspection-core
+  - name: gobject-introspection
+    version: "1.86.0"
+    dependencies:
+      - gobject-introspection-core
+      - glib
+      - mako
+      - cairo
+      - libpng
+      - fontconfig
+      - freetype
+      - pixman
+      - brotli
+  - name: exiv2
+    version: "0.28.7"
+    dependencies:
+      - inih
+      - brotli
+  - name: gexiv2
+    version: "0.14.6"
+    dependencies:
+      - glib
+      - exiv2
+      - gobject-introspection
+  - name: libgsf
+    version: "1.14.55"
+    dependencies:
+      - glib
+      - libxml2
+  - name: libhandy
+    version: "1.8.3"
+    dependencies:
+      - gtk3
+      - gobject-introspection
+  - name: libcloudproviders
+    version: "0.3.6"
+    dependencies:
+      - glib
+      - gtk3
+      - gobject-introspection
+  - name: exempi
+    version: "2.6.6"
+    dependencies:
+      - boost
+  - name: libportal
+    version: "0.9.1"
+    dependencies:
+      - glib
+      - gobject-introspection
+      - gtk3
+      - gtk4
+      - xdg-desktop-portal
+      - xdg-desktop-portal-gtk
+  - name: gcr
+    version: "4.4.0.1"
+    dependencies:
+      - glib
+      - gobject-introspection
+      - libgcrypt
+      - p11-kit
+      - gtk4
+  - name: libsoup
+    version: "3.6.6"
+    dependencies:
+      - glib
+      - gobject-introspection
+      - libpsl
+      - nghttp2
+      - sqlite
+  - name: gvfs
+    version: "1.58.2"
+    dependencies:
+      - dbus
+      - glib
+      - gcr
+      - libusb
+      - libsecret
+      - gtk3
+      - libcdio
+      - libgudev
+      - libsoup
+      - systemd
+      - udisks
+  - name: libxfce4util
+    version: "4.20.1"
+    dependencies:
+      - glib
+  - name: xfconf
+    version: "4.20.0"
+    dependencies:
+      - glib
+      - libxfce4util
+      - dbus
+  - name: libxfce4ui
+    version: "4.20.2"
+    dependencies:
+      - gtk3
+      - libxfce4util
+      - xfconf
+  - name: exo
+    version: "4.20.0"
+    dependencies:
+      - gtk3
+      - libxfce4ui
+      - libxfce4util
+  - name: garcon
+    version: "4.20.0"
+    dependencies:
+      - gtk3
+      - libxfce4ui
+      - libxfce4util
+  - name: tumbler
+    version: "4.20.1"
+    dependencies:
+      - glib
+      - curl
+      - freetype
+      - gdk-pixbuf
+      - gst-plugins-base
+      - libjpeg-turbo
+      - libgsf
+      - libpng
+      - poppler
+  - name: thunar
+    version: "4.20.7"
+    dependencies:
+      - exo
+      - libgudev
+      - libnotify
+      - gvfs
+      - libexif
+      - tumbler
+      - hicolor-icon-theme
+  - name: libyaml
+    version: "0.2.5"
+  - name: libfyaml
+    version: "0.9.4"
+  - name: libxmlb
+    version: "0.3.25"
+    dependencies:
+      - glib
+      - zstd
+  - name: appstream
+    version: "1.1.2"
+    dependencies:
+      - curl
+      - itstool
+      - libfyaml
+      - libxml2
+      - libxmlb
+      - libxslt
+      - docbook-xsl-nons
+  - name: appstream-glib
+    version: "0.8.3"
+    dependencies:
+      - curl
+      - gdk-pixbuf
+      - gtk3
+      - json-glib
+      - libarchive
+      - libyaml
+  - name: glib-networking
+    version: "2.80.1"
+    dependencies:
+      - glib
+      - gnutls
+      - gsettings-desktop-schemas
+      - make-ca
+  - name: poppler-data
+    version: "0.4.12"
+  - name: aalib
+    version: "1.4rc5"
+    dependencies:
+      - ncurses
+  - name: jasper
+    version: "4.2.8"
+    dependencies:
+      - libjpeg-turbo
+  - name: libraw
+    version: "0.22.0"
+    dependencies:
+      - libjpeg-turbo
+      - lcms2
+      - jasper
+  - name: babl
+    version: "0.1.122"
+    dependencies:
+      - glib
+      - gobject-introspection
+      - librsvg
+      - lcms2
+  - name: gegl
+    version: "0.4.66"
+    dependencies:
+      - babl
+      - json-glib
+      - glib
+      - gobject-introspection
+      - python-pygments
+      - gexiv2
+      - jasper
+      - lcms2
+      - libraw
+      - librsvg
+      - libtiff
+      - libwebp
+      - pango
+      - poppler
+  - name: libmypaint
+    version: "1.6.1"
+    dependencies:
+      - json-c
+      - glib
+      - gobject-introspection
+  - name: mypaint-brushes
+    version: "1.3.1"
+    dependencies:
+      - libmypaint
+  - name: imagemagick
+    version: "7.1.2-13"
+    dependencies:
+      - jasper
+      - lcms2
+      - libjpeg-turbo
+      - libpng
+      - libraw
+      - librsvg
+      - libtiff
+      - libwebp
+      - openjpeg
+      - pango
+      - cups
+      - curl
+      - ffmpeg
+      - fftw
+      - sane
+      - ghostscript
+  - name: gimp
+    version: "3.0.6"
+    dependencies:
+      - appstream
+      - appstream-glib
+      - gegl
+      - gexiv2
+      - glib-networking
+      - gtk3
+      - harfbuzz
+      - libmypaint
+      - librsvg
+      - libtiff
+      - libxml2
+      - lcms2
+      - mypaint-brushes
+      - poppler
+      - poppler-data
+      - aalib
+      - libwebp
+      - openjpeg
+      - desktop-file-utils
+      - hicolor-icon-theme
+  - name: bluez
+    version: "5.86"
+    dependencies:
+      - dbus
+      - glib
+      - libical
+  - name: pycairo
+    version: "1.29.0"
+    dependencies:
+      - cairo
+      - python
+  - name: pygobject
+    version: "3.54.5"
+    dependencies:
+      - glib
+      - gobject-introspection
+      - pycairo
+      - python
+  - name: blueman
+    version: "2.4.6"
+    dependencies:
+      - bluez
+      - pygobject
+      - pycairo
+      - gtk3
+      - polkit
+      - libnotify
+      - thunar
+      - python
+  - name: bluez-tools
+    version: "0.2.0+git.f653217"
+    dependencies:
+      - bluez
+      - dbus
+      - glib
+  - name: 7zip
+    version: "26.01"
+    dependencies: []
+  - name: cpio
+    version: "2.15"
+    dependencies: []
+  - name: unrar
+    version: "7.2.4"
+    dependencies: []
+  - name: zip
+    version: "3.0"
+    dependencies: []
+  - name: rpcsvc-proto
+    version: "1.4.4"
+    dependencies: []
+  - name: libtirpc
+    version: "1.3.7"
+    dependencies:
+      - rpcsvc-proto
+  - name: which
+    version: "2.23"
+    dependencies: []
+  - name: cups-pk-helper
+    version: "0.2.7"
+    dependencies:
+      - cups
+      - polkit
+  - name: acpid
+    version: "2.0.34"
+    dependencies: []
+  - name: at
+    version: "3.2.5"
+    dependencies: []
+  - name: autofs
+    version: "5.1.9"
+    dependencies:
+      - libtirpc
+      - rpcsvc-proto
+  - name: logrotate
+    version: "3.22.0"
+    dependencies:
+      - popt
+  - name: lm-sensors
+    version: "3.6.2"
+    dependencies:
+      - which
+  - name: pciutils
+    version: "3.14.0"
+    dependencies:
+      - hwdata
+  - name: usbutils
+    version: "019"
+    dependencies:
+      - libusb
+      - hwdata
+  - name: sg3-utils
+    version: "1.48"
+    dependencies: []
+  - name: power-profiles-daemon
+    version: "0.30"
+    dependencies:
+      - polkit
+      - pygobject
+      - upower
+  - { name: hdparm, version: "9.65", dependencies: [] }
+  - { name: sysstat, version: "12.7.9", dependencies: [] }
+  - { name: fcron, version: "3.4.0", dependencies: [] }
+  - { name: gpm, version: "1.20.7", dependencies: [] }
+  - { name: lsb-tools, version: "0.12", dependencies: [] }
+  - name: mc
+    version: "4.8.33"
+    dependencies: [glib, gpm, libarchive, libssh2, zip]
+  - name: modemmanager
+    version: "1.24.2"
+    dependencies: [glib, libgudev, polkit]
+  - name: notification-daemon
+    version: "3.20.0"
+    dependencies: [gtk3, libcanberra]
+  - { name: pax, version: "20240817", dependencies: [] }
+  - { name: pm-utils, version: "1.4.1", dependencies: [] }
+  - { name: libuv, version: "1.52.0", dependencies: [] }
+  - { name: libevent, version: "2.1.12", dependencies: [openssl] }
+  - { name: libpcap, version: "1.10.6", dependencies: [] }
+  - name: bind
+    version: "9.20.19"
+    dependencies: [libuv, nghttp2, libxml2, json-c, openssl]
+  - { name: nmap, version: "7.98", dependencies: [libpcap, openssl] }
+  - { name: wireless-tools, version: "29", dependencies: [] }
+  - { name: rpcbind, version: "1.2.8", dependencies: [libtirpc] }
+  - name: nfs-utils
+    version: "2.8.5"
+    dependencies: [libtirpc, rpcbind, libevent]
+  - { name: libnsl, version: "2.0.1", dependencies: [libtirpc] }
+  - { name: krb5, version: "1.22.2", dependencies: [openssl] }
+  - { name: cyrus-sasl, version: "2.1.28", dependencies: [openssl] }
+  - { name: openldap, version: "2.6.12", dependencies: [cyrus-sasl, openssl] }
+  - { name: talloc, version: "2.4.4", dependencies: [python] }
+  - { name: perl-parse-yapp, version: "1.21", dependencies: [perl] }
+  - name: samba
+    version: "4.23.5"
+    dependencies: [krb5, cyrus-sasl, openldap, talloc, gnutls, libarchive, libtirpc, python]
+  - { name: cifs-utils, version: "7.5", dependencies: [krb5, talloc] }
+  - { name: libmnl, version: "1.0.5", dependencies: [] }
+  - { name: libnftnl, version: "1.3.1", dependencies: [libmnl] }
+  - { name: nftables, version: "1.0.6.1", dependencies: [libmnl, libnftnl] }
+  - { name: iptables, version: "1.8.12", dependencies: [libmnl, libnftnl] }
+  - { name: wireguard-tools, version: "1.0.20260223", dependencies: [] }
+  - { name: openvpn, version: "2.6.14", dependencies: [openssl, libcap-ng, linux-pam] }
+  - { name: strongswan, version: "6.0.3", dependencies: [openssl] }
+  - { name: ipset, version: "7.24", dependencies: [libmnl] }
+  - { name: libnfnetlink, version: "1.0.2", dependencies: [] }
+  - { name: libnetfilter-conntrack, version: "1.1.0", dependencies: [libmnl, libnfnetlink] }
+  - { name: conntrack-tools, version: "1.4.8", dependencies: [libmnl, libnetfilter-conntrack, libtirpc] }
+  - { name: libcap-ng, version: "0.8.5", dependencies: [] }
+  - { name: cython, version: "3.2.9", dependencies: [python] }
+  - { name: sassc, version: "3.6.2", dependencies: [] }
+  - { name: userspace-rcu, version: "0.15.2", dependencies: [] }
+  - { name: vala, version: "0.56.19", dependencies: [glib, gobject-introspection] }
 EOF
+
+mapfile -t indexed_packages < <(sed -n \
+  -e 's/^  - name: \([^[:space:]]*\)$/\1/p' \
+  -e 's/^  - { name: \([^,]*\),.*$/\1/p' \
+  "$repository/index.yaml")
+[[ "${#indexed_packages[@]}" -eq 447 ]] || {
+  echo "expected 447 indexed packages, found ${#indexed_packages[@]}" >&2
+  exit 1
+}
+unique_indexed_packages=$(printf '%s\n' "${indexed_packages[@]}" | sort -u | wc -l)
+[[ "$unique_indexed_packages" -eq 447 ]] || {
+  echo "repository index contains duplicate package names" >&2
+  exit 1
+}
 
 cat >"$repository/RELEASE" <<'EOF'
 schema-version: 1
 repository: xbee-lfs-native
-serial: 34
-version: "0.34.1"
-published-at: "2026-08-01T00:00:00Z"
-expires-at: "2027-02-01T00:00:00Z"
+serial: 102
+version: "1.2.0"
+published-at: "2026-08-06T00:00:00Z"
+expires-at: "2027-02-06T00:00:00Z"
 EOF
 (
   cd "$repository"
@@ -601,7 +2304,7 @@ XBPKG_REVOKED_KEYS="$signature_root/revoked-keys" \
   --repository "$repository" \
   --dry-run \
   install curl >"$resolution_plan"
-[[ "$(grep -c '^  install ' "$resolution_plan")" -eq 4 ]]
+[[ "$(grep -c '^  install ' "$resolution_plan")" -eq 16 ]]
 [[ ! -e "$resolution_root/var/lib/xbpkg" &&
    ! -e "$resolution_root/usr" &&
    ! -e "$resolution_root/etc" ]]
@@ -610,7 +2313,7 @@ XBPKG_REVOKED_KEYS="$signature_root/revoked-keys" \
   --root "$resolution_root" \
   --repository "$repository" \
   install curl
-[[ "$("$repository/bin/xbpkg" --root "$resolution_root" list | wc -l)" -eq 4 ]]
+[[ "$("$repository/bin/xbpkg" --root "$resolution_root" list | wc -l)" -eq 16 ]]
 "$repository/bin/xbpkg" --root "$resolution_root" verify curl
 
 mkdir -p "$signature_root/downgraded"
@@ -618,8 +2321,8 @@ cp -al "$repository/." "$signature_root/downgraded/"
 rm "$signature_root/downgraded/RELEASE" \
   "$signature_root/downgraded/SHA256SUMS" \
   "$signature_root/downgraded/SHA256SUMS.sig"
-sed -e 's/^serial: 34$/serial: 33/' \
-  -e 's/version: "0.34.1"/version: "0.33.0"/' \
+sed -e 's/^serial: 102$/serial: 101/' \
+  -e 's/version: "1.2.0"/version: "1.1.0"/' \
   "$repository/RELEASE" >"$signature_root/downgraded/RELEASE"
 (
   cd "$signature_root/downgraded"
@@ -640,8 +2343,8 @@ fi
   --root "$resolution_root" \
   --repository "$signature_root/downgraded" \
   --allow-downgrade --dry-run install curl >/dev/null
-sed -e 's/^serial: 33$/serial: 34/' \
-  -e 's/version: "0.33.0"/version: "0.34.1-reused"/' \
+sed -e 's/^serial: 101$/serial: 102/' \
+  -e 's/version: "1.1.0"/version: "1.2.0-reused"/' \
   "$signature_root/downgraded/RELEASE" \
   >"$signature_root/reused-release"
 mv "$signature_root/reused-release" "$signature_root/downgraded/RELEASE"
@@ -666,49 +2369,90 @@ if "$repository/bin/xbpkg" --root "$test_root" install \
   echo "xbpkg missing dependency test unexpectedly succeeded" >&2
   exit 1
 fi
+requested=0
 for name in \
   glibc zlib bzip2 xz zstd lz4 attr acl libpipeline man-db \
   ncurses readline pcre2 libcap libelf gmp mpfr mpc m4 bison flex \
-  autoconf automake libtool pkgconf binutils gcc \
+  autoconf automake libtool pkgconf binutils gcc libstdcxx-runtime \
   libffi expat gdbm openssl sqlite python \
   flit-core packaging markupsafe jinja2 meson ninja \
   bc gperf libxcrypt less kmod procps-ng \
-  e2fsprogs shadow iproute2 inetutils kbd psmisc \
+  e2fsprogs linux-pam shadow iproute2 inetutils kbd psmisc \
   man-pages iana-etc file tcl expect dejagnu \
   sed gettext grep bash perl xml-parser \
   intltool wheel setuptools coreutils diffutils gawk \
   findutils groff gzip make patch tar \
   texinfo vim dbus util-linux systemd grub \
   linux-headers linux-kernel linux-modules openssh sudo \
-  ca-certificates wget curl dhcpcd rsync; do
+  ca-certificates wget dhcpcd rsync \
+  libxml2 libxslt sgml-common libarchive docbook-xml docbook-xsl-nons \
+  nghttp2 cmake c-ares libunistring libidn2 libpsl brotli libssh2 \
+  libpng freetype fontconfig graphite2 icu glib mako gobject-introspection-core glib-gir harfbuzz pixman cairo \
+  fribidi pango shared-mime-info libjpeg-turbo giflib libtiff gdk-pixbuf \
+  wayland wayland-protocols xkeyboard-config libxkbcommon \
+  libevdev mtdev libinput seatd hwdata libdisplay-info libpciaccess libdrm \
+  pyyaml mesa json-c libliftoff wlroots sway swaybg wmenu \
+  tllist fcft foot wl-clipboard grim slurp libscfg kanshi \
+  fmt spdlog jsoncpp libsigc++ libsigc++3 glibmm glibmm2 cairomm cairomm16 pangomm pangomm248 \
+  at-spi2-core graphene iso-codes libepoxy librsvg gtk4 gtkmm4 atkmm gtk3 gtkmm gtk-layer-shell \
+  libogg libvorbis \
+  libnl libsndfile alsa-lib alsa-utils alsa-tools alsa-firmware audiofile nasm dav1d faac faad2 fdk-aac flac gavl frei0r pulseaudio pipewire lua wireplumber waybar \
+  dejavu-fonts liberation-fonts fuse3 json-glib bubblewrap inih \
+  gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly git gst-plugins-rs ffmpeg gst-libav id3lib gmmlib libva intel-media-driver intel-vaapi-driver liba52 libao libaom libass libcanberra libcddb libcdio libde265 libdvdcss libdvdread libdvdnav libdv libmad libmpeg2 neon libmusicbrainz glad vulkan-headers libplacebo libsamplerate libvpx mlt opus sbc sdl3 sdl2-compat soundtouch speex svt-av1 utfcpp taglib v4l-utils x264 x265 xine-lib qt6 extra-cmake-modules breeze-icons plasma-wayland-protocols libgpg-error libgcrypt libical libsecret lmdb qca libqrencode perl-mime-base32 perl-uri kf6-frameworks fftw xvid audacious cdparanoia kwave lame mpg123 vorbis-tools mpv vlc cdrdao cdrtools dvd-rw-tools libburn libisoburn libisofs sound-theme-freedesktop pavucontrol xdg-desktop-portal xdg-desktop-portal-wlr \
+  gsettings-desktop-schemas xdg-desktop-portal-gtk desktop-file-utils \
+  hicolor-icon-theme xdg-user-dirs curl rustc cargo-c \
+  adwaita-icon-theme libnotify dunst swayidle swaylock \
+  duktape polkit accountsservice polkit-gnome \
+  libndp wpa-supplicant networkmanager; do
   package=$(find "$repository/packages" -maxdepth 1 -type f \
-    -name "$name-*.xbpkg.tar.zst" -print -quit)
+    -name "$name-[0-9]*.xbpkg.tar.zst" -print -quit)
   [[ -n "$package" ]] || {
     echo "package missing from repository: $name" >&2
     exit 1
   }
-  "$repository/bin/xbpkg" --root "$test_root" install "$package"
+  "$repository/bin/xbpkg" --root "$test_root" \
+    --repository "$repository" install "$name"
+  requested=$((requested + 1))
 done
 installed=$("$repository/bin/xbpkg" --root "$test_root" list | wc -l)
-[[ "$installed" -eq 91 ]] || {
+[[ "$installed" -ge "$requested" ]] || {
   echo "repository installation test did not register all packages" >&2
   exit 1
 }
 for name in \
   glibc zlib bzip2 xz zstd lz4 attr acl libpipeline man-db \
   ncurses readline pcre2 libcap libelf gmp mpfr mpc m4 bison flex \
-  autoconf automake libtool pkgconf binutils gcc \
+  autoconf automake libtool pkgconf binutils gcc libstdcxx-runtime \
   libffi expat gdbm openssl sqlite python \
   flit-core packaging markupsafe jinja2 meson ninja \
   bc gperf libxcrypt less kmod procps-ng \
-  e2fsprogs shadow iproute2 inetutils kbd psmisc \
+  e2fsprogs linux-pam shadow iproute2 inetutils kbd psmisc \
   man-pages iana-etc file tcl expect dejagnu \
   sed gettext grep bash perl xml-parser \
   intltool wheel setuptools coreutils diffutils gawk \
   findutils groff gzip make patch tar \
   texinfo vim dbus util-linux systemd grub \
   linux-headers linux-kernel linux-modules openssh sudo \
-  ca-certificates wget curl dhcpcd rsync; do
+  ca-certificates wget dhcpcd rsync \
+  libxml2 libxslt sgml-common libarchive docbook-xml docbook-xsl-nons \
+  nghttp2 cmake c-ares libunistring libidn2 libpsl brotli libssh2 \
+  libpng freetype fontconfig graphite2 icu glib mako gobject-introspection-core glib-gir harfbuzz pixman cairo \
+  fribidi pango shared-mime-info libjpeg-turbo giflib libtiff gdk-pixbuf \
+  wayland wayland-protocols xkeyboard-config libxkbcommon \
+  libevdev mtdev libinput seatd hwdata libdisplay-info libpciaccess libdrm \
+  pyyaml mesa json-c libliftoff wlroots sway swaybg wmenu \
+  tllist fcft foot wl-clipboard grim slurp libscfg kanshi \
+  fmt spdlog jsoncpp libsigc++ libsigc++3 glibmm glibmm2 cairomm cairomm16 pangomm pangomm248 \
+  at-spi2-core graphene iso-codes libepoxy librsvg gtk4 gtkmm4 atkmm gtk3 gtkmm gtk-layer-shell \
+  libogg libvorbis \
+  libnl libsndfile alsa-lib alsa-utils alsa-tools alsa-firmware audiofile nasm dav1d faac faad2 fdk-aac flac gavl frei0r pulseaudio pipewire lua wireplumber waybar \
+  dejavu-fonts liberation-fonts fuse3 json-glib bubblewrap inih \
+  gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly git gst-plugins-rs ffmpeg gst-libav id3lib gmmlib libva intel-media-driver intel-vaapi-driver liba52 libao libaom libass libcanberra libcddb libcdio libde265 libdvdcss libdvdread libdvdnav libdv libmad libmpeg2 neon libmusicbrainz glad vulkan-headers libplacebo libsamplerate libvpx mlt opus sbc sdl3 sdl2-compat soundtouch speex svt-av1 utfcpp taglib v4l-utils x264 x265 xine-lib qt6 extra-cmake-modules breeze-icons plasma-wayland-protocols libgpg-error libgcrypt libical libsecret lmdb qca libqrencode perl-mime-base32 perl-uri kf6-frameworks fftw xvid audacious cdparanoia kwave lame mpg123 vorbis-tools mpv vlc cdrdao cdrtools dvd-rw-tools libburn libisoburn libisofs sound-theme-freedesktop pavucontrol xdg-desktop-portal xdg-desktop-portal-wlr \
+  gsettings-desktop-schemas xdg-desktop-portal-gtk desktop-file-utils \
+  hicolor-icon-theme xdg-user-dirs curl rustc cargo-c \
+  adwaita-icon-theme libnotify dunst swayidle swaylock \
+  duktape polkit accountsservice polkit-gnome \
+  libndp wpa-supplicant networkmanager; do
   "$repository/bin/xbpkg" --root "$test_root" verify "$name"
 done
 "$repository/bin/xbpkg" --root "$test_root" check
@@ -746,6 +2490,8 @@ if "$repository/bin/xbpkg" --root "$test_root" remove acl >/dev/null 2>&1; then
   echo "xbpkg shadow dependency test unexpectedly succeeded" >&2
   exit 1
 fi
+"$repository/bin/xbpkg" --root "$test_root" remove polkit-gnome
+"$repository/bin/xbpkg" --root "$test_root" remove accountsservice
 "$repository/bin/xbpkg" --root "$test_root" remove shadow
 if "$repository/bin/xbpkg" --root "$test_root" remove acl >/dev/null 2>&1; then
   echo "xbpkg sed/gettext dependency test unexpectedly succeeded" >&2
@@ -907,9 +2653,9 @@ cat >"$output_root/opt/xbee-lfs-repository-metadata.yaml" <<'EOF'
 schema-version: 1
 stage: package-repository
 manager: xbpkg
-manager-version: "0.18.1"
+manager-version: "0.19.1"
 architecture: x86_64
-package-count: 91
+package-count: 447
 tests:
   install: true
   upgrade: true

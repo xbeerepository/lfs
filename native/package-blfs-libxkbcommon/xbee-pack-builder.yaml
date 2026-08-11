@@ -1,0 +1,54 @@
+schema-version: 1.0
+
+description: Build libxkbcommon from BLFS 13.0 for XBee LFS.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../blfs-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-blfs-xkeyboard-config
+    alias: blfs-xkeyboard-config
+  - origin: ../package-blfs-wayland
+    alias: blfs-wayland
+  - origin: ../package-blfs-wayland-protocols
+    alias: blfs-wayland-protocols
+  - origin: ../package-blfs-libxml2
+    alias: blfs-libxml2
+  - origin: ../package-expat
+    alias: expat
+  - origin: ../package-libffi
+    alias: libffi
+  - origin: ../package-meson
+    alias: meson
+  - origin: ../package-ninja
+    alias: ninja
+  - origin: ../package-pkgconf
+    alias: pkgconf
+
+var:
+  xbee:
+    version: "1.13.1"
+  lfs:
+    jobs: 4
+  package:
+    name: libxkbcommon
+    version: "1.13.1"
+    source: libxkbcommon-1.13.1.tar.gz
+    runtime-dependencies: xkeyboard-config,wayland,libxml2
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
+          "{{ .xbee.resources }}/build.sh"

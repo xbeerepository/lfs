@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build libmypaint 1.6.1 for BLFS.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-json-c, alias: blfs-json-c }, { origin: ../package-blfs-glib, alias: blfs-glib }, { origin: ../package-blfs-glib-gir, alias: blfs-glib-gir }, { origin: ../package-blfs-gobject-introspection, alias: blfs-gobject-introspection }]
+var: { xbee: { version: "1.6.1-2" }, lfs: { jobs: 4 }, package: { name: libmypaint, version: "1.6.1", source: libmypaint-1.6.1.tar.xz, runtime-dependencies: "json-c,glib,glib-gir,gobject-introspection" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

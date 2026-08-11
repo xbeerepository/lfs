@@ -33,7 +33,7 @@ des releases est détaillée dans
 Le system pack local `build-system` rend l'exemple indépendant d'un registre
 de packs XBee.
 
-Le build complet compile LFS et ses 91 paquets, puis assemble les images. Il
+Le build complet compile LFS et ses 446 paquets, puis assemble les images. Il
 dure généralement plusieurs heures.
 
 ## Construire la release complète

@@ -1,0 +1,25 @@
+schema-version: 1.0
+
+description: Extend the BLFS source artefact with desktop icon sources.
+
+require: ../../build-system
+
+builder:
+  - origin: ../blfs-sources
+    alias: base
+
+var:
+  xbee:
+    version: "13.0.6"
+  sources:
+    retries: 3
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "{{ .xbee.resources }}/download-icon-sources.sh"
+          "/opt/xbee-lfs-native/sources"
+          "{{ .xbee.resources }}/sources.tsv"
+          "{{ .sources.retries }}"
+          "{{ .xbee.out }}"

@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build gutenprint 5.3.5 for BLFS.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-cups, alias: blfs-cups }]
+var: { xbee: { version: "5.3.5-2" }, lfs: { jobs: 4 }, package: { name: gutenprint, version: "5.3.5", source: gutenprint-5.3.5.tar.xz, runtime-dependencies: "cups" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

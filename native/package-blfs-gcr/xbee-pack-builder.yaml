@@ -1,0 +1,55 @@
+schema-version: 1.0
+description: Build gcr 4.4.0.1 for BLFS.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+  - { origin: ../package-blfs-glib-gir, alias: blfs-glib-gir }
+  - { origin: ../package-blfs-gobject-introspection, alias: blfs-gobject-introspection }
+  - { origin: ../package-blfs-libgcrypt, alias: blfs-libgcrypt }
+  - { origin: ../package-blfs-libgpg-error, alias: blfs-libgpg-error }
+  - { origin: ../package-blfs-p11-kit, alias: blfs-p11-kit }
+  - { origin: ../package-blfs-libtasn1, alias: blfs-libtasn1 }
+  - { origin: ../package-blfs-gtk4, alias: blfs-gtk4 }
+  - { origin: ../package-blfs-at-spi2-core, alias: blfs-at-spi2-core }
+  - { origin: ../package-blfs-graphene, alias: blfs-graphene }
+  - { origin: ../package-blfs-iso-codes, alias: blfs-iso-codes }
+  - { origin: ../package-blfs-libepoxy, alias: blfs-libepoxy }
+  - { origin: ../package-blfs-librsvg, alias: blfs-librsvg }
+  - { origin: ../package-blfs-mesa, alias: blfs-mesa }
+  - { origin: ../package-blfs-libdrm, alias: blfs-libdrm }
+  - { origin: ../package-blfs-cairo, alias: blfs-cairo }
+  - { origin: ../package-blfs-pango, alias: blfs-pango }
+  - { origin: ../package-blfs-fribidi, alias: blfs-fribidi }
+  - { origin: ../package-blfs-gdk-pixbuf, alias: blfs-gdk-pixbuf }
+  - { origin: ../package-blfs-shared-mime-info, alias: blfs-shared-mime-info }
+  - { origin: ../package-blfs-libjpeg-turbo, alias: blfs-libjpeg-turbo }
+  - { origin: ../package-blfs-giflib, alias: blfs-giflib }
+  - { origin: ../package-blfs-libtiff, alias: blfs-libtiff }
+  - { origin: ../package-blfs-harfbuzz, alias: blfs-harfbuzz }
+  - { origin: ../package-blfs-libxkbcommon, alias: blfs-libxkbcommon }
+  - { origin: ../package-blfs-wayland, alias: blfs-wayland }
+  - { origin: ../package-blfs-wayland-protocols, alias: blfs-wayland-protocols }
+  - { origin: ../package-blfs-libxml2, alias: blfs-libxml2 }
+  - { origin: ../package-blfs-pixman, alias: blfs-pixman }
+  - { origin: ../package-blfs-fontconfig, alias: blfs-fontconfig }
+  - { origin: ../package-blfs-freetype, alias: blfs-freetype }
+  - { origin: ../package-blfs-libpng, alias: blfs-libpng }
+  - { origin: ../package-blfs-brotli, alias: blfs-brotli }
+  - { origin: ../package-blfs-graphite2, alias: blfs-graphite2 }
+  - { origin: ../package-blfs-icu, alias: blfs-icu }
+  - { origin: ../package-libffi, alias: libffi }
+  - { origin: ../package-pcre2, alias: pcre2 }
+  - { origin: ../package-util-linux, alias: util-linux }
+  - { origin: ../package-readline, alias: readline }
+  - { origin: ../package-zlib, alias: zlib }
+  - { origin: ../package-bzip2, alias: bzip2 }
+  - { origin: ../package-xz, alias: xz }
+  - { origin: ../package-expat, alias: expat }
+var: { xbee: { version: "4.4.0.1-2" }, lfs: { jobs: 4 }, package: { name: gcr, version: "4.4.0.1", source: gcr-4.4.0.1.tar.xz, runtime-dependencies: "glib,glib-gir,gobject-introspection,libgcrypt,libgpg-error,p11-kit,libtasn1,gtk4,at-spi2-core,graphene,iso-codes,libepoxy,librsvg,mesa,libdrm,cairo,pango,fribidi,gdk-pixbuf,shared-mime-info,libjpeg-turbo,giflib,libtiff,harfbuzz,libxkbcommon,wayland,wayland-protocols,libxml2,pixman,fontconfig,freetype,libpng,brotli,graphite2,icu,libffi,pcre2,util-linux,readline,zlib,bzip2,xz,expat" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

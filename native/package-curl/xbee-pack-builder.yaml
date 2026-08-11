@@ -17,17 +17,33 @@ builder:
     alias: zlib
   - origin: ../package-ca-certificates
     alias: ca-certificates
+  - origin: ../package-blfs-nghttp2
+    alias: blfs-nghttp2
+  - origin: ../package-blfs-c-ares
+    alias: blfs-c-ares
+  - origin: ../package-blfs-libunistring
+    alias: blfs-libunistring
+  - origin: ../package-blfs-libidn2
+    alias: blfs-libidn2
+  - origin: ../package-blfs-libpsl
+    alias: blfs-libpsl
+  - origin: ../package-blfs-brotli
+    alias: blfs-brotli
+  - origin: ../package-blfs-libssh2
+    alias: blfs-libssh2
+  - origin: ../package-zstd
+    alias: zstd
 
 var:
   xbee:
-    version: "8.21.0"
+    version: "8.21.0-4"
   lfs:
     jobs: 4
   package:
     name: curl
     version: "8.21.0"
     source: curl-8.21.0.tar.xz
-    runtime-dependencies: openssl,zlib,ca-certificates
+    runtime-dependencies: openssl,zlib,ca-certificates,nghttp2,c-ares,libunistring,libidn2,libpsl,brotli,libssh2,zstd
 
 build:
   - shell:

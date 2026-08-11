@@ -39,17 +39,19 @@ builder:
     alias: bzip2
   - origin: ../package-dbus
     alias: dbus
+  - origin: ../package-blfs-linux-pam
+    alias: blfs-linux-pam
 
 var:
   xbee:
-    version: "259.1"
+    version: "259.1-2"
   lfs:
     jobs: 4
   package:
     name: systemd
     version: "259.1"
     source: systemd-259.1.tar.gz
-    runtime-dependencies: util-linux,kmod,libcap,openssl,acl,pcre2,zstd,xz,lz4,libxcrypt,libelf,zlib,bzip2,dbus
+    runtime-dependencies: util-linux,kmod,libcap,openssl,acl,pcre2,zstd,xz,lz4,libxcrypt,libelf,zlib,bzip2,dbus,linux-pam
 
 build:
   - shell:
@@ -61,3 +63,4 @@ build:
           "{{ .package.name }}" "{{ .package.version }}"
           "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
           "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
+          "{{ .xbee.resources }}/build.sh"

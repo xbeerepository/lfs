@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build cdparanoia 10.2.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }]
+var: { xbee: { version: "10.2-2" }, lfs: { jobs: 4 }, package: { name: cdparanoia, version: "10.2", source: cdparanoia-III-10.2.src.tgz, runtime-dependencies: "" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

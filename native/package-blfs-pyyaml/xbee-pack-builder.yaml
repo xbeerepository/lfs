@@ -1,0 +1,42 @@
+schema-version: 1.0
+
+description: Build the PyYAML module from BLFS 13.0 for XBee LFS.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../blfs-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-python
+    alias: python
+  - origin: ../package-wheel
+    alias: wheel
+  - origin: ../package-setuptools
+    alias: setuptools
+
+var:
+  xbee:
+    version: "6.0.3"
+  lfs:
+    jobs: 4
+  package:
+    name: pyyaml
+    version: "6.0.3"
+    source: pyyaml-6.0.3.tar.gz
+    runtime-dependencies: python
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
+          "{{ .xbee.resources }}/build.sh"

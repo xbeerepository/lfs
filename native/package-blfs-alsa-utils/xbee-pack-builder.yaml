@@ -1,0 +1,28 @@
+schema-version: 1.0
+description: Build ALSA Utilities 1.2.15.2 for audio control and diagnostics.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-blfs-alsa-lib, alias: blfs-alsa-lib }
+  - { origin: ../package-ncurses, alias: ncurses }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+  - { origin: ../package-gettext, alias: gettext }
+var:
+  xbee: { version: "1.2.15.2-2" }
+  lfs: { jobs: 4 }
+  package:
+    name: alsa-utils
+    version: "1.2.15.2"
+    source: alsa-utils-1.2.15.2.tar.bz2
+    runtime-dependencies: alsa-lib,ncurses
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

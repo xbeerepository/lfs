@@ -1,0 +1,84 @@
+schema-version: 1.0
+
+description: Build the Foot 1.27.0 native Wayland terminal for XBee LFS.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../blfs-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-blfs-fcft
+    alias: blfs-fcft
+  - origin: ../package-blfs-tllist
+    alias: blfs-tllist
+  - origin: ../package-blfs-wayland
+    alias: blfs-wayland
+  - origin: ../package-blfs-wayland-protocols
+    alias: blfs-wayland-protocols
+  - origin: ../package-blfs-libxml2
+    alias: blfs-libxml2
+  - origin: ../package-blfs-libxkbcommon
+    alias: blfs-libxkbcommon
+  - origin: ../package-blfs-fontconfig
+    alias: blfs-fontconfig
+  - origin: ../package-blfs-freetype
+    alias: blfs-freetype
+  - origin: ../package-blfs-harfbuzz
+    alias: blfs-harfbuzz
+  - origin: ../package-blfs-pixman
+    alias: blfs-pixman
+  - origin: ../package-blfs-libpng
+    alias: blfs-libpng
+  - origin: ../package-blfs-brotli
+    alias: blfs-brotli
+  - origin: ../package-blfs-graphite2
+    alias: blfs-graphite2
+  - origin: ../package-blfs-icu
+    alias: blfs-icu
+  - origin: ../package-blfs-glib
+    alias: blfs-glib
+  - origin: ../package-libffi
+    alias: libffi
+  - origin: ../package-pcre2
+    alias: pcre2
+  - origin: ../package-util-linux
+    alias: util-linux
+  - origin: ../package-zlib
+    alias: zlib
+  - origin: ../package-bzip2
+    alias: bzip2
+  - origin: ../package-expat
+    alias: expat
+  - origin: ../package-meson
+    alias: meson
+  - origin: ../package-ninja
+    alias: ninja
+  - origin: ../package-pkgconf
+    alias: pkgconf
+
+var:
+  xbee:
+    version: "1.27.0-3"
+  lfs:
+    jobs: 4
+  package:
+    name: foot
+    version: "1.27.0"
+    source: foot_1.27.0.orig.tar.xz
+    runtime-dependencies: fcft,tllist,wayland,wayland-protocols,libxml2,libxkbcommon,fontconfig,freetype,harfbuzz,pixman
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
+          "{{ .xbee.resources }}/build.sh"

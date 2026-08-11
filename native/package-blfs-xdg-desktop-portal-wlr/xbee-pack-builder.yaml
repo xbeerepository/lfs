@@ -1,0 +1,36 @@
+schema-version: 1.0
+description: Build XDG Desktop Portal WLR 0.8.3 for Sway screencasting.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+  - { origin: ../package-systemd, alias: systemd }
+  - { origin: ../package-blfs-inih, alias: blfs-inih }
+  - { origin: ../package-blfs-libdrm, alias: blfs-libdrm }
+  - { origin: ../package-blfs-mesa, alias: blfs-mesa }
+  - { origin: ../package-blfs-pipewire, alias: blfs-pipewire }
+  - { origin: ../package-blfs-libxml2, alias: blfs-libxml2 }
+  - { origin: ../package-blfs-wayland, alias: blfs-wayland }
+  - { origin: ../package-blfs-wayland-protocols, alias: blfs-wayland-protocols }
+  - { origin: ../package-blfs-xdg-desktop-portal, alias: blfs-xdg-desktop-portal }
+var:
+  xbee: { version: "0.8.3-3" }
+  lfs: { jobs: 4 }
+  package:
+    name: xdg-desktop-portal-wlr
+    version: "0.8.3"
+    source: xdg-desktop-portal-wlr-0.8.3.tar.gz
+    runtime-dependencies: systemd,inih,libdrm,mesa,pipewire,libxml2,wayland,wayland-protocols,xdg-desktop-portal
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

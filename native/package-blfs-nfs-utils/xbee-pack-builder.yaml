@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build nfs-utils 2.8.5 for BLFS.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-rpcsvc-proto, alias: blfs-rpcsvc-proto }, { origin: ../package-blfs-libtirpc, alias: blfs-libtirpc }, { origin: ../package-blfs-rpcbind, alias: blfs-rpcbind }, { origin: ../package-blfs-libevent, alias: blfs-libevent }, { origin: ../package-blfs-libnl, alias: blfs-libnl }, { origin: ../package-blfs-libxml2, alias: blfs-libxml2 }, { origin: ../package-sqlite, alias: sqlite }, { origin: ../package-blfs-keyutils, alias: blfs-keyutils }]
+var: { xbee: { version: "2.8.5-5" }, lfs: { jobs: 4 }, package: { name: nfs-utils, version: "2.8.5", source: nfs-utils-2.8.5.tar.xz, runtime-dependencies: "rpcsvc-proto,libtirpc,rpcbind,libevent,libnl,libxml2,sqlite,keyutils" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

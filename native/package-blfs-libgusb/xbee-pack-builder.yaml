@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build libgusb 0.4.9 for BLFS.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-meson, alias: meson }, { origin: ../package-ninja, alias: ninja }, { origin: ../package-pkgconf, alias: pkgconf }, { origin: ../package-blfs-glib, alias: blfs-glib }, { origin: ../package-blfs-gobject-introspection, alias: blfs-gobject-introspection }, { origin: ../package-blfs-glib-gir, alias: blfs-glib-gir }, { origin: ../package-blfs-vala, alias: blfs-vala }, { origin: ../package-blfs-json-glib, alias: blfs-json-glib }, { origin: ../package-blfs-libusb, alias: blfs-libusb }, { origin: ../package-blfs-hwdata, alias: blfs-hwdata }]
+var: { xbee: { version: "0.4.9-8" }, lfs: { jobs: 4 }, package: { name: libgusb, version: "0.4.9", source: libgusb-0.4.9.tar.xz, runtime-dependencies: "glib,gobject-introspection,glib-gir,vala,json-glib,libusb,hwdata" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

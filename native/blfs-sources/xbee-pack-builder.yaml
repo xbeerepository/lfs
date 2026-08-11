@@ -1,0 +1,25 @@
+schema-version: 1.0
+
+description: Extend the verified LFS source artefact with BLFS 13.0 sources.
+
+require: ../../build-system
+
+builder:
+  - origin: ../final-sources
+    alias: base
+
+var:
+  xbee:
+    version: "13.0.91"
+  sources:
+    retries: 3
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "{{ .xbee.resources }}/download-blfs-sources.sh"
+          "/opt/xbee-lfs-native/sources"
+          "{{ .xbee.resources }}/sources.tsv"
+          "{{ .sources.retries }}"
+          "{{ .xbee.out }}"

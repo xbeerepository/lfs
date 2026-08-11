@@ -1,0 +1,48 @@
+schema-version: 1.0
+
+description: Build libxml2 from BLFS 13.0 for XBee LFS.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-template
+    alias: tools
+  - origin: ../blfs-sources
+    alias: sources
+  - origin: ../final-system
+    alias: system
+  - origin: ../package-meson
+    alias: meson
+  - origin: ../package-ninja
+    alias: ninja
+  - origin: ../package-pkgconf
+    alias: pkgconf
+  - origin: ../package-readline
+    alias: readline
+  - origin: ../package-zlib
+    alias: zlib
+  - origin: ../package-xz
+    alias: xz
+
+var:
+  xbee:
+    version: "2.15.1-3"
+  lfs:
+    jobs: 4
+  package:
+    name: libxml2
+    version: "2.15.1"
+    source: libxml2-2.15.1.tar.xz
+    runtime-dependencies: readline,zlib,xz
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
+          "{{ .xbee.resources }}/build.sh"

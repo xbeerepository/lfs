@@ -1,0 +1,78 @@
+schema-version: 1.0
+description: Build the GStreamer Rust dav1d and GTK4 plug-ins 1.28.1.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-blfs-rustc, alias: blfs-rustc }
+  - { origin: ../package-blfs-libssh2, alias: blfs-libssh2 }
+  - { origin: ../package-openssl, alias: openssl }
+  - { origin: ../package-zlib, alias: zlib }
+  - { origin: ../package-curl, alias: curl }
+  - { origin: ../package-sqlite, alias: sqlite }
+  - { origin: ../package-blfs-nghttp2, alias: blfs-nghttp2 }
+  - { origin: ../package-blfs-c-ares, alias: blfs-c-ares }
+  - { origin: ../package-blfs-libunistring, alias: blfs-libunistring }
+  - { origin: ../package-blfs-libidn2, alias: blfs-libidn2 }
+  - { origin: ../package-blfs-libpsl, alias: blfs-libpsl }
+  - { origin: ../package-blfs-brotli, alias: blfs-brotli }
+  - { origin: ../package-zstd, alias: zstd }
+  - { origin: ../package-blfs-git, alias: blfs-git }
+  - { origin: ../package-ca-certificates, alias: ca-certificates }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+  - { origin: ../package-blfs-gstreamer, alias: blfs-gstreamer }
+  - { origin: ../package-blfs-gst-plugins-base, alias: blfs-gst-plugins-base }
+  - { origin: ../package-blfs-dav1d, alias: blfs-dav1d }
+  - { origin: ../package-blfs-gtk4, alias: blfs-gtk4 }
+  - { origin: ../package-blfs-at-spi2-core, alias: blfs-at-spi2-core }
+  - { origin: ../package-blfs-graphene, alias: blfs-graphene }
+  - { origin: ../package-blfs-iso-codes, alias: blfs-iso-codes }
+  - { origin: ../package-blfs-libepoxy, alias: blfs-libepoxy }
+  - { origin: ../package-blfs-librsvg, alias: blfs-librsvg }
+  - { origin: ../package-blfs-mesa, alias: blfs-mesa }
+  - { origin: ../package-blfs-libdrm, alias: blfs-libdrm }
+  - { origin: ../package-blfs-cairo, alias: blfs-cairo }
+  - { origin: ../package-blfs-pango, alias: blfs-pango }
+  - { origin: ../package-blfs-fribidi, alias: blfs-fribidi }
+  - { origin: ../package-blfs-gdk-pixbuf, alias: blfs-gdk-pixbuf }
+  - { origin: ../package-blfs-shared-mime-info, alias: blfs-shared-mime-info }
+  - { origin: ../package-blfs-libjpeg-turbo, alias: blfs-libjpeg-turbo }
+  - { origin: ../package-blfs-giflib, alias: blfs-giflib }
+  - { origin: ../package-blfs-libtiff, alias: blfs-libtiff }
+  - { origin: ../package-blfs-harfbuzz, alias: blfs-harfbuzz }
+  - { origin: ../package-blfs-libxkbcommon, alias: blfs-libxkbcommon }
+  - { origin: ../package-blfs-wayland, alias: blfs-wayland }
+  - { origin: ../package-blfs-wayland-protocols, alias: blfs-wayland-protocols }
+  - { origin: ../package-blfs-libxml2, alias: blfs-libxml2 }
+  - { origin: ../package-blfs-pixman, alias: blfs-pixman }
+  - { origin: ../package-blfs-fontconfig, alias: blfs-fontconfig }
+  - { origin: ../package-blfs-freetype, alias: blfs-freetype }
+  - { origin: ../package-blfs-libpng, alias: blfs-libpng }
+  - { origin: ../package-blfs-graphite2, alias: blfs-graphite2 }
+  - { origin: ../package-blfs-icu, alias: blfs-icu }
+  - { origin: ../package-libffi, alias: libffi }
+  - { origin: ../package-pcre2, alias: pcre2 }
+  - { origin: ../package-util-linux, alias: util-linux }
+  - { origin: ../package-readline, alias: readline }
+  - { origin: ../package-bzip2, alias: bzip2 }
+  - { origin: ../package-xz, alias: xz }
+  - { origin: ../package-expat, alias: expat }
+var:
+  xbee: { version: "1.28.1-6" }
+  lfs: { jobs: 4 }
+  package:
+    name: gst-plugins-rs
+    version: "1.28.1"
+    source: gst-plugins-rs-gstreamer-1.28.1.tar.gz
+    runtime-dependencies: glib,gstreamer,gst-plugins-base,dav1d,gtk4,libssh2,openssl,zlib,curl,sqlite,nghttp2,c-ares,libunistring,libidn2,libpsl,brotli,zstd,at-spi2-core,graphene,iso-codes,libepoxy,librsvg,mesa,libdrm,cairo,pango,fribidi,gdk-pixbuf,shared-mime-info,libjpeg-turbo,giflib,libtiff,harfbuzz,libxkbcommon,wayland,wayland-protocols,libxml2,pixman,fontconfig,freetype,libpng,graphite2,icu,libffi,pcre2,util-linux,readline,bzip2,xz,expat
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

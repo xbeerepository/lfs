@@ -1,0 +1,76 @@
+schema-version: 1.0
+description: Build the complete KDE Frameworks 6.23.0 module set.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-blfs-cmake, alias: blfs-cmake }
+  - { origin: ../package-blfs-libarchive, alias: blfs-libarchive }
+  - { origin: ../package-blfs-libxml2, alias: blfs-libxml2 }
+  - { origin: ../package-bzip2, alias: bzip2 }
+  - { origin: ../package-xz, alias: xz }
+  - { origin: ../package-zstd, alias: zstd }
+  - { origin: ../package-expat, alias: expat }
+  - { origin: ../package-blfs-icu, alias: blfs-icu }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+  - { origin: ../package-systemd, alias: systemd }
+  - { origin: ../package-pcre2, alias: pcre2 }
+  - { origin: ../package-zlib, alias: zlib }
+  - { origin: ../package-blfs-brotli, alias: blfs-brotli }
+  - { origin: ../package-blfs-libpng, alias: blfs-libpng }
+  - { origin: ../package-blfs-freetype, alias: blfs-freetype }
+  - { origin: ../package-blfs-graphite2, alias: blfs-graphite2 }
+  - { origin: ../package-blfs-harfbuzz, alias: blfs-harfbuzz }
+  - { origin: ../package-blfs-libdrm, alias: blfs-libdrm }
+  - { origin: ../package-blfs-wayland, alias: blfs-wayland }
+  - { origin: ../package-blfs-wayland-protocols, alias: blfs-wayland-protocols }
+  - { origin: ../package-blfs-mesa, alias: blfs-mesa }
+  - { origin: ../package-blfs-libxkbcommon, alias: blfs-libxkbcommon }
+  - { origin: ../package-blfs-networkmanager, alias: blfs-networkmanager }
+  - { origin: ../package-blfs-modemmanager, alias: blfs-modemmanager }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+  - { origin: ../package-python, alias: python }
+  - { origin: ../package-blfs-qt6, alias: blfs-qt6 }
+  - { origin: ../package-blfs-extra-cmake-modules, alias: blfs-extra-cmake-modules }
+  - { origin: ../package-blfs-breeze-icons, alias: blfs-breeze-icons }
+  - { origin: ../package-blfs-plasma-wayland-protocols, alias: blfs-plasma-wayland-protocols }
+  - { origin: ../package-blfs-docbook-xml, alias: blfs-docbook-xml }
+  - { origin: ../package-blfs-docbook-xsl-nons, alias: blfs-docbook-xsl-nons }
+  - { origin: ../package-blfs-libcanberra, alias: blfs-libcanberra }
+  - { origin: ../package-blfs-pulseaudio, alias: blfs-pulseaudio }
+  - { origin: ../package-blfs-libsndfile, alias: blfs-libsndfile }
+  - { origin: ../package-blfs-flac, alias: blfs-flac }
+  - { origin: ../package-blfs-libogg, alias: blfs-libogg }
+  - { origin: ../package-blfs-libvorbis, alias: blfs-libvorbis }
+  - { origin: ../package-blfs-libgpg-error, alias: blfs-libgpg-error }
+  - { origin: ../package-blfs-libgcrypt, alias: blfs-libgcrypt }
+  - { origin: ../package-blfs-libical, alias: blfs-libical }
+  - { origin: ../package-blfs-libsecret, alias: blfs-libsecret }
+  - { origin: ../package-blfs-libxslt, alias: blfs-libxslt }
+  - { origin: ../package-blfs-lmdb, alias: blfs-lmdb }
+  - { origin: ../package-blfs-qca, alias: blfs-qca }
+  - { origin: ../package-blfs-libqrencode, alias: blfs-libqrencode }
+  - { origin: ../package-blfs-pyyaml, alias: blfs-pyyaml }
+  - { origin: ../package-blfs-perl-uri, alias: blfs-perl-uri }
+  - { origin: ../package-wget, alias: wget }
+var:
+  xbee: { version: "6.23.0-20" }
+  lfs: { jobs: 4 }
+  package: { name: kf6-frameworks, version: "6.23.0", source: kf6-frameworks-6.23.0.tar.xz, runtime-dependencies: "qt6,extra-cmake-modules,breeze-icons,plasma-wayland-protocols,docbook-xml,docbook-xsl-nons,libcanberra,pulseaudio,libsndfile,flac,libogg,libvorbis,libgpg-error,libgcrypt,libical,libsecret,libxslt,lmdb,qca,libqrencode,pyyaml,perl-uri,libarchive,libxml2,bzip2,xz,zstd,expat,icu,glib,systemd,pcre2,zlib,brotli,libpng,freetype,graphite2,harfbuzz,libdrm,wayland,wayland-protocols,mesa,libxkbcommon,networkmanager,modemmanager" }
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "{{ .xbee.resources }}/prepare-source.sh"
+          "/opt/xbee-lfs-native/sources" "{{ .xbee.resources }}"
+          "{{ .package.source }}" &&
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}"
+          "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
+          "{{ .xbee.resources }}/build.sh"

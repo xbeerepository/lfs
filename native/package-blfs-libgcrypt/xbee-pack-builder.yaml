@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build libgcrypt 1.12.0 for KDE Frameworks 6.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-libgpg-error, alias: blfs-libgpg-error }]
+var: { xbee: { version: "1.12.0-1" }, lfs: { jobs: 4 }, package: { name: libgcrypt, version: "1.12.0", source: libgcrypt-1.12.0.tar.bz2, runtime-dependencies: "libgpg-error" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

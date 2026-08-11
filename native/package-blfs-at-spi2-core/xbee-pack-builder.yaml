@@ -1,0 +1,32 @@
+schema-version: 1.0
+description: Build at-spi2-core 2.60.5 without X11 for the Wayland GTK stack.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+  - { origin: ../package-blfs-glib-gir, alias: blfs-glib-gir }
+  - { origin: ../package-blfs-gobject-introspection, alias: blfs-gobject-introspection }
+  - { origin: ../package-blfs-libxml2, alias: blfs-libxml2 }
+  - { origin: ../package-dbus, alias: dbus }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+var:
+  xbee: { version: "2.60.5-2" }
+  lfs: { jobs: 4 }
+  package:
+    name: at-spi2-core
+    version: "2.60.5"
+    source: at-spi2-core-2.60.5.tar.xz
+    runtime-dependencies: glib,glib-gir,gobject-introspection,libxml2,dbus
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

@@ -14,7 +14,7 @@ builder:
 
 var:
   xbee:
-    version: "0.1.0"
+    version: "0.6.10"
   lfs:
     hostname: xbee-lfs
     admin_user: xbee

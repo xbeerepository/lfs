@@ -61,6 +61,8 @@ builder:
     alias: binutils
   - origin: ../package-gcc
     alias: gcc
+  - origin: ../package-libstdcxx-runtime
+    alias: libstdcxx-runtime
   - origin: ../package-libffi
     alias: libffi
   - origin: ../package-expat
@@ -99,6 +101,8 @@ builder:
     alias: procps-ng
   - origin: ../package-e2fsprogs
     alias: e2fsprogs
+  - origin: ../package-blfs-linux-pam
+    alias: blfs-linux-pam
   - origin: ../package-shadow
     alias: shadow
   - origin: ../package-iproute2
@@ -189,10 +193,507 @@ builder:
     alias: dhcpcd
   - origin: ../package-rsync
     alias: rsync
+  - origin: ../package-blfs-libxml2
+    alias: blfs-libxml2
+  - origin: ../package-blfs-libxslt
+    alias: blfs-libxslt
+  - origin: ../package-blfs-sgml-common
+    alias: blfs-sgml-common
+  - origin: ../package-blfs-libarchive
+    alias: blfs-libarchive
+  - origin: ../package-blfs-docbook-xml
+    alias: blfs-docbook-xml
+  - origin: ../package-blfs-docbook-xsl-nons
+    alias: blfs-docbook-xsl-nons
+  - origin: ../package-blfs-nghttp2
+    alias: blfs-nghttp2
+  - origin: ../package-blfs-cmake
+    alias: blfs-cmake
+  - origin: ../package-blfs-c-ares
+    alias: blfs-c-ares
+  - origin: ../package-blfs-libunistring
+    alias: blfs-libunistring
+  - origin: ../package-blfs-libidn2
+    alias: blfs-libidn2
+  - origin: ../package-blfs-libpsl
+    alias: blfs-libpsl
+  - origin: ../package-blfs-brotli
+    alias: blfs-brotli
+  - origin: ../package-blfs-libssh2
+    alias: blfs-libssh2
+  - origin: ../package-blfs-libpng
+    alias: blfs-libpng
+  - origin: ../package-blfs-freetype
+    alias: blfs-freetype
+  - origin: ../package-blfs-fontconfig
+    alias: blfs-fontconfig
+  - origin: ../package-blfs-graphite2
+    alias: blfs-graphite2
+  - origin: ../package-blfs-icu
+    alias: blfs-icu
+  - origin: ../package-blfs-glib
+    alias: blfs-glib
+  - origin: ../package-blfs-harfbuzz
+    alias: blfs-harfbuzz
+  - origin: ../package-blfs-pixman
+    alias: blfs-pixman
+  - origin: ../package-blfs-cairo
+    alias: blfs-cairo
+  - origin: ../package-blfs-fribidi
+    alias: blfs-fribidi
+  - origin: ../package-blfs-pango
+    alias: blfs-pango
+  - origin: ../package-blfs-shared-mime-info
+    alias: blfs-shared-mime-info
+  - origin: ../package-blfs-gdk-pixbuf
+    alias: blfs-gdk-pixbuf
+  - origin: ../package-blfs-libjpeg-turbo
+    alias: blfs-libjpeg-turbo
+  - origin: ../package-blfs-giflib
+    alias: blfs-giflib
+  - origin: ../package-blfs-libtiff
+    alias: blfs-libtiff
+  - origin: ../package-blfs-wayland
+    alias: blfs-wayland
+  - origin: ../package-blfs-wayland-protocols
+    alias: blfs-wayland-protocols
+  - origin: ../package-blfs-xkeyboard-config
+    alias: blfs-xkeyboard-config
+  - origin: ../package-blfs-libxkbcommon
+    alias: blfs-libxkbcommon
+  - origin: ../package-blfs-libevdev
+    alias: blfs-libevdev
+  - origin: ../package-blfs-mtdev
+    alias: blfs-mtdev
+  - origin: ../package-blfs-libinput
+    alias: blfs-libinput
+  - origin: ../package-blfs-seatd
+    alias: blfs-seatd
+  - origin: ../package-blfs-hwdata
+    alias: blfs-hwdata
+  - origin: ../package-blfs-libdisplay-info
+    alias: blfs-libdisplay-info
+  - origin: ../package-blfs-libdrm
+    alias: blfs-libdrm
+  - origin: ../package-blfs-libpciaccess
+    alias: blfs-libpciaccess
+  - origin: ../package-blfs-mako
+    alias: blfs-mako
+  - origin: ../package-blfs-pyyaml
+    alias: blfs-pyyaml
+  - origin: ../package-blfs-mesa
+    alias: blfs-mesa
+  - origin: ../package-blfs-json-c
+    alias: blfs-json-c
+  - origin: ../package-blfs-libliftoff
+    alias: blfs-libliftoff
+  - origin: ../package-blfs-wlroots
+    alias: blfs-wlroots
+  - origin: ../package-blfs-sway
+    alias: blfs-sway
+  - origin: ../package-blfs-swaybg
+    alias: blfs-swaybg
+  - origin: ../package-blfs-wmenu
+    alias: blfs-wmenu
+  - origin: ../package-blfs-tllist
+    alias: blfs-tllist
+  - origin: ../package-blfs-fcft
+    alias: blfs-fcft
+  - origin: ../package-blfs-foot
+    alias: blfs-foot
+  - origin: ../package-blfs-wl-clipboard
+    alias: blfs-wl-clipboard
+  - origin: ../package-blfs-grim
+    alias: blfs-grim
+  - origin: ../package-blfs-slurp
+    alias: blfs-slurp
+  - origin: ../package-blfs-libscfg
+    alias: blfs-libscfg
+  - origin: ../package-blfs-kanshi
+    alias: blfs-kanshi
+  - origin: ../package-blfs-fmt
+    alias: blfs-fmt
+  - origin: ../package-blfs-spdlog
+    alias: blfs-spdlog
+  - origin: ../package-blfs-jsoncpp
+    alias: blfs-jsoncpp
+  - origin: ../package-blfs-libsigcxx
+    alias: blfs-libsigcxx
+  - origin: ../package-blfs-libsigcxx3
+    alias: blfs-libsigcxx3
+  - origin: ../package-blfs-glibmm
+    alias: blfs-glibmm
+  - origin: ../package-blfs-glibmm2
+    alias: blfs-glibmm2
+  - origin: ../package-blfs-cairomm
+    alias: blfs-cairomm
+  - origin: ../package-blfs-cairomm16
+    alias: blfs-cairomm16
+  - origin: ../package-blfs-pangomm
+    alias: blfs-pangomm
+  - origin: ../package-blfs-pangomm248
+    alias: blfs-pangomm248
+  - origin: ../package-blfs-at-spi2-core
+    alias: blfs-at-spi2-core
+  - origin: ../package-blfs-graphene
+    alias: blfs-graphene
+  - origin: ../package-blfs-iso-codes
+    alias: blfs-iso-codes
+  - origin: ../package-blfs-gtk4
+    alias: blfs-gtk4
+  - origin: ../package-blfs-gtkmm4
+    alias: blfs-gtkmm4
+  - origin: ../package-blfs-pavucontrol
+    alias: blfs-pavucontrol
+  - origin: ../package-blfs-libogg
+    alias: blfs-libogg
+  - origin: ../package-blfs-libvorbis
+    alias: blfs-libvorbis
+  - origin: ../package-blfs-libcanberra
+    alias: blfs-libcanberra
+  - origin: ../package-blfs-sound-theme-freedesktop
+    alias: blfs-sound-theme-freedesktop
+  - origin: ../package-blfs-alsa-utils
+    alias: blfs-alsa-utils
+  - origin: ../package-blfs-alsa-tools
+    alias: blfs-alsa-tools
+  - origin: ../package-blfs-alsa-firmware
+    alias: blfs-alsa-firmware
+  - origin: ../package-blfs-audiofile
+    alias: blfs-audiofile
+  - origin: ../package-blfs-nasm
+    alias: blfs-nasm
+  - origin: ../package-blfs-dav1d
+    alias: blfs-dav1d
+  - origin: ../package-blfs-faac
+    alias: blfs-faac
+  - origin: ../package-blfs-faad2
+    alias: blfs-faad2
+  - origin: ../package-blfs-fdk-aac
+    alias: blfs-fdk-aac
+  - origin: ../package-blfs-flac
+    alias: blfs-flac
+  - origin: ../package-blfs-gavl
+    alias: blfs-gavl
+  - origin: ../package-blfs-frei0r
+    alias: blfs-frei0r
+  - origin: ../package-blfs-libepoxy
+    alias: blfs-libepoxy
+  - origin: ../package-blfs-atkmm
+    alias: blfs-atkmm
+  - origin: ../package-blfs-gtk3
+    alias: blfs-gtk3
+  - origin: ../package-blfs-gtkmm
+    alias: blfs-gtkmm
+  - origin: ../package-blfs-gtk-layer-shell
+    alias: blfs-gtk-layer-shell
+  - origin: ../package-blfs-waybar
+    alias: blfs-waybar
+  - origin: ../package-blfs-libnl
+    alias: blfs-libnl
+  - origin: ../package-blfs-pulseaudio
+    alias: blfs-pulseaudio
+  - origin: ../package-blfs-libsndfile
+    alias: blfs-libsndfile
+  - origin: ../package-blfs-alsa-lib
+    alias: blfs-alsa-lib
+  - origin: ../package-blfs-pipewire
+    alias: blfs-pipewire
+  - origin: ../package-blfs-lua
+    alias: blfs-lua
+  - origin: ../package-blfs-wireplumber
+    alias: blfs-wireplumber
+  - origin: ../package-blfs-dejavu-fonts
+    alias: blfs-dejavu-fonts
+  - origin: ../package-blfs-liberation-fonts
+    alias: blfs-liberation-fonts
+  - origin: ../package-blfs-fuse3
+    alias: blfs-fuse3
+  - origin: ../package-blfs-json-glib
+    alias: blfs-json-glib
+  - origin: ../package-blfs-bubblewrap
+    alias: blfs-bubblewrap
+  - origin: ../package-blfs-inih
+    alias: blfs-inih
+  - origin: ../package-blfs-gstreamer
+    alias: blfs-gstreamer
+  - origin: ../package-blfs-gst-plugins-base
+    alias: blfs-gst-plugins-base
+  - origin: ../package-blfs-gst-plugins-good
+    alias: blfs-gst-plugins-good
+  - origin: ../package-blfs-gst-plugins-bad
+    alias: blfs-gst-plugins-bad
+  - origin: ../package-blfs-gst-plugins-ugly
+    alias: blfs-gst-plugins-ugly
+  - origin: ../package-blfs-git
+    alias: blfs-git
+  - origin: ../package-blfs-gst-plugins-rs
+    alias: blfs-gst-plugins-rs
+  - origin: ../package-blfs-ffmpeg
+    alias: blfs-ffmpeg
+  - origin: ../package-blfs-gst-libav
+    alias: blfs-gst-libav
+  - origin: ../package-blfs-id3lib
+    alias: blfs-id3lib
+  - { origin: ../package-blfs-gmmlib, alias: blfs-gmmlib }
+  - { origin: ../package-blfs-libva, alias: blfs-libva }
+  - { origin: ../package-blfs-intel-media-driver, alias: blfs-intel-media-driver }
+  - { origin: ../package-blfs-intel-vaapi-driver, alias: blfs-intel-vaapi-driver }
+  - { origin: ../package-blfs-liba52, alias: blfs-liba52 }
+  - { origin: ../package-blfs-libao, alias: blfs-libao }
+  - { origin: ../package-blfs-libaom, alias: blfs-libaom }
+  - { origin: ../package-blfs-libass, alias: blfs-libass }
+  - { origin: ../package-blfs-libcddb, alias: blfs-libcddb }
+  - { origin: ../package-blfs-libcdio, alias: blfs-libcdio }
+  - { origin: ../package-blfs-libde265, alias: blfs-libde265 }
+  - { origin: ../package-blfs-libdvdcss, alias: blfs-libdvdcss }
+  - { origin: ../package-blfs-libdvdread, alias: blfs-libdvdread }
+  - { origin: ../package-blfs-libdvdnav, alias: blfs-libdvdnav }
+  - { origin: ../package-blfs-libdv, alias: blfs-libdv }
+  - { origin: ../package-blfs-libmad, alias: blfs-libmad }
+  - { origin: ../package-blfs-libmpeg2, alias: blfs-libmpeg2 }
+  - { origin: ../package-blfs-neon, alias: blfs-neon }
+  - { origin: ../package-blfs-libmusicbrainz, alias: blfs-libmusicbrainz }
+  - { origin: ../package-blfs-glad, alias: blfs-glad }
+  - { origin: ../package-blfs-libplacebo, alias: blfs-libplacebo }
+  - { origin: ../package-blfs-vulkan-headers, alias: blfs-vulkan-headers }
+  - { origin: ../package-blfs-libsamplerate, alias: blfs-libsamplerate }
+  - { origin: ../package-blfs-libvpx, alias: blfs-libvpx }
+  - { origin: ../package-blfs-mlt, alias: blfs-mlt }
+  - { origin: ../package-blfs-opus, alias: blfs-opus }
+  - { origin: ../package-blfs-sbc, alias: blfs-sbc }
+  - { origin: ../package-blfs-sdl3, alias: blfs-sdl3 }
+  - { origin: ../package-blfs-sdl2-compat, alias: blfs-sdl2-compat }
+  - { origin: ../package-blfs-soundtouch, alias: blfs-soundtouch }
+  - { origin: ../package-blfs-speex, alias: blfs-speex }
+  - { origin: ../package-blfs-svt-av1, alias: blfs-svt-av1 }
+  - { origin: ../package-blfs-utfcpp, alias: blfs-utfcpp }
+  - { origin: ../package-blfs-taglib, alias: blfs-taglib }
+  - { origin: ../package-blfs-v4l-utils, alias: blfs-v4l-utils }
+  - { origin: ../package-blfs-x264, alias: blfs-x264 }
+  - { origin: ../package-blfs-x265, alias: blfs-x265 }
+  - { origin: ../package-blfs-xine-lib, alias: blfs-xine-lib }
+  - { origin: ../package-blfs-qt6, alias: blfs-qt6 }
+  - { origin: ../package-blfs-extra-cmake-modules, alias: blfs-extra-cmake-modules }
+  - { origin: ../package-blfs-breeze-icons, alias: blfs-breeze-icons }
+  - { origin: ../package-blfs-plasma-wayland-protocols, alias: blfs-plasma-wayland-protocols }
+  - { origin: ../package-blfs-libgpg-error, alias: blfs-libgpg-error }
+  - { origin: ../package-blfs-libgcrypt, alias: blfs-libgcrypt }
+  - { origin: ../package-blfs-libical, alias: blfs-libical }
+  - { origin: ../package-blfs-libsecret, alias: blfs-libsecret }
+  - { origin: ../package-blfs-lmdb, alias: blfs-lmdb }
+  - { origin: ../package-blfs-qca, alias: blfs-qca }
+  - { origin: ../package-blfs-libqrencode, alias: blfs-libqrencode }
+  - { origin: ../package-blfs-perl-mime-base32, alias: blfs-perl-mime-base32 }
+  - { origin: ../package-blfs-perl-uri, alias: blfs-perl-uri }
+  - { origin: ../package-blfs-kf6-frameworks, alias: blfs-kf6-frameworks }
+  - { origin: ../package-blfs-fftw, alias: blfs-fftw }
+  - { origin: ../package-blfs-xvid, alias: blfs-xvid }
+  - { origin: ../package-blfs-audacious, alias: blfs-audacious }
+  - { origin: ../package-blfs-cdparanoia, alias: blfs-cdparanoia }
+  - { origin: ../package-blfs-kwave, alias: blfs-kwave }
+  - { origin: ../package-blfs-lame, alias: blfs-lame }
+  - { origin: ../package-blfs-mpg123, alias: blfs-mpg123 }
+  - { origin: ../package-blfs-vorbis-tools, alias: blfs-vorbis-tools }
+  - { origin: ../package-blfs-mpv, alias: blfs-mpv }
+  - { origin: ../package-blfs-vlc, alias: blfs-vlc }
+  - { origin: ../package-blfs-cdrdao, alias: blfs-cdrdao }
+  - { origin: ../package-blfs-cdrtools, alias: blfs-cdrtools }
+  - { origin: ../package-blfs-dvd-rw-tools, alias: blfs-dvd-rw-tools }
+  - { origin: ../package-blfs-libburn, alias: blfs-libburn }
+  - { origin: ../package-blfs-libisoburn, alias: blfs-libisoburn }
+  - { origin: ../package-blfs-libisofs, alias: blfs-libisofs }
+  - origin: ../package-blfs-xdg-desktop-portal
+    alias: blfs-xdg-desktop-portal
+  - origin: ../package-blfs-xdg-desktop-portal-wlr
+    alias: blfs-xdg-desktop-portal-wlr
+  - origin: ../package-blfs-gsettings-desktop-schemas
+    alias: blfs-gsettings-desktop-schemas
+  - origin: ../package-blfs-xdg-desktop-portal-gtk
+    alias: blfs-xdg-desktop-portal-gtk
+  - origin: ../package-blfs-desktop-file-utils
+    alias: blfs-desktop-file-utils
+  - origin: ../package-blfs-hicolor-icon-theme
+    alias: blfs-hicolor-icon-theme
+  - origin: ../package-blfs-xdg-user-dirs
+    alias: blfs-xdg-user-dirs
+  - origin: ../package-blfs-rustc
+    alias: blfs-rustc
+  - origin: ../package-blfs-cargo-c
+    alias: blfs-cargo-c
+  - origin: ../package-blfs-librsvg
+    alias: blfs-librsvg
+  - origin: ../package-blfs-adwaita-icon-theme
+    alias: blfs-adwaita-icon-theme
+  - origin: ../package-blfs-libnotify
+    alias: blfs-libnotify
+  - origin: ../package-blfs-dunst
+    alias: blfs-dunst
+  - origin: ../package-blfs-swayidle
+    alias: blfs-swayidle
+  - origin: ../package-blfs-swaylock
+    alias: blfs-swaylock
+  - origin: ../package-blfs-duktape
+    alias: blfs-duktape
+  - origin: ../package-blfs-polkit
+    alias: blfs-polkit
+  - origin: ../package-blfs-accountsservice
+    alias: blfs-accountsservice
+  - origin: ../package-blfs-polkit-gnome
+    alias: blfs-polkit-gnome
+  - origin: ../package-blfs-libndp
+    alias: blfs-libndp
+  - origin: ../package-blfs-wpa-supplicant
+    alias: blfs-wpa-supplicant
+  - origin: ../package-blfs-networkmanager
+    alias: blfs-networkmanager
+  - { origin: ../package-blfs-nettle, alias: blfs-nettle }
+  - { origin: ../package-blfs-libtasn1, alias: blfs-libtasn1 }
+  - { origin: ../package-blfs-p11-kit, alias: blfs-p11-kit }
+  - { origin: ../package-blfs-make-ca, alias: blfs-make-ca }
+  - { origin: ../package-blfs-gnutls, alias: blfs-gnutls }
+  - { origin: ../package-blfs-libusb, alias: blfs-libusb }
+  - { origin: ../package-blfs-libdaemon, alias: blfs-libdaemon }
+  - { origin: ../package-blfs-avahi, alias: blfs-avahi }
+  - { origin: ../package-blfs-lcms2, alias: blfs-lcms2 }
+  - { origin: ../package-blfs-libexif, alias: blfs-libexif }
+  - { origin: ../package-blfs-libwebp, alias: blfs-libwebp }
+  - { origin: ../package-blfs-openjpeg, alias: blfs-openjpeg }
+  - { origin: ../package-blfs-poppler, alias: blfs-poppler }
+  - { origin: ../package-blfs-qpdf, alias: blfs-qpdf }
+  - { origin: ../package-blfs-colord, alias: blfs-colord }
+  - { origin: ../package-blfs-libgusb, alias: blfs-libgusb }
+  - { origin: ../package-blfs-python-lxml, alias: blfs-python-lxml }
+  - { origin: ../package-blfs-itstool, alias: blfs-itstool }
+  - { origin: ../package-blfs-sassc, alias: blfs-sassc }
+  - { origin: ../package-blfs-libadwaita, alias: blfs-libadwaita }
+  - { origin: ../package-blfs-cups, alias: blfs-cups }
+  - { origin: ../package-blfs-ghostscript, alias: blfs-ghostscript }
+  - { origin: ../package-blfs-gutenprint, alias: blfs-gutenprint }
+  - { origin: ../package-blfs-libcupsfilters, alias: blfs-libcupsfilters }
+  - { origin: ../package-blfs-libppd, alias: blfs-libppd }
+  - { origin: ../package-blfs-cups-filters, alias: blfs-cups-filters }
+  - { origin: ../package-blfs-cups-browsed, alias: blfs-cups-browsed }
+  - { origin: ../package-blfs-sane, alias: blfs-sane }
+  - { origin: ../package-blfs-gobject-introspection-core, alias: blfs-gobject-introspection-core }
+  - { origin: ../package-blfs-glib-gir, alias: blfs-glib-gir }
+  - { origin: ../package-blfs-vala, alias: blfs-vala }
+  - { origin: ../package-blfs-simple-scan, alias: blfs-simple-scan }
+  - { origin: ../package-blfs-libgudev, alias: blfs-libgudev }
+  - { origin: ../package-blfs-keyutils, alias: blfs-keyutils }
+  - { origin: ../package-blfs-libaio, alias: blfs-libaio }
+  - { origin: ../package-blfs-popt, alias: blfs-popt }
+  - { origin: ../package-blfs-python-pygments, alias: blfs-python-pygments }
+  - { origin: ../package-blfs-libatasmart, alias: blfs-libatasmart }
+  - { origin: ../package-blfs-libbytesize, alias: blfs-libbytesize }
+  - { origin: ../package-blfs-libnvme, alias: blfs-libnvme }
+  - { origin: ../package-blfs-lvm2, alias: blfs-lvm2 }
+  - { origin: ../package-blfs-cryptsetup, alias: blfs-cryptsetup }
+  - { origin: ../package-blfs-parted, alias: blfs-parted }
+  - { origin: ../package-blfs-libblockdev, alias: blfs-libblockdev }
+  - { origin: ../package-blfs-udisks, alias: blfs-udisks }
+  - { origin: ../package-blfs-upower, alias: blfs-upower }
+  - { origin: ../package-blfs-boost, alias: blfs-boost }
+  - { origin: ../package-blfs-gobject-introspection, alias: blfs-gobject-introspection }
+  - { origin: ../package-blfs-exiv2, alias: blfs-exiv2 }
+  - { origin: ../package-blfs-gexiv2, alias: blfs-gexiv2 }
+  - { origin: ../package-blfs-libgsf, alias: blfs-libgsf }
+  - { origin: ../package-blfs-libhandy, alias: blfs-libhandy }
+  - { origin: ../package-blfs-libcloudproviders, alias: blfs-libcloudproviders }
+  - { origin: ../package-blfs-exempi, alias: blfs-exempi }
+  - { origin: ../package-blfs-libportal, alias: blfs-libportal }
+  - { origin: ../package-blfs-gcr, alias: blfs-gcr }
+  - { origin: ../package-blfs-libsoup, alias: blfs-libsoup }
+  - { origin: ../package-blfs-gvfs, alias: blfs-gvfs }
+  - { origin: ../package-blfs-libxfce4util, alias: blfs-libxfce4util }
+  - { origin: ../package-blfs-xfconf, alias: blfs-xfconf }
+  - { origin: ../package-blfs-libxfce4ui, alias: blfs-libxfce4ui }
+  - { origin: ../package-blfs-exo, alias: blfs-exo }
+  - { origin: ../package-blfs-garcon, alias: blfs-garcon }
+  - { origin: ../package-blfs-tumbler, alias: blfs-tumbler }
+  - { origin: ../package-blfs-thunar, alias: blfs-thunar }
+  - { origin: ../package-blfs-libyaml, alias: blfs-libyaml }
+  - { origin: ../package-blfs-libfyaml, alias: blfs-libfyaml }
+  - { origin: ../package-blfs-libxmlb, alias: blfs-libxmlb }
+  - { origin: ../package-blfs-appstream, alias: blfs-appstream }
+  - { origin: ../package-blfs-appstream-glib, alias: blfs-appstream-glib }
+  - { origin: ../package-blfs-glib-networking, alias: blfs-glib-networking }
+  - { origin: ../package-blfs-poppler-data, alias: blfs-poppler-data }
+  - { origin: ../package-blfs-aalib, alias: blfs-aalib }
+  - { origin: ../package-blfs-jasper, alias: blfs-jasper }
+  - { origin: ../package-blfs-libraw, alias: blfs-libraw }
+  - { origin: ../package-blfs-babl, alias: blfs-babl }
+  - { origin: ../package-blfs-gegl, alias: blfs-gegl }
+  - { origin: ../package-blfs-libmypaint, alias: blfs-libmypaint }
+  - { origin: ../package-blfs-mypaint-brushes, alias: blfs-mypaint-brushes }
+  - { origin: ../package-blfs-imagemagick, alias: blfs-imagemagick }
+  - { origin: ../package-blfs-gimp, alias: blfs-gimp }
+  - { origin: ../package-blfs-bluez, alias: blfs-bluez }
+  - { origin: ../package-blfs-pycairo, alias: blfs-pycairo }
+  - { origin: ../package-blfs-pygobject, alias: blfs-pygobject }
+  - { origin: ../package-blfs-cython, alias: blfs-cython }
+  - { origin: ../package-blfs-blueman, alias: blfs-blueman }
+  - { origin: ../package-blfs-bluez-tools, alias: blfs-bluez-tools }
+  - { origin: ../package-blfs-7zip, alias: blfs-7zip }
+  - { origin: ../package-blfs-cpio, alias: blfs-cpio }
+  - { origin: ../package-blfs-unrar, alias: blfs-unrar }
+  - { origin: ../package-blfs-zip, alias: blfs-zip }
+  - { origin: ../package-blfs-rpcsvc-proto, alias: blfs-rpcsvc-proto }
+  - { origin: ../package-blfs-libtirpc, alias: blfs-libtirpc }
+  - { origin: ../package-blfs-which, alias: blfs-which }
+  - { origin: ../package-blfs-cups-pk-helper, alias: blfs-cups-pk-helper }
+  - { origin: ../package-blfs-acpid, alias: blfs-acpid }
+  - { origin: ../package-blfs-at, alias: blfs-at }
+  - { origin: ../package-blfs-autofs, alias: blfs-autofs }
+  - { origin: ../package-blfs-logrotate, alias: blfs-logrotate }
+  - { origin: ../package-blfs-lm-sensors, alias: blfs-lm-sensors }
+  - { origin: ../package-blfs-pciutils, alias: blfs-pciutils }
+  - { origin: ../package-blfs-usbutils, alias: blfs-usbutils }
+  - { origin: ../package-blfs-sg3-utils, alias: blfs-sg3-utils }
+  - { origin: ../package-blfs-power-profiles-daemon, alias: blfs-power-profiles-daemon }
+  - { origin: ../package-blfs-hdparm, alias: blfs-hdparm }
+  - { origin: ../package-blfs-sysstat, alias: blfs-sysstat }
+  - { origin: ../package-blfs-fcron, alias: blfs-fcron }
+  - { origin: ../package-blfs-gpm, alias: blfs-gpm }
+  - { origin: ../package-blfs-lsb-tools, alias: blfs-lsb-tools }
+  - { origin: ../package-blfs-mc, alias: blfs-mc }
+  - { origin: ../package-blfs-modemmanager, alias: blfs-modemmanager }
+  - { origin: ../package-blfs-notification-daemon, alias: blfs-notification-daemon }
+  - { origin: ../package-blfs-pax, alias: blfs-pax }
+  - { origin: ../package-blfs-pm-utils, alias: blfs-pm-utils }
+  - { origin: ../package-blfs-libuv, alias: blfs-libuv }
+  - { origin: ../package-blfs-libevent, alias: blfs-libevent }
+  - { origin: ../package-blfs-libpcap, alias: blfs-libpcap }
+  - { origin: ../package-blfs-userspace-rcu, alias: blfs-userspace-rcu }
+  - { origin: ../package-blfs-bind, alias: blfs-bind }
+  - { origin: ../package-blfs-nmap, alias: blfs-nmap }
+  - { origin: ../package-blfs-wireless-tools, alias: blfs-wireless-tools }
+  - { origin: ../package-blfs-rpcbind, alias: blfs-rpcbind }
+  - { origin: ../package-blfs-nfs-utils, alias: blfs-nfs-utils }
+  - { origin: ../package-blfs-libnsl, alias: blfs-libnsl }
+  - { origin: ../package-blfs-krb5, alias: blfs-krb5 }
+  - { origin: ../package-blfs-cyrus-sasl, alias: blfs-cyrus-sasl }
+  - { origin: ../package-blfs-openldap, alias: blfs-openldap }
+  - { origin: ../package-blfs-talloc, alias: blfs-talloc }
+  - { origin: ../package-blfs-perl-parse-yapp, alias: blfs-perl-parse-yapp }
+  - { origin: ../package-blfs-samba, alias: blfs-samba }
+  - { origin: ../package-blfs-cifs-utils, alias: blfs-cifs-utils }
+  - { origin: ../package-blfs-libmnl, alias: blfs-libmnl }
+  - { origin: ../package-blfs-libnftnl, alias: blfs-libnftnl }
+  - { origin: ../package-blfs-nftables, alias: blfs-nftables }
+  - { origin: ../package-blfs-iptables, alias: blfs-iptables }
+  - { origin: ../package-blfs-wireguard-tools, alias: blfs-wireguard-tools }
+  - { origin: ../package-blfs-openvpn, alias: blfs-openvpn }
+  - { origin: ../package-blfs-strongswan, alias: blfs-strongswan }
+  - { origin: ../package-blfs-ipset, alias: blfs-ipset }
+  - { origin: ../package-blfs-libnfnetlink, alias: blfs-libnfnetlink }
+  - { origin: ../package-blfs-libnetfilter-conntrack, alias: blfs-libnetfilter-conntrack }
+  - { origin: ../package-blfs-conntrack-tools, alias: blfs-conntrack-tools }
+  - { origin: ../package-blfs-libcap-ng, alias: blfs-libcap-ng }
 
 var:
   xbee:
-    version: "0.34.1"
+    version: "1.22.21"
 
 build:
   - shell:

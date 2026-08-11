@@ -1,0 +1,24 @@
+schema-version: 1.0
+description: Build fdk-aac 2.0.3, the Fraunhofer FDK AAC library.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+var:
+  xbee: { version: "2.0.3-1" }
+  lfs: { jobs: 4 }
+  package:
+    name: fdk-aac
+    version: "2.0.3"
+    source: fdk-aac-2.0.3.tar.gz
+    runtime-dependencies: ""
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh"
+          "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst"
+          "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}"
+          "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}"
+          "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

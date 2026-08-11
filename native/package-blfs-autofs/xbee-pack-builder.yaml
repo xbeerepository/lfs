@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build Autofs 5.1.9 for BLFS.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-rpcsvc-proto, alias: blfs-rpcsvc-proto }, { origin: ../package-blfs-libtirpc, alias: blfs-libtirpc }]
+var: { xbee: { version: "5.1.9-1" }, lfs: { jobs: 4 }, package: { name: autofs, version: "5.1.9", source: autofs-5.1.9.tar.xz, runtime-dependencies: "libtirpc,rpcsvc-proto" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

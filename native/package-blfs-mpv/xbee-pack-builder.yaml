@@ -1,0 +1,69 @@
+schema-version: 1.0
+description: Build mpv 0.41.0.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-blfs-ffmpeg, alias: blfs-ffmpeg }
+  - { origin: ../package-blfs-dav1d, alias: blfs-dav1d }
+  - { origin: ../package-blfs-fdk-aac, alias: blfs-fdk-aac }
+  - { origin: ../package-blfs-libvorbis, alias: blfs-libvorbis }
+  - { origin: ../package-blfs-libogg, alias: blfs-libogg }
+  - { origin: ../package-blfs-frei0r, alias: blfs-frei0r }
+  - { origin: ../package-blfs-libsndfile, alias: blfs-libsndfile }
+  - { origin: ../package-blfs-libaom, alias: blfs-libaom }
+  - { origin: ../package-libstdcxx-runtime, alias: libstdcxx-runtime }
+  - { origin: ../package-blfs-vulkan-headers, alias: blfs-vulkan-headers }
+  - { origin: ../package-blfs-lame, alias: blfs-lame }
+  - { origin: ../package-blfs-opus, alias: blfs-opus }
+  - { origin: ../package-blfs-svt-av1, alias: blfs-svt-av1 }
+  - { origin: ../package-blfs-x264, alias: blfs-x264 }
+  - { origin: ../package-blfs-x265, alias: blfs-x265 }
+  - { origin: ../package-blfs-speex, alias: blfs-speex }
+  - { origin: ../package-blfs-v4l-utils, alias: blfs-v4l-utils }
+  - { origin: ../package-blfs-xvid, alias: blfs-xvid }
+  - { origin: ../package-blfs-libass, alias: blfs-libass }
+  - { origin: ../package-blfs-fontconfig, alias: blfs-fontconfig }
+  - { origin: ../package-blfs-harfbuzz, alias: blfs-harfbuzz }
+  - { origin: ../package-blfs-fribidi, alias: blfs-fribidi }
+  - { origin: ../package-blfs-freetype, alias: blfs-freetype }
+  - { origin: ../package-blfs-libpng, alias: blfs-libpng }
+  - { origin: ../package-blfs-brotli, alias: blfs-brotli }
+  - { origin: ../package-blfs-glib, alias: blfs-glib }
+  - { origin: ../package-blfs-graphite2, alias: blfs-graphite2 }
+  - { origin: ../package-expat, alias: expat }
+  - { origin: ../package-blfs-libplacebo, alias: blfs-libplacebo }
+  - { origin: ../package-blfs-libvpx, alias: blfs-libvpx }
+  - { origin: ../package-blfs-mesa, alias: blfs-mesa }
+  - { origin: ../package-blfs-pulseaudio, alias: blfs-pulseaudio }
+  - { origin: ../package-blfs-libdvdcss, alias: blfs-libdvdcss }
+  - { origin: ../package-blfs-libdvdread, alias: blfs-libdvdread }
+  - { origin: ../package-blfs-libdvdnav, alias: blfs-libdvdnav }
+  - { origin: ../package-blfs-pipewire, alias: blfs-pipewire }
+  - { origin: ../package-blfs-sdl2-compat, alias: blfs-sdl2-compat }
+  - { origin: ../package-blfs-wayland, alias: blfs-wayland }
+  - { origin: ../package-blfs-wayland-protocols, alias: blfs-wayland-protocols }
+  - { origin: ../package-blfs-libdrm, alias: blfs-libdrm }
+  - { origin: ../package-blfs-libdisplay-info, alias: blfs-libdisplay-info }
+  - { origin: ../package-blfs-alsa-lib, alias: blfs-alsa-lib }
+  - { origin: ../package-blfs-libjpeg-turbo, alias: blfs-libjpeg-turbo }
+  - { origin: ../package-blfs-libva, alias: blfs-libva }
+  - { origin: ../package-blfs-libxkbcommon, alias: blfs-libxkbcommon }
+  - { origin: ../package-blfs-libxml2, alias: blfs-libxml2 }
+  - { origin: ../package-blfs-icu, alias: blfs-icu }
+  - { origin: ../package-zlib, alias: zlib }
+  - { origin: ../package-xz, alias: xz }
+var:
+  xbee: { version: "0.41.0-9" }
+  lfs: { jobs: 4 }
+  package:
+    name: mpv
+    version: "0.41.0"
+    source: mpv-0.41.0.tar.gz
+    runtime-dependencies: alsa-lib,ffmpeg,libass,fontconfig,harfbuzz,fribidi,freetype,libpng,brotli,glib,graphite2,expat,libplacebo,libvpx,mesa,pulseaudio,libjpeg-turbo,libva,libdvdcss,libdvdread,libdvdnav,pipewire,sdl2-compat,wayland,wayland-protocols,libdrm,libdisplay-info,libxkbcommon,libxml2,icu,zlib,xz
+build:
+  - shell:
+      cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"']

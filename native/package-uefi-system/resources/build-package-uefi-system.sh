@@ -70,7 +70,7 @@ mkdir -p "$rootfs" "$mount_dir" "$output_dir"
 tar --zstd --xattrs --acls --numeric-owner \
   -xf "$rootfs_archive" -C "$rootfs"
 chroot "$rootfs" id "$admin_user" >/dev/null
-test "$(chroot "$rootfs" /usr/bin/xbpkg list | wc -l)" -eq 91
+test "$(chroot "$rootfs" /usr/bin/xbpkg list | wc -l)" -eq 446
 
 cat >"$rootfs/etc/fstab" <<'EOF'
 /dev/vda2 / ext4 defaults 1 1
@@ -183,7 +183,7 @@ cat >"$output_dir/package-uefi-system-metadata.yaml" <<EOF
 schema-version: 1
 stage: package-uefi-system
 repository-version: "0.34.1"
-package-count: 91
+package-count: 446
 architecture: x86_64
 kernel: "6.18.10"
 init: systemd

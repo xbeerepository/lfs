@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build usbutils 019 for BLFS.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-libusb, alias: blfs-libusb }, { origin: ../package-blfs-hwdata, alias: blfs-hwdata }]
+var: { xbee: { version: "019-1" }, lfs: { jobs: 4 }, package: { name: usbutils, version: "019", source: usbutils-019.tar.xz, runtime-dependencies: "libusb,hwdata" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

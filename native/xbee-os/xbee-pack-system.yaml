@@ -1,0 +1,28 @@
+schema-version: 1.0
+
+description: Minimal XBee OS execution system based on LFS 13.0.
+
+system:
+  builder:
+    origin: ../xbee-os-rootfs
+    alias: rootfs
+  user: root
+
+var:
+  xbee:
+    version: "13.0"
+    user: root
+    group: root
+    app: /workspace
+
+user: root
+directory: /workspace
+
+provision:
+  - shell:
+      cmd:
+        - test -x /bin/bash
+        - test -x /usr/bin/xbee
+        - test -x /usr/bin/xbpkg
+        - grep -Fxq ID=xbee-os /etc/os-release
+        - xbpkg check

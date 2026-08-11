@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build mc 4.8.33 for BLFS.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-ncurses, alias: ncurses }, { origin: ../package-blfs-glib, alias: blfs-glib }, { origin: ../package-blfs-gpm, alias: blfs-gpm }, { origin: ../package-blfs-libarchive, alias: blfs-libarchive }, { origin: ../package-blfs-libssh2, alias: blfs-libssh2 }, { origin: ../package-blfs-zip, alias: blfs-zip }]
+var: { xbee: { version: "4.8.33-2" }, lfs: { jobs: 4 }, package: { name: mc, version: "4.8.33", source: mc-4.8.33.tar.xz, runtime-dependencies: "ncurses,glib,gpm,libarchive,libssh2,zip" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

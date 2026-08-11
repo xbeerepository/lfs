@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build libraw 0.22.0 for BLFS.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-libjpeg-turbo, alias: blfs-libjpeg-turbo }, { origin: ../package-blfs-lcms2, alias: blfs-lcms2 }, { origin: ../package-blfs-jasper, alias: blfs-jasper }]
+var: { xbee: { version: "0.22.0-1" }, lfs: { jobs: 4 }, package: { name: libraw, version: "0.22.0", source: LibRaw-0.22.0.tar.gz, runtime-dependencies: "libjpeg-turbo,lcms2,jasper" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]

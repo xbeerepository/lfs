@@ -18,7 +18,7 @@ builder:
 
 var:
   xbee:
-    version: "2.47"
+    version: "2.47-2"
   lfs:
     jobs: 4
   package:
@@ -37,3 +37,4 @@ build:
           "{{ .package.name }}" "{{ .package.version }}"
           "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
           "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}"
+          "{{ .xbee.resources }}/build.sh"

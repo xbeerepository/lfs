@@ -1,0 +1,26 @@
+schema-version: 1.0
+description: Build libva 2.23.0 with DRM and Wayland support.
+require: ../../build-system
+builder:
+  - { origin: ../package-template, alias: tools }
+  - { origin: ../blfs-sources, alias: sources }
+  - { origin: ../final-system, alias: system }
+  - { origin: ../package-meson, alias: meson }
+  - { origin: ../package-ninja, alias: ninja }
+  - { origin: ../package-pkgconf, alias: pkgconf }
+  - { origin: ../package-blfs-libdrm, alias: blfs-libdrm }
+  - { origin: ../package-blfs-mesa, alias: blfs-mesa }
+  - { origin: ../package-blfs-wayland, alias: blfs-wayland }
+  - { origin: ../package-blfs-libxml2, alias: blfs-libxml2 }
+var:
+  xbee: { version: "2.23.0-2" }
+  lfs: { jobs: 4 }
+  package: { name: libva, version: "2.23.0", source: libva-2.23.0.tar.gz, runtime-dependencies: "libdrm,mesa,wayland,libxml2" }
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources"
+          "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}"
+          "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}"
+          "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"

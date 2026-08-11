@@ -1,0 +1,6 @@
+schema-version: 1.0
+description: Build gnutls 3.8.12 for BLFS.
+require: ../../build-system
+builder: [{ origin: ../package-template, alias: tools }, { origin: ../blfs-sources, alias: sources }, { origin: ../final-system, alias: system }, { origin: ../package-blfs-nettle, alias: blfs-nettle }, { origin: ../package-blfs-libtasn1, alias: blfs-libtasn1 }, { origin: ../package-blfs-p11-kit, alias: blfs-p11-kit }, { origin: ../package-blfs-make-ca, alias: blfs-make-ca }, { origin: ../package-blfs-libunistring, alias: blfs-libunistring }]
+var: { xbee: { version: "3.8.12-1" }, lfs: { jobs: 4 }, package: { name: gnutls, version: "3.8.12", source: gnutls-3.8.12.tar.xz, runtime-dependencies: "nettle,libtasn1,p11-kit,make-ca,libunistring" } }
+build: [{ shell: { cmd: ['bash "/opt/xbee-lfs-native/build-xbpkg.sh" "/opt/xbee-lfs-native/sources" "/opt/xbee-lfs-native/final-rootfs.tar.zst" "{{ .package.name }}" "{{ .package.version }}" "{{ .package.source }}" "{{ index .package "runtime-dependencies" }}" "{{ .lfs.jobs }}" "{{ .xbee.src }}" "{{ .xbee.out }}" "{{ .xbee.resources }}/build.sh"'] } }]
