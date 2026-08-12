@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+pack_dir="${repo_root}/native/xbee-os"
 test_cache=$(mktemp -d "${TMPDIR:-/tmp}/xbee-cold-cache.XXXXXX")
 test_log=$(mktemp "${TMPDIR:-/tmp}/xbee-cold-cache.XXXXXX.log")
 cleanup() {
@@ -10,7 +11,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-if ! (cd "${script_dir}" && script --quiet --return \
+if ! (cd "${pack_dir}" && script --quiet --return \
   --command "env XBEE_INTERNAL_DIR='${test_cache}' xbee pack" /dev/null) \
   2>&1 | tee "${test_log}"; then
   echo "cold-cache pack failed" >&2
