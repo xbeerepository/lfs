@@ -13,7 +13,7 @@ var:
     group: xbee
     app: /workspace
   image:
-    container: xbee-os
+    container: ghcr.io/xbeerepository/xbee-os
     tag: "13.0"
 
 user: "{{ .xbee.user }}"

@@ -1,8 +1,9 @@
 # XBee OS
 
 `xbee-os` est un pack system XBee commun à Docker et VirtualBox, basé sur LFS
-13.0. Il référence l'image conteneur `xbee-os:13.0` et le VMDK publié dans la
-release `v0.3.3`.
+13.0. Il référence l'image conteneur publique
+`ghcr.io/xbeerepository/xbee-os:13.0` et le VMDK publié dans la release
+`v0.3.3`.
 Les paquets proviennent du dépôt signé XBee et sont installés par `xbpkg`.
 L'image conteneur n'embarque ni noyau, ni GRUB, ni serveur SSH. Elle contient
 les bibliothèques et outils utilisateur de systemd requis par `su`, mais
@@ -32,7 +33,7 @@ Le builder `xbee-os-image` produit sous `/opt/xbee-os` :
 
 ```bash
 docker load --input xbee-os-13.0-docker.tar.zst
-docker run --rm -it xbee-os:13.0
+docker run --rm -it ghcr.io/xbeerepository/xbee-os:13.0
 xbpkg list
 ```
 
@@ -46,7 +47,8 @@ xbee enter
 ```
 
 Le provider VirtualBox sélectionne automatiquement le VMDK déclaré dans le
-pack system, tandis que le provider conteneur utilise `xbee-os:13.0`.
+pack system, tandis que le provider conteneur utilise
+`ghcr.io/xbeerepository/xbee-os:13.0`.
 
 Pour configurer un dépôt distant, créer un fichier dans
 `/etc/xbpkg/repositories.d/`. Le certificat du dépôt utilisé pour construire
