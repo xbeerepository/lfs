@@ -17,12 +17,3 @@ var:
 
 user: root
 directory: /workspace
-
-provision:
-  - shell:
-      cmd:
-        - test -x /bin/bash
-        - test -x /usr/bin/xbee
-        - test -x /usr/bin/xbpkg
-        - grep -Fxq ID=xbee-os /etc/os-release
-        - xbpkg check

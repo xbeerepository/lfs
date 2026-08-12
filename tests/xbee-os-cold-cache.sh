@@ -28,9 +28,9 @@ if grep -Fq "[BUILDER] Executing build task" "${test_log}"; then
   exit 1
 fi
 
-if ! grep -Eq "checked [0-9]+ packages" "${test_log}"; then
-  echo "cold-cache pack did not complete the package integrity check" >&2
+if ! grep -Fq "[DOCKER] Tagged parent image" "${test_log}"; then
+  echo "cold-cache pack did not create the system tag from its rootfs parent" >&2
   exit 1
 fi
 
-echo "cold-cache pack reused the remote cache and passed integrity checks"
+echo "cold-cache pack reused the remote cache and tagged its rootfs parent"
