@@ -15,7 +15,7 @@ directory: /workspace
 
 provider:
   virtualbox:
-    disk: https://github.com/xbeerepository/lfs/releases/download/v0.2.1/xbee-lfs-native-13.0-x86_64-virtualbox.vmdk
+    disk: https://github.com/xbeerepository/lfs/releases/download/v0.3.3/xbee-os-13.0-x86_64-virtualbox.vmdk
     ostype: Linux_64
     guest-additions: false
     cloud-init: ""
