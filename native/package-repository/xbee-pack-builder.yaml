@@ -690,10 +690,11 @@ builder:
   - { origin: ../package-blfs-libnetfilter-conntrack, alias: blfs-libnetfilter-conntrack }
   - { origin: ../package-blfs-conntrack-tools, alias: blfs-conntrack-tools }
   - { origin: ../package-blfs-libcap-ng, alias: blfs-libcap-ng }
+  - { origin: ../package-kubernetes-components, alias: kubernetes-components }
 
 var:
   xbee:
-    version: "1.22.21"
+    version: "1.23.2"
 
 build:
   - shell:

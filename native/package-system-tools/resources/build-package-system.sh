@@ -220,7 +220,7 @@ systemd-timesync:!:1::::::
 systemd-oom:!:1::::::
 polkitd:!:1::::::
 nobody:!:1::::::
-$admin_user:!:1::::::
+$admin_user:NP:1::::::
 EOF
 chmod 0644 "$rootfs/etc/passwd" "$rootfs/etc/group"
 chmod 0400 "$rootfs/etc/shadow"
@@ -331,6 +331,10 @@ PermitRootLogin no
 PasswordAuthentication no
 KbdInteractiveAuthentication no
 AllowUsers $admin_user
+# The VirtualBox provider probes SSH once per second while the first-boot
+# NoCloud service installs its key.  OpenSSH otherwise penalizes the source
+# before provisioning has completed and keeps rejecting the provider probes.
+PerSourcePenalties no
 EOF
 if [[ -n "$authorized_key" ]]; then
   printf '%s\n' "$authorized_key" \

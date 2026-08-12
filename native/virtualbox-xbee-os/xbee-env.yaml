@@ -1,0 +1,16 @@
+schema-version: "1.0"
+
+provider:
+  name: virtualbox
+  host:
+    cpus: 2
+    memory: 2048
+
+default:
+  host:
+    system: ../xbee-os-virtualbox
+    net: xbee_os
+
+host:
+  xbee-os:
+    pack: ./pack

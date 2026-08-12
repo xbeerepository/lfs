@@ -1,0 +1,8 @@
+# SHA256 filename URL
+3e7da6f4eaab072e11fc2e88f5a2eaf6da6ffff2c6c2a8f262d3856df8e2be35 containerd-static-2.3.1-linux-amd64.tar.gz https://github.com/containerd/containerd/releases/download/v2.3.1/containerd-static-2.3.1-linux-amd64.tar.gz
+177df879d50c913eb205e898d5c1c05a18f574053c0ce5524c471208eaf06f6f runc.amd64 https://github.com/opencontainers/runc/releases/download/v1.5.1/runc.amd64
+b98f74a0f8522f0a83867178729c1aa70f2158f90c45a2ca8fa791db1c76b303 cni-plugins-linux-amd64-v1.9.1.tgz https://github.com/containernetworking/plugins/releases/download/v1.9.1/cni-plugins-linux-amd64-v1.9.1.tgz
+83855e114566a8a8c44c548d515670f51de3a5e1da8b2effb59870e2f10c25a3 crictl-v1.36.0-linux-amd64.tar.gz https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.36.0/crictl-v1.36.0-linux-amd64.tar.gz
+f95d1b345f97c673ce1c1347eb96bf2587850975155ae701cdfc629a5b575b70 kubeadm https://dl.k8s.io/v1.36.2/bin/linux/amd64/kubeadm
+3ba68cb4f0906053c08ab843131d5cec559cf8c718dbd679950a078b306abbb4 kubelet https://dl.k8s.io/v1.36.2/bin/linux/amd64/kubelet
+1e9045ec32bea85da43de85f0065358529ea7c7a152eca78154fba5b58c27d82 kubectl https://dl.k8s.io/v1.36.2/bin/linux/amd64/kubectl

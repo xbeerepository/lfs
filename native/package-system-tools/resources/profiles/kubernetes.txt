@@ -1,0 +1,42 @@
+# Bootable XBee OS node
+bash
+coreutils
+systemd
+dbus
+util-linux
+shadow
+sudo
+grub
+linux-kernel
+linux-modules
+e2fsprogs
+kmod
+procps-ng
+iproute2
+inetutils
+openssh
+dhcpcd
+ca-certificates
+curl
+gawk
+sed
+grep
+findutils
+tar
+zstd
+openssl
+
+# Kubernetes networking
+iptables
+nftables
+conntrack-tools
+ipset
+
+# Kubernetes runtime and node tools
+runc
+cni-plugins
+containerd
+cri-tools
+kubeadm
+kubelet
+kubectl

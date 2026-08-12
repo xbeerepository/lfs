@@ -1,0 +1,16 @@
+schema-version: "1.0"
+
+provider:
+  name: virtualbox
+  host:
+    cpus: 2
+    memory: 4096
+
+default:
+  host:
+    system: ../kubernetes-os
+    net: xbee_kubernetes
+
+host:
+  control-plane:
+    pack: ./pack

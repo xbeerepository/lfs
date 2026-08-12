@@ -1,0 +1,26 @@
+schema-version: 1.0
+
+description: Export the Kubernetes XBee OS rootfs as an execution-system parent.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-kubernetes-system
+    alias: image
+
+var:
+  xbee:
+    version: "13.0-kubernetes-1.36.2"
+
+build:
+  - shell:
+      cmd:
+        - install -d "{{ .xbee.out }}/opt/xbee-system"
+        - >-
+          install -m 0644
+          "/opt/xbee-lfs-native/kubernetes-rootfs.tar.zst"
+          "{{ .xbee.out }}/opt/xbee-system/rootfs.tar.zst"
+        - >-
+          install -m 0644
+          "/opt/xbee-lfs-native/kubernetes-rootfs.tar.zst.sha256"
+          "{{ .xbee.out }}/opt/xbee-system/rootfs.tar.zst.sha256"

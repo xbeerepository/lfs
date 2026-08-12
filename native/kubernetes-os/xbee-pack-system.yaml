@@ -1,0 +1,26 @@
+schema-version: 1.0
+
+description: Kubernetes 1.36 node execution system based on XBee OS 13.0.
+
+system:
+  builder:
+    origin: ../kubernetes-os-rootfs
+    alias: rootfs
+  user: xbee
+
+var:
+  xbee:
+    version: "13.0-kubernetes-1.36.2"
+    user: xbee
+    group: xbee
+    app: /workspace
+
+user: xbee
+directory: /workspace
+
+provider:
+  virtualbox:
+    disk: https://github.com/xbeerepository/lfs/releases/download/v0.3.0/kubernetes-os-13.0-x86_64-virtualbox.vmdk
+    ostype: Linux_64
+    guest-additions: false
+    cloud-init: ""

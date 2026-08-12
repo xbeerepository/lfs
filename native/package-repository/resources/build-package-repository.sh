@@ -68,8 +68,8 @@ for package in "$packages_root"/*.xbpkg.tar.zst; do
   install -m 0644 "$package" "$repository/packages/"
   package_count=$((package_count + 1))
 done
-[[ "$package_count" -eq 447 ]] || {
-  echo "expected 447 packages, found $package_count" >&2
+[[ "$package_count" -eq 454 ]] || {
+  echo "expected 454 packages, found $package_count" >&2
   exit 1
 }
 
@@ -383,7 +383,7 @@ packages:
   - name: findutils
     version: "4.10.0"
   - name: groff
-    version: "1.23.0"
+    version: "1.23.2"
     dependencies:
       - gcc
       - perl
@@ -2182,6 +2182,13 @@ packages:
   - { name: libnetfilter-conntrack, version: "1.1.0", dependencies: [libmnl, libnfnetlink] }
   - { name: conntrack-tools, version: "1.4.8", dependencies: [libmnl, libnetfilter-conntrack, libtirpc] }
   - { name: libcap-ng, version: "0.8.5", dependencies: [] }
+  - { name: runc, version: "1.5.1", dependencies: [glibc] }
+  - { name: cni-plugins, version: "1.9.1", dependencies: [glibc] }
+  - { name: containerd, version: "2.3.1", dependencies: [runc, cni-plugins, systemd] }
+  - { name: cri-tools, version: "1.36.0", dependencies: [glibc] }
+  - { name: kubeadm, version: "1.36.2", dependencies: [glibc] }
+  - { name: kubelet, version: "1.36.2", dependencies: [glibc, containerd] }
+  - { name: kubectl, version: "1.36.2", dependencies: [glibc] }
   - { name: cython, version: "3.2.9", dependencies: [python] }
   - { name: sassc, version: "3.6.2", dependencies: [] }
   - { name: userspace-rcu, version: "0.15.2", dependencies: [] }
@@ -2192,12 +2199,12 @@ mapfile -t indexed_packages < <(sed -n \
   -e 's/^  - name: \([^[:space:]]*\)$/\1/p' \
   -e 's/^  - { name: \([^,]*\),.*$/\1/p' \
   "$repository/index.yaml")
-[[ "${#indexed_packages[@]}" -eq 447 ]] || {
-  echo "expected 447 indexed packages, found ${#indexed_packages[@]}" >&2
+[[ "${#indexed_packages[@]}" -eq 454 ]] || {
+  echo "expected 454 indexed packages, found ${#indexed_packages[@]}" >&2
   exit 1
 }
 unique_indexed_packages=$(printf '%s\n' "${indexed_packages[@]}" | sort -u | wc -l)
-[[ "$unique_indexed_packages" -eq 447 ]] || {
+[[ "$unique_indexed_packages" -eq 454 ]] || {
   echo "repository index contains duplicate package names" >&2
   exit 1
 }
@@ -2655,7 +2662,7 @@ stage: package-repository
 manager: xbpkg
 manager-version: "0.19.1"
 architecture: x86_64
-package-count: 447
+package-count: 454
 tests:
   install: true
   upgrade: true

@@ -1,0 +1,17 @@
+schema-version: 1.0
+
+description: Download and verify the Kubernetes node runtime binaries.
+
+require: ../../build-system
+
+var:
+  xbee:
+    version: "1.36.2"
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "{{ .xbee.resources }}/download.sh"
+          "{{ .xbee.resources }}/sources.tsv"
+          "{{ .xbee.out }}"

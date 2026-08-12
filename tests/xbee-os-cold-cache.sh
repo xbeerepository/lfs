@@ -33,4 +33,14 @@ if ! grep -Fq "[DOCKER] Tagged parent image" "${test_log}"; then
   exit 1
 fi
 
-echo "cold-cache pack reused the remote cache and tagged its rootfs parent"
+if grep -Eq 'Tagged parent image .* as .*-(provision|deploy):' "${test_log}"; then
+  echo "cold-cache pack used an intermediate task suffix for its final image" >&2
+  exit 1
+fi
+
+if ! grep -Eq 'Tagged parent image .* as xbee-os-13\.0:' "${test_log}"; then
+  echo "cold-cache pack did not create the neutral xbee-os final image tag" >&2
+  exit 1
+fi
+
+echo "cold-cache pack reused the remote cache and created a neutral final image tag"

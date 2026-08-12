@@ -1,0 +1,38 @@
+schema-version: 1.0
+
+description: Build a bootable Kubernetes node image based on XBee OS 13.0.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-system-tools
+    alias: tools
+  - origin: ../package-repository
+    alias: repository
+  - origin: ../nocloud-agent
+    alias: nocloud
+
+var:
+  xbee:
+    version: "1.36.2"
+  lfs:
+    hostname: kubernetes-node
+    admin_user: xbee
+    authorized_key: ""
+  image:
+    name: kubernetes-os-13.0-x86_64
+    extra_size_mib: 2048
+    revision: 5
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "/opt/xbee-lfs-native/build-package-system.sh"
+          "/opt/xbee-lfs-repository"
+          "{{ .lfs.admin_user }}" "{{ .lfs.hostname }}"
+          "{{ .lfs.authorized_key }}"
+          "{{ .image.name }}" "{{ .image.extra_size_mib }}"
+          "/opt/xbee-lfs-nocloud/xbee-nocloud"
+          "/opt/xbee-lfs-native/package-profiles/kubernetes.txt"
+          "{{ .xbee.src }}" "{{ .xbee.out }}"

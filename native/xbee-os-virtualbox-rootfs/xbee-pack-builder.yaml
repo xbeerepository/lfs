@@ -1,0 +1,26 @@
+schema-version: 1.0
+
+description: Export the bootable minimal XBee OS rootfs as an execution-system parent.
+
+require: ../../build-system
+
+builder:
+  - origin: ../package-minimal-system
+    alias: image
+
+var:
+  xbee:
+    version: "13.0"
+
+build:
+  - shell:
+      cmd:
+        - install -d "{{ .xbee.out }}/opt/xbee-system"
+        - >-
+          install -m 0644
+          "/opt/xbee-lfs-native/minimal-rootfs.tar.zst"
+          "{{ .xbee.out }}/opt/xbee-system/rootfs.tar.zst"
+        - >-
+          install -m 0644
+          "/opt/xbee-lfs-native/minimal-rootfs.tar.zst.sha256"
+          "{{ .xbee.out }}/opt/xbee-system/rootfs.tar.zst.sha256"

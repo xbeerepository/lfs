@@ -19,6 +19,7 @@ var:
     version: "6.18.10"
   lfs:
     jobs: 4
+    config_revision: 3
   package:
     name: linux-kernel
     version: "6.18.10"

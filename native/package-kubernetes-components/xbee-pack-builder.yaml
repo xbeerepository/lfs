@@ -1,0 +1,21 @@
+schema-version: 1.0
+
+description: Package the Kubernetes node components for xbpkg.
+
+require: ../../build-system
+
+builder:
+  - origin: ../kubernetes-sources
+    alias: sources
+
+var:
+  xbee:
+    version: "1.36.2"
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "{{ .xbee.resources }}/build.sh"
+          "/opt/xbee-kubernetes/sources"
+          "{{ .xbee.src }}" "{{ .xbee.out }}"

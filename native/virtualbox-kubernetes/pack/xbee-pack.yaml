@@ -1,0 +1,17 @@
+schema-version: 1.0
+
+description: Validate Kubernetes OS as a VirtualBox node.
+
+require: ../../kubernetes-os
+
+provision:
+  - shell:
+      cmd:
+        - test -x /usr/bin/kubeadm
+        - test -x /usr/bin/kubelet
+        - test -x /usr/bin/kubectl
+        - test -x /usr/bin/containerd
+        - test -x /usr/bin/runc
+        - test -x /usr/bin/crictl
+        - grep -Fxq overlay /etc/modules-load.d/kubernetes.conf
+        - grep -Fxq br_netfilter /etc/modules-load.d/kubernetes.conf

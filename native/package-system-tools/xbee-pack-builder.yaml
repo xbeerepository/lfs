@@ -6,7 +6,7 @@ require: ../../build-system
 
 var:
   xbee:
-    version: "0.54.2"
+    version: "0.55.2"
 
 build:
   - shell:
@@ -24,3 +24,6 @@ build:
         - >-
           install -m 0644 "{{ .xbee.resources }}/profiles/desktop-sway.txt"
           "{{ .xbee.out }}/opt/xbee-lfs-native/package-profiles/desktop-sway.txt"
+        - >-
+          install -m 0644 "{{ .xbee.resources }}/profiles/kubernetes.txt"
+          "{{ .xbee.out }}/opt/xbee-lfs-native/package-profiles/kubernetes.txt"
