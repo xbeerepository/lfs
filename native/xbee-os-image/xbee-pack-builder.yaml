@@ -10,7 +10,7 @@ builder:
 
 var:
   xbee:
-    version: "0.1.0"
+    version: "0.2.3"
   image:
     name: xbee-os
     tag: "13.0"

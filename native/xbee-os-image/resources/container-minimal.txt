@@ -1,6 +1,8 @@
 # Runtime required by xbpkg and a usable interactive container.
 glibc
 bash
+shadow
+systemd
 coreutils
 gawk
 sed

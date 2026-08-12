@@ -75,9 +75,11 @@ install -Dm0644 "$repository_key" \
 : >"$rootfs/etc/xbpkg/revoked-keys"
 
 mkdir -p "$rootfs/dev" "$rootfs/proc" "$rootfs/sys" "$rootfs/run" \
-  "$rootfs/tmp" "$rootfs/root" "$rootfs/var/cache/xbpkg/repositories"
+  "$rootfs/tmp" "$rootfs/root" "$rootfs/home/xbee" "$rootfs/workspace" \
+  "$rootfs/var/cache/xbpkg/repositories"
 chmod 1777 "$rootfs/tmp"
 chmod 0700 "$rootfs/root"
+chown 1000:1000 "$rootfs/home/xbee" "$rootfs/workspace"
 
 for legacy_dir in bin sbin lib lib64; do
   if [[ -d "$rootfs/$legacy_dir" && ! -L "$rootfs/$legacy_dir" ]]; then
@@ -92,12 +94,25 @@ ln -sfn bash "$rootfs/usr/bin/sh"
 
 cat >"$rootfs/etc/passwd" <<'EOF'
 root:x:0:0:root:/root:/bin/bash
+xbee:x:1000:1000:XBee user:/home/xbee:/bin/bash
 nobody:x:65534:65534:Unprivileged User:/dev/null:/bin/false
 EOF
 cat >"$rootfs/etc/group" <<'EOF'
 root:x:0:
+xbee:x:1000:
 nobody:x:65534:
 EOF
+cat >"$rootfs/etc/shadow" <<'EOF'
+root:!:1::::::
+xbee:!:1::::::
+nobody:!:1::::::
+EOF
+cat >"$rootfs/etc/gshadow" <<'EOF'
+root:!::
+xbee:!::
+nobody:!::
+EOF
+chmod 0600 "$rootfs/etc/shadow" "$rootfs/etc/gshadow"
 cat >"$rootfs/etc/nsswitch.conf" <<'EOF'
 passwd: files
 group: files
@@ -125,7 +140,7 @@ for required in bash coreutils curl openssl tar zstd; do
     exit 1
   }
 done
-for excluded in grub linux-kernel linux-modules openssh systemd; do
+for excluded in grub linux-kernel linux-modules openssh; do
   if awk '{print $1}' "$packages_file" | grep -Fxq "$excluded"; then
     echo "container profile unexpectedly contains: $excluded" >&2
     exit 1
@@ -133,7 +148,7 @@ for excluded in grub linux-kernel linux-modules openssh systemd; do
 done
 "$manager" --root "$rootfs" check
 chroot "$rootfs" /bin/bash -lc \
-  'test "$(. /etc/os-release; printf %s "$ID")" = xbee-os && command -v xbpkg >/dev/null'
+  'test "$(. /etc/os-release; printf %s "$ID")" = xbee-os && command -v xbpkg >/dev/null && id xbee >/dev/null'
 
 epoch=${SOURCE_DATE_EPOCH:-0}
 tar_options=(--sort=name --numeric-owner --owner=0 --group=0 \
@@ -147,7 +162,7 @@ layer_size=$(stat -c %s "$rootfs_tar")
 created=$(date -u -d "@$epoch" '+%Y-%m-%dT%H:%M:%SZ')
 config_tmp="$work_root/config.json"
 cat >"$config_tmp" <<EOF
-{"architecture":"amd64","config":{"Cmd":["/bin/bash"],"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"],"Hostname":"","Image":"","Labels":{"org.opencontainers.image.ref.name":"$image_name","org.opencontainers.image.title":"XBee OS","org.opencontainers.image.version":"$image_tag"},"WorkingDir":"/root"},"created":"$created","history":[{"created":"$created","created_by":"xbpkg: XBee OS $image_tag container-minimal"}],"os":"linux","rootfs":{"diff_ids":["sha256:$layer_digest"],"type":"layers"}}
+{"architecture":"amd64","config":{"Cmd":["/bin/bash"],"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"],"Hostname":"","Image":"","Labels":{"org.opencontainers.image.ref.name":"$image_name","org.opencontainers.image.title":"XBee OS","org.opencontainers.image.version":"$image_tag"},"User":"1000:1000","WorkingDir":"/workspace"},"created":"$created","history":[{"created":"$created","created_by":"xbpkg: XBee OS $image_tag container-minimal"}],"os":"linux","rootfs":{"diff_ids":["sha256:$layer_digest"],"type":"layers"}}
 EOF
 config_digest=$(sha256sum "$config_tmp" | awk '{print $1}')
 install -m 0644 "$config_tmp" "$docker_root/$config_digest.json"

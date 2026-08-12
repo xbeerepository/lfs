@@ -1,19 +1,27 @@
 schema-version: 1.0
 
-description: Minimal XBee OS execution system based on LFS 13.0.
+description: Minimal XBee OS 13.0 system for Docker and VirtualBox.
 
 system:
-  builder:
-    origin: ../xbee-os-rootfs
-    alias: rootfs
-  user: root
+  container: "{{ .image.container }}:{{ .image.tag }}"
+  user: "{{ .xbee.user }}"
 
 var:
   xbee:
     version: "13.0"
-    user: root
-    group: root
+    user: xbee
+    group: xbee
     app: /workspace
+  image:
+    container: xbee-os
+    tag: "13.0"
 
-user: root
-directory: /workspace
+user: "{{ .xbee.user }}"
+directory: "{{ .xbee.app }}"
+
+provider:
+  virtualbox:
+    disk: https://github.com/xbeerepository/lfs/releases/download/v0.3.3/xbee-os-13.0-x86_64-virtualbox.vmdk
+    ostype: Linux_64
+    guest-additions: false
+    cloud-init: ""

@@ -2,7 +2,7 @@ schema-version: 1.0
 
 description: Validate the minimal bootable XBee OS image.
 
-require: ../../xbee-os-virtualbox
+require: ../../xbee-os
 
 provision:
   - shell:

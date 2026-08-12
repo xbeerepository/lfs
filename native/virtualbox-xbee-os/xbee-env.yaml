@@ -8,7 +8,7 @@ provider:
 
 default:
   host:
-    system: ../xbee-os-virtualbox
+    system: ../xbee-os
     net: xbee_os
 
 host:
