@@ -58,6 +58,12 @@ packages:
       - openssl
       - zlib
       - pcre2
+  - name: nginx
+    version: "1.28.3"
+    dependencies:
+      - openssl
+      - zlib
+      - pcre2
   - name: libpipeline
     version: "1.5.8"
   - name: man-db

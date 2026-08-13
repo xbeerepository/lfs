@@ -1,11 +1,12 @@
-3ad1e7a919eea34a3ddf5b17cb00c1e0ff5f01cf9fbcd5dbc5b7b57e26867bb4  RELEASE
-2e1c5cdb902a0bcdaf5279dc77f8c19bd9a7c46ca449dee2df4732fc75fb218a  index.yaml
+f4e6ac17cb5a43a555a525e0bbd97b422c8a01f33fec44cfc28ab438482dd53c  RELEASE
+72b5b6e41b48cdd90500e8f2696f60772cbc1dd0263ae60230b022e125df13f8  index.yaml
 18c42e093bf8e2f0378c7047baaef0de66b6842ede3a508d85a6ff0c5fd739f7  bin/xbpkg
 321c80b3f6d52cc4227fe6deb776b135fbd1ff3c701b8d85162daf77bc787bd7  packages/apr-1.7.6-x86_64.xbpkg.tar.zst
 256d1e1c9de5af01ff8c087f046a3f0361159c7ccab3d5ca8e0b0e718340b192  packages/apr-util-1.6.5-x86_64.xbpkg.tar.zst
 89e022938e3bedb9c1807b8ca0848b175f4be13042897c491aa392beada293db  packages/haproxy-3.2.21-x86_64.xbpkg.tar.zst
 5b83acf403ae7260c2c3bab3fb3baaca7d9f6a11cf0652fba4e293cdb2b5fe8e  packages/httpd-2.4.68-x86_64.xbpkg.tar.zst
 4dcd28a64bee5ee5aa059f7dc18407c7dece8412e29bd94213b7fc20e3f4de54  packages/libxml2-2.15.1-x86_64.xbpkg.tar.zst
+4c99ecc9f8f1e828471c441aee29e2dfcdd0755965570c3dc845b35b8861ea7e  packages/nginx-1.28.3-x86_64.xbpkg.tar.zst
 cc0db1be1c320136020416c831912b86bf3eb4084c969ba6762fca639681c893  packages/openssl-3.6.1-x86_64.xbpkg.tar.zst
 3c518a594d24dca6891ff4def2b61e3a08313d1d2fc898861db6b82497460b4b  packages/php-8.4.22-x86_64.xbpkg.tar.zst
 6e10ce2594a8360fe01617b92e4c2bbcf4eaf58505a2ce33b9af595ea016ba27  packages/php-fpm-8.4.22-x86_64.xbpkg.tar.zst
