@@ -1,0 +1,6 @@
+schema-version: 1
+repository: xbee-os
+serial: 1
+version: "1.0.0"
+published-at: "2026-08-13T00:00:00Z"
+expires-at: "2027-08-13T00:00:00Z"

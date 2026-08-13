@@ -1,0 +1,9 @@
+schema-version: 1
+repository: xbee-os
+version: "1.0.0"
+architecture: x86_64
+format: xbpkg.tar.zst
+packages:
+  - { name: apr, version: "1.7.6", dependencies: [] }
+  - { name: apr-util, version: "1.6.5", dependencies: [apr, expat, openssl] }
+  - { name: httpd, version: "2.4.68", dependencies: [apr-util, pcre2, openssl, zlib] }
