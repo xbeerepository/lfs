@@ -1,9 +1,50 @@
 schema-version: 1
-repository: xbee-os
-version: "1.0.0"
-architecture: x86_64
-format: xbpkg.tar.zst
 packages:
-  - { name: apr, version: "1.7.6", dependencies: [] }
-  - { name: apr-util, version: "1.6.5", dependencies: [apr, expat, openssl] }
-  - { name: httpd, version: "2.4.68", dependencies: [apr-util, pcre2, openssl, zlib] }
+  name: "apr"
+  version: "1.7.6"
+  architecture: x86_64
+  dependencies: ""
+  payload: rootfs
+    archive: packages/apr-1.7.6-x86_64.xbpkg.tar.zst
+  name: "apr-util"
+  version: "1.6.5"
+  architecture: x86_64
+  dependencies: "apr,expat,openssl"
+  payload: rootfs
+    archive: packages/apr-util-1.6.5-x86_64.xbpkg.tar.zst
+  name: "httpd"
+  version: "2.4.68"
+  architecture: x86_64
+  dependencies: "apr-util,pcre2,openssl,zlib"
+  payload: rootfs
+    archive: packages/httpd-2.4.68-x86_64.xbpkg.tar.zst
+  name: "libxml2"
+  version: "2.15.1"
+  architecture: x86_64
+  dependencies: "readline,zlib,xz"
+  payload: rootfs
+    archive: packages/libxml2-2.15.1-x86_64.xbpkg.tar.zst
+  name: "openssl"
+  version: "3.6.1"
+  architecture: x86_64
+  dependencies: "zlib"
+  payload: rootfs
+    archive: packages/openssl-3.6.1-x86_64.xbpkg.tar.zst
+  name: "php"
+  version: "8.4.22"
+  architecture: x86_64
+  dependencies: "libxml2,openssl,zlib"
+  payload: rootfs
+    archive: packages/php-8.4.22-x86_64.xbpkg.tar.zst
+  name: "php-fpm"
+  version: "8.4.22"
+  architecture: x86_64
+  dependencies: "php,httpd,libxml2,openssl,zlib"
+  payload: rootfs
+    archive: packages/php-fpm-8.4.22-x86_64.xbpkg.tar.zst
+  name: "zlib"
+  version: "1.3.2"
+  architecture: x86_64
+  dependencies: ""
+  payload: rootfs
+    archive: packages/zlib-1.3.2-x86_64.xbpkg.tar.zst
