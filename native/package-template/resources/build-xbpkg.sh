@@ -17,6 +17,7 @@ source_root=$8
 output_root=$9
 recipe=${10:-}
 tool_root=$(cd "$(dirname "$0")" && pwd)
+kernel_revision=${XBEE_KERNEL_REVISION:-1}
 
 if [[ ! "$package_name" =~ ^[a-z0-9][a-z0-9+._-]*$ ||
       ! "$package_version" =~ ^[A-Za-z0-9][A-Za-z0-9+._~-]*$ ]]; then
@@ -1637,3 +1638,42 @@ tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner \
   sha256sum "$(basename "$package_archive")" \
     >"$(basename "$package_archive").sha256"
 )
+
+# Publish a provider-neutral kernel bundle next to the installable xbpkg. Image
+# providers consume this artefact without having to understand xbpkg metadata.
+if [[ "$package_name" == linux-kernel ]]; then
+  kernel_bundle_dir="$work_root/kernel-bundle"
+  kernel_file="$rootfs/sources/xbpkg-linux-kernel/vmlinux"
+  [[ -f "$kernel_file" ]] || {
+    echo "uncompressed ELF kernel not found: $kernel_file" >&2
+    exit 1
+  }
+  install -d "$kernel_bundle_dir"
+  install -m 0644 "$kernel_file" "$kernel_bundle_dir/vmlinux"
+  install -m 0644 "$stage/boot/config-$package_version-xbee-lfs" \
+    "$kernel_bundle_dir/config"
+  install -m 0644 "$stage/boot/System.map-$package_version-xbee-lfs" \
+    "$kernel_bundle_dir/System.map"
+  kernel_sha256=$(sha256sum "$kernel_bundle_dir/vmlinux" | awk '{print $1}')
+  cat >"$kernel_bundle_dir/manifest.json" <<EOF
+{
+  "schemaVersion": 1,
+  "kind": "xbee-kernel",
+  "name": "xbee-kernel",
+  "version": "$package_version",
+  "revision": "$kernel_revision",
+  "variant": "microvm",
+  "architecture": "x86_64",
+  "release": "$package_version-xbee-lfs",
+  "kernel": "vmlinux",
+  "sha256": "$kernel_sha256"
+}
+EOF
+  kernel_bundle="$output_dir/xbee-kernel-$package_version-r$kernel_revision-microvm-x86_64.tar.zst"
+  tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner \
+    --zstd -C "$kernel_bundle_dir" -cf "$kernel_bundle" .
+  (
+    cd "$output_dir"
+    sha256sum "$(basename "$kernel_bundle")" >"$(basename "$kernel_bundle").sha256"
+  )
+fi

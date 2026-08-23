@@ -19,7 +19,7 @@ var:
     version: "6.18.10"
   lfs:
     jobs: 4
-    config_revision: 3
+    config_revision: 5
   package:
     name: linux-kernel
     version: "6.18.10"
@@ -30,6 +30,7 @@ build:
   - shell:
       cmd:
         - >-
+          XBEE_KERNEL_REVISION="{{ .lfs.config_revision }}"
           bash "/opt/xbee-lfs-native/build-xbpkg.sh"
           "/opt/xbee-lfs-native/sources"
           "/opt/xbee-lfs-native/final-rootfs.tar.zst"
