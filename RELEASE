@@ -1,0 +1,6 @@
+schema-version: 1
+repository: xbee-lfs-native
+serial: 110
+version: "1.3.3"
+published-at: "2026-08-23T07:30:00Z"
+expires-at: "2027-02-23T07:30:00Z"

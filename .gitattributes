@@ -1,1 +1,2 @@
 native/package-blfs-gst-plugins-rs/resources/cargo-vendor-*.tar.zst filter=lfs diff=lfs merge=lfs -text
+packages/*.xbpkg.tar.zst filter=lfs diff=lfs merge=lfs -text
