@@ -1644,12 +1644,18 @@ tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner \
 if [[ "$package_name" == linux-kernel ]]; then
   kernel_bundle_dir="$work_root/kernel-bundle"
   kernel_file="$rootfs/sources/xbpkg-linux-kernel/vmlinux"
+  boot_kernel_file="$stage/boot/vmlinuz-$package_version-xbee-lfs"
   [[ -f "$kernel_file" ]] || {
     echo "uncompressed ELF kernel not found: $kernel_file" >&2
     exit 1
   }
+  [[ -f "$boot_kernel_file" ]] || {
+    echo "bootable kernel not found: $boot_kernel_file" >&2
+    exit 1
+  }
   install -d "$kernel_bundle_dir"
   install -m 0644 "$kernel_file" "$kernel_bundle_dir/vmlinux"
+  install -m 0644 "$boot_kernel_file" "$kernel_bundle_dir/vmlinuz"
   install -m 0644 "$stage/boot/config-$package_version-xbee-lfs" \
     "$kernel_bundle_dir/config"
   install -m 0644 "$stage/boot/System.map-$package_version-xbee-lfs" \
