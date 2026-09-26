@@ -14,22 +14,22 @@ xbee up
 xbee enter master1
 ```
 
-Le script `environment.sh` permet ensuite de gérer l'ensemble des machines :
+Pour tester une version locale du provider VirtualBox, construire le binaire
+depuis le monorepo puis l'indiquer directement à XBee :
 
 ```bash
-./environment.sh start
-./environment.sh stop
-./environment.sh restart
+cd ~/xbee-projects/xbee-providers/providers/virtualbox
+go build -trimpath -o ../../dist/xbee-virtualbox ./main
+
+cd ~/xbee-projects/lfs/native/virtualbox-kubernetes
+export XBEE_PROVIDER_BINARY=~/xbee-projects/xbee-providers/dist/xbee-virtualbox
+xbee pack --non-interactive
+xbee up
 ```
 
-Ces opérations correspondent respectivement à `xbee up`, `xbee down`, puis
-`xbee down` suivi de `xbee up`. Au démarrage, le script construit si nécessaire
-le provider depuis le dépôt frère `virtualbox-provider`, raccorde le VMDK local
-`dist/kubernetes-os-v1.37.0` au cache XBee, puis exécute `xbee pack`. Les chemins
-peuvent être remplacés avec `XBEE_VIRTUALBOX_SOURCE`,
-`XBEE_PROVIDER_BINARY`, `XBEE_GUEST_BINARY` et `XBEE_KUBERNETES_VMDK`.
-L'arrêt conserve les machines et leurs disques.
-`xbee delete --force` reste la commande à utiliser pour les supprimer.
+`xbee down` arrête les machines en conservant leurs disques.
+`xbee delete --force` les supprime. Retirer `XBEE_PROVIDER_BINARY` avec `unset`
+permet de revenir au provider publié.
 
 Le test de démarrage complet est automatisé par `./smoke.sh`. Si KVM est
 chargé, il faut d'abord arrêter les VM QEMU/KVM puis décharger temporairement
