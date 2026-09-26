@@ -10,7 +10,7 @@ builder:
 
 var:
   xbee:
-    version: "13.0-kubernetes-1.36.2"
+    version: "13.0-kubernetes-1.37.0"
 
 build:
   - shell:

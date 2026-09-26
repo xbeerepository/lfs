@@ -2,12 +2,27 @@
 set -euo pipefail
 
 sources=$1
-source_root=$2
-output_root=$3
+go_root=$2
+source_root=$3
+output_root=$4
 work="$source_root/kubernetes-packages"
 packages="$output_root/opt/xbee-lfs-packages"
 rm -rf "$work"
 mkdir -p "$work" "$packages"
+
+export PATH="$go_root/bin:$PATH"
+export GOTOOLCHAIN=local
+export KUBE_GIT_VERSION=v1.37.0
+export KUBE_GIT_MAJOR=1
+export KUBE_GIT_MINOR=37
+
+kubernetes_source="$work/kubernetes"
+mkdir -p "$kubernetes_source"
+tar -xzf "$sources/kubernetes-src-v1.37.0.tar.gz" -C "$kubernetes_source"
+(
+  cd "$kubernetes_source"
+  make all WHAT='cmd/kubeadm cmd/kubelet cmd/kubectl'
+)
 
 make_package() {
   local name=$1 version=$2 dependencies=$3 stage=$4
@@ -104,11 +119,11 @@ make_package runc 1.5.1 "glibc" "$stage"
 stage="$work/stage-cni"; mkdir -p "$stage/usr/lib/cni"; tar -xf "$sources/cni-plugins-linux-amd64-v1.9.1.tgz" -C "$stage/usr/lib/cni"
 make_package cni-plugins 1.9.1 "glibc" "$stage"
 
-stage="$work/stage-cri"; mkdir -p "$stage/usr/bin"; tar -xf "$sources/crictl-v1.36.0-linux-amd64.tar.gz" -C "$stage/usr/bin"; make_package cri-tools 1.36.0 "glibc" "$stage"
+stage="$work/stage-cri"; mkdir -p "$stage/usr/bin"; tar -xf "$sources/crictl-v1.37.0-linux-amd64.tar.gz" -C "$stage/usr/bin"; make_package cri-tools 1.37.0 "glibc" "$stage"
 
 for binary in kubeadm kubelet kubectl; do
-  stage="$work/stage-$binary"; mkdir -p "$stage/usr/bin"; install -m 0755 "$sources/$binary" "$stage/usr/bin/$binary"
+  stage="$work/stage-$binary"; mkdir -p "$stage/usr/bin"; install -m 0755 "$kubernetes_source/_output/bin/$binary" "$stage/usr/bin/$binary"
   dependencies=glibc
   [[ "$binary" != kubelet ]] || dependencies="glibc,containerd"
-  make_package "$binary" 1.36.2 "$dependencies" "$stage"
+  make_package "$binary" 1.37.0 "$dependencies" "$stage"
 done

@@ -12,5 +12,9 @@ default:
     net: xbee_kubernetes
 
 host:
-  control-plane:
+  master:
     pack: ./pack
+    count: 3
+  worker:
+    pack: ./pack
+    count: 4

@@ -1,0 +1,16 @@
+schema-version: 1.0
+
+description: Provide the Go toolchain required to build Kubernetes from source.
+
+require: ../../build-system
+
+var:
+  xbee:
+    version: "1.26.2"
+
+build:
+  - shell:
+      cmd:
+        - >-
+          bash "{{ .xbee.resources }}/build.sh"
+          "{{ .xbee.src }}" "{{ .xbee.out }}"

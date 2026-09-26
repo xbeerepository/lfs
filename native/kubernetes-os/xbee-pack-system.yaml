@@ -1,6 +1,6 @@
 schema-version: 1.0
 
-description: Kubernetes 1.36 node execution system based on XBee OS 13.0.
+description: Kubernetes 1.37 node execution system based on XBee OS 13.0.
 
 system:
   builder:
@@ -10,7 +10,7 @@ system:
 
 var:
   xbee:
-    version: "13.0-kubernetes-1.36.2"
+    version: "13.0-kubernetes-1.37.0"
     user: xbee
     group: xbee
     app: /workspace

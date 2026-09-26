@@ -2185,10 +2185,10 @@ packages:
   - { name: runc, version: "1.5.1", dependencies: [glibc] }
   - { name: cni-plugins, version: "1.9.1", dependencies: [glibc] }
   - { name: containerd, version: "2.3.1", dependencies: [runc, cni-plugins, systemd] }
-  - { name: cri-tools, version: "1.36.0", dependencies: [glibc] }
-  - { name: kubeadm, version: "1.36.2", dependencies: [glibc] }
-  - { name: kubelet, version: "1.36.2", dependencies: [glibc, containerd] }
-  - { name: kubectl, version: "1.36.2", dependencies: [glibc] }
+  - { name: cri-tools, version: "1.37.0", dependencies: [glibc] }
+  - { name: kubeadm, version: "1.37.0", dependencies: [glibc] }
+  - { name: kubelet, version: "1.37.0", dependencies: [glibc, containerd] }
+  - { name: kubectl, version: "1.37.0", dependencies: [glibc] }
   - { name: cython, version: "3.2.9", dependencies: [python] }
   - { name: sassc, version: "3.6.2", dependencies: [] }
   - { name: userspace-rcu, version: "0.15.2", dependencies: [] }

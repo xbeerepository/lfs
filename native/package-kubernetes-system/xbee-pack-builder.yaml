@@ -14,7 +14,7 @@ builder:
 
 var:
   xbee:
-    version: "1.36.2"
+    version: "1.37.0"
   lfs:
     hostname: kubernetes-node
     admin_user: xbee

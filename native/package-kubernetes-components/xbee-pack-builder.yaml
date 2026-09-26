@@ -7,10 +7,12 @@ require: ../../build-system
 builder:
   - origin: ../kubernetes-sources
     alias: sources
+  - origin: ../go-toolchain
+    alias: toolchain
 
 var:
   xbee:
-    version: "1.36.2"
+    version: "1.37.0"
 
 build:
   - shell:
@@ -18,4 +20,5 @@ build:
         - >-
           bash "{{ .xbee.resources }}/build.sh"
           "/opt/xbee-kubernetes/sources"
+          "/opt/xbee-go/go"
           "{{ .xbee.src }}" "{{ .xbee.out }}"
