@@ -1,0 +1,65 @@
+schema-version: 1.0
+
+description: Kubernetes 1.37 node based on Ubuntu 26.04.
+
+extend: ubuntu:26.04
+
+system:
+  user: ubuntu
+
+var:
+  xbee:
+    version: 26.04-kubernetes-1.37
+  kubernetes:
+    minor: v1.37
+
+provision:
+  - pkg:
+      name: ca-certificates curl gpg containerd
+      update: true
+      env: DEBIAN_FRONTEND=noninteractive
+
+  - shell: |
+      set -eu
+
+      install -d -m 0755 /etc/apt/keyrings
+      curl -fsSL -o /tmp/kubernetes-release.key \
+        "https://pkgs.k8s.io/core:/stable:/{{ .kubernetes.minor }}/deb/Release.key"
+      gpg --dearmor --yes \
+        -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg \
+        /tmp/kubernetes-release.key
+      rm -f /tmp/kubernetes-release.key
+      chmod 0644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+      cat > /etc/apt/sources.list.d/kubernetes.list <<EOF
+      deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/{{ .kubernetes.minor }}/deb/ /
+      EOF
+
+      apt-get update
+      DEBIAN_FRONTEND=noninteractive apt-get install -y kubelet kubeadm kubectl
+      apt-mark hold kubelet kubeadm kubectl
+
+      cat > /etc/modules-load.d/kubernetes.conf <<EOF
+      overlay
+      br_netfilter
+      EOF
+      modprobe overlay
+      modprobe br_netfilter
+
+      cat > /etc/sysctl.d/99-kubernetes.conf <<EOF
+      net.bridge.bridge-nf-call-iptables = 1
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.ipv4.ip_forward = 1
+      EOF
+      sysctl --system
+
+      swapoff -a
+      sed -ri '/^[^#].+[[:space:]]swap[[:space:]]/s/^/#/' /etc/fstab
+
+      install -d -m 0755 /etc/containerd
+      containerd config default \
+        | sed 's/SystemdCgroup = false/SystemdCgroup = true/' \
+        > /etc/containerd/config.toml
+
+      systemctl enable --now containerd.service
+      systemctl enable kubelet.service

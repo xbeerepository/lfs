@@ -8,7 +8,7 @@ provider:
 
 default:
   host:
-    system: ../kubernetes-os
+    system: ./system
     net: xbee_kubernetes
 
 host:

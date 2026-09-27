@@ -1,9 +1,11 @@
 # Kubernetes OS dans VirtualBox
 
-Cet environnement démarre sept nœuds `kubernetes-os` sur le même réseau
+Cet environnement démarre sept nœuds Kubernetes basés sur Ubuntu 26.04 sur le même réseau
 VirtualBox : trois masters (`master1` à `master3`) et quatre workers
 (`worker1` à `worker4`). Chaque machine dispose de 2 CPU et 4 Gio de mémoire.
-Le pack vérifie le runtime CRI, kubelet, les modules réseau et le swap sur
+Le pack système local `./system` installe Kubernetes 1.37 depuis le dépôt
+officiel, configure containerd avec le pilote cgroup systemd, charge les
+modules réseau et désactive le swap. Le pack hôte vérifie ces prérequis sur
 chaque nœud.
 
 ```bash
@@ -44,7 +46,6 @@ control plane, puis joindre les quatre workers avec les commandes produites par
 sudo kubeadm init --pod-network-cidr=<CIDR-DU-CNI>
 ```
 
-L'image VMDK doit avoir été publiée avec la release indiquée dans le pack
-`../kubernetes-os`. Pour un test avant publication, remplacer temporairement
-la propriété `provider.virtualbox.disk` par l'URL du VMDK construit par
-`package-kubernetes-system`.
+Le système étend `ubuntu:26.04` et utilise donc directement l'image VirtualBox
+définie par le pack système Ubuntu ; aucune image Kubernetes spécifique ne doit
+être reconstruite ou publiée.
