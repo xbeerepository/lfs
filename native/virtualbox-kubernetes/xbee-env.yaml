@@ -2,9 +2,8 @@ schema-version: "1.0"
 
 provider:
   name: virtualbox
-  host:
-    cpus: 2
-    memory: 4096
+  cpus: 2
+  memory: 4096
 
 default:
   host:

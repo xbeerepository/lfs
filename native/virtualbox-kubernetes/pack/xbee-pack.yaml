@@ -4,6 +4,10 @@ description: Validate Kubernetes OS as a VirtualBox node.
 
 require: ../system
 
+var:
+  xbee:
+    version: 26.04-kubernetes-1.37
+
 provision:
   - shell:
       cmd:

@@ -44,6 +44,9 @@ for node in master1 master2 master3 worker1 worker2 worker3 worker4; do
   grep -Fxq XBEE_KUBERNETES_SMOKE_OK <<<"$output"
 done
 
+"$env_dir/bootstrap-cluster.sh"
+"$env_dir/test-ha.sh"
+
 "$xbee_bin" delete --force
 environment_touched=false
 echo "kubernetes-os VirtualBox smoke test passed"

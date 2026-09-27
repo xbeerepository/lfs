@@ -13,6 +13,7 @@ cd native/virtualbox-kubernetes
 xbee validate
 xbee pack
 xbee up
+./bootstrap-cluster.sh
 xbee enter master1
 ```
 
@@ -37,13 +38,29 @@ Le test de démarrage complet est automatisé par `./smoke.sh`. Si KVM est
 chargé, il faut d'abord arrêter les VM QEMU/KVM puis décharger temporairement
 le module KVM, comme pour l'autre scénario VirtualBox du dépôt.
 
-La création des machines ne forme pas automatiquement le cluster. Après leur
-démarrage, initialiser le premier master, joindre les deux autres masters au
-control plane, puis joindre les quatre workers avec les commandes produites par
-`kubeadm` :
+La création des machines prépare les nœuds, puis `bootstrap-cluster.sh` forme le
+cluster. Le script découvre les adresses privées sur `enp0s8`, configure les
+trois control planes et leur etcd local, joint les quatre workers, installe
+Flannel et exécute un test applicatif. L'API Kubernetes est exposée par kube-vip
+sur `192.168.107.50:6443` par défaut :
 
 ```bash
-sudo kubeadm init --pod-network-cidr=<CIDR-DU-CNI>
+./bootstrap-cluster.sh
+./test-ha.sh
+```
+
+`test-ha.sh` retire temporairement le manifeste kube-vip du nœud qui porte la
+VIP, vérifie son transfert vers un autre master et contrôle l'API depuis un
+worker. Le manifeste est restauré même si le test échoue.
+
+Les paramètres peuvent être adaptés sans modifier les scripts :
+
+```bash
+KUBERNETES_VIP=192.168.107.50 \
+KUBERNETES_INTERFACE=enp0s8 \
+KUBERNETES_POD_CIDR=10.244.0.0/16 \
+KUBE_VIP_VERSION=v1.2.3 \
+./bootstrap-cluster.sh
 ```
 
 Le système étend `ubuntu:26.04` et utilise donc directement l'image VirtualBox
